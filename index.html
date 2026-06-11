@@ -188,36 +188,6 @@
     .b-med{border-color: rgba(255,223,108,.35); color: rgba(255,223,108,.95); background: rgba(255,223,108,.10);}
     .b-bad{border-color: rgba(255,107,139,.35); color: rgba(255,107,139,.95); background: rgba(255,107,139,.10);}
 
-    /* Heatmap */
-    .heatmap{
-      display:grid;
-      grid-template-columns: 110px repeat(24, minmax(26px, 1fr));
-      gap:6px;
-      align-items:center;
-    }
-    .hmHead{
-      font-size:12px; color:var(--muted);
-      text-align:center;
-    }
-    .hmRowLabel{
-      font-size:12px; color:rgba(234,240,255,.85);
-      padding-right:8px;
-    }
-    .hmCell{
-      height:26px;
-      border-radius:8px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.18);
-      position:relative;
-    }
-    .hmCell[data-v]:after{
-      content: attr(data-v);
-      position:absolute; inset:0;
-      display:flex; align-items:center; justify-content:center;
-      font-size:11px; color: rgba(234,240,255,.85);
-      text-shadow: 0 1px 0 rgba(0,0,0,.35);
-    }
-
     /* Sections */
     .tabPanel{display:none}
     .tabPanel.active{display:block}
@@ -242,8 +212,8 @@
 
     <nav class="tabs" aria-label="Abas do painel">
       <button class="tabbtn active" data-tab="tab-resumo">Resumo</button>
-      <button class="tabbtn" data-tab="tab-ranking">Ranking Captador</button>
-      <button class="tabbtn" data-tab="tab-heatmap">Mapa de calor (hora)</button>
+      <button class="tabbtn" data-tab="tab-ranking-captador">Ranking Captador</button>
+      <button class="tabbtn" data-tab="tab-ranking-linner">Ranking Linner</button>
       <button class="tabbtn" data-tab="tab-profissionais">Profissionais (ativo/inativo)</button>
       <button class="tabbtn" data-tab="tab-renda">Resultado por renda</button>
     </nav>
@@ -278,15 +248,15 @@
       </div>
     </section>
 
-    <!-- RANKING CAPTADOR (somente Promotor de marketing) -->
-    <section id="tab-ranking" class="tabPanel">
+    <!-- RANKING CAPTADOR -->
+    <section id="tab-ranking-captador" class="tabPanel">
       <div class="grid">
         <section class="card">
           <div class="filters">
             <div class="row" style="grid-template-columns: repeat(2, 1fr);">
               <div>
                 <label>Ordenar por</label>
-                <select id="rankSort">
+                <select id="rankSortCaptador">
                   <option value="vendas">Vendas</option>
                   <option value="vgv">VGV</option>
                   <option value="eficiencia">Eficiência</option>
@@ -297,12 +267,12 @@
               </div>
               <div>
                 <label>Busca (nome contém)</label>
-                <input id="rankSearch" placeholder="Ex.: JOÃO" />
+                <input id="rankSearchCaptador" placeholder="Ex.: JOÃO" />
               </div>
             </div>
 
             <div class="btns">
-              <button id="btnRankAtualizar">Atualizar</button>
+              <button id="btnRankAtualizarCaptador">Atualizar</button>
             </div>
           </div>
         </section>
@@ -322,7 +292,63 @@
                   <th class="right">% Cancel.</th>
                 </tr>
               </thead>
-              <tbody id="rankBody"></tbody>
+              <tbody id="rankBodyCaptador"></tbody>
+            </table>
+          </div>
+          <div class="smallNote">
+            Eficiência: <span class="badge b-good">&ge; 25%</span>,
+            <span class="badge b-med">20% a 24,9%</span>,
+            <span class="badge b-bad">&lt; 20%</span>.
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- RANKING LINNER -->
+    <section id="tab-ranking-linner" class="tabPanel">
+      <div class="grid">
+        <section class="card">
+          <div class="filters">
+            <div class="row" style="grid-template-columns: repeat(2, 1fr);">
+              <div>
+                <label>Ordenar por</label>
+                <select id="rankSortLinner">
+                  <option value="vendas">Vendas</option>
+                  <option value="vgv">VGV</option>
+                  <option value="eficiencia">Eficiência</option>
+                  <option value="casais">Casais</option>
+                  <option value="cancelamentos">Cancelamentos</option>
+                  <option value="pctCancel">% Cancel.</option>
+                </select>
+              </div>
+              <div>
+                <label>Busca (nome contém)</label>
+                <input id="rankSearchLinner" placeholder="Ex.: MARIA" />
+              </div>
+            </div>
+
+            <div class="btns">
+              <button id="btnRankAtualizarLinner">Atualizar</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="tableWrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Linner</th>
+                  <th class="center">Status</th>
+                  <th class="right">Casais</th>
+                  <th class="right">Vendas</th>
+                  <th class="right">VGV</th>
+                  <th class="right">Eficiência</th>
+                  <th class="right">Cancelamentos</th>
+                  <th class="right">% Cancel.</th>
+                </tr>
+              </thead>
+              <tbody id="rankBodyLinner"></tbody>
             </table>
           </div>
           <div class="smallNote">
@@ -331,26 +357,7 @@
             <span class="badge b-bad">&lt; 20%</span>.
           </div>
           <div class="smallNote muted" style="margin-top:10px">
-            Esta aba mostra <b>apenas</b> a coluna <span class="pill">promotor de marketing</span>. Linner e closer/consultor foram removidos do ranking.
-          </div>
-        </section>
-      </div>
-    </section>
-
-    <!-- HEATMAP -->
-    <section id="tab-heatmap" class="tabPanel">
-      <div class="grid">
-        <section class="card">
-          <div class="smallNote">
-            Mapa por <b>hora</b> com contagem de casais que entraram para atendimento.
-            A coluna usada é <span class="pill">hora</span> (ou <span class="pill">horário</span>/<span class="pill">horario</span>).
-            Se sua planilha não tiver isso, me diga o nome exato da coluna e o formato (ex.: <span class="pill">14:35</span>).
-          </div>
-        </section>
-
-        <section class="card">
-          <div class="tableWrap" style="padding:12px; border:none">
-            <div id="heatmap"></div>
+            Este ranking usa a coluna <span class="pill">linner</span> (sua coluna G no CSV).
           </div>
         </section>
       </div>
@@ -364,7 +371,7 @@
             <div>
               <div class="kpis" id="kpisProf"></div>
               <div class="smallNote">
-                Marcação de ativo/inativo é salva no navegador (localStorage). Se quiser persistir via CSV depois, eu adapto.
+                Marcação de ativo/inativo é salva no navegador (localStorage).
               </div>
             </div>
             <div>
@@ -423,7 +430,6 @@
         <section class="card">
           <div class="smallNote">
             Resultado por renda do casal em faixas de <b>R$ 1.000</b>. Precisa da coluna <span class="pill">renda</span> (ou me diga o nome exato).
-            A renda é interpretada como número (aceita <span class="pill">10000</span>, <span class="pill">10.000</span>, <span class="pill">10.000,00</span> etc.).
           </div>
         </section>
 
@@ -450,13 +456,12 @@
 
 <script>
   const CSV_URL = "./dados.csv";
-
   const el = (id) => document.getElementById(id);
 
   const state = {
     rows: [],
     filtered: [],
-    profStatus: {} // key -> boolean (true ativo, false inativo)
+    profStatus: {}
   };
 
   // ========= Utils =========
@@ -508,7 +513,7 @@
       .replaceAll("&","&amp;")
       .replaceAll("<","&lt;")
       .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
+      .replaceAll('"',"&#34;")
       .replaceAll("'","&#039;");
   }
   function normName(s){
@@ -539,16 +544,6 @@
     return rows;
   }
 
-  function parseHour(v){
-    if (!v) return null;
-    const s = String(v).trim();
-    let m = s.match(/^(\d{1,2})(?::(\d{2}))?(?::(\d{2}))?$/);
-    if (!m) return null;
-    const hh = Number(m[1]);
-    if (!Number.isFinite(hh) || hh < 0 || hh > 23) return null;
-    return hh;
-  }
-
   function buildObjects(csvText){
     const matrix = parseCSV(csvText, ";");
     if (!matrix.length) return [];
@@ -557,7 +552,6 @@
     const headers = headersRaw.map(normalizeHeader);
 
     const idx = (name) => headers.indexOf(name);
-
     if (idx("data") === -1){
       throw new Error(`Cabeçalho "data" não encontrado. Cabeçalhos lidos: ${headersRaw.join(" | ")}`);
     }
@@ -573,7 +567,6 @@
       obj._date = parseBRDate(obj["data"]);
       obj._valor = parseMoneyBR(obj["valor vendido"]);
       obj._renda = parseMoneyBR(obj["renda"] ?? obj["renda do casal"] ?? obj["renda familiar"]);
-      obj._hora = parseHour(obj["hora"] ?? obj["horário"] ?? obj["horario"] ?? obj["hora de entrada"] ?? obj["entrada"]);
       rows.push(obj);
     }
     return rows;
@@ -636,28 +629,16 @@
       cancelamentos += cancelados;
     }
 
-    const casaisAtendidos = casais;
-    const eficiencia = casaisAtendidos > 0 ? (vendas / casaisAtendidos) : 0;
+    const eficiencia = casais > 0 ? (vendas / casais) : 0;
     const pctCancel = vendas > 0 ? (cancelamentos / vendas) : 0;
-
     const rendaMedia = casais > 0 ? (vgv / casais) : 0;
     const ticketMedioVendido = vendas > 0 ? (vgv / vendas) : 0;
 
-    return {
-      casais,
-      vgv,
-      vendas,
-      cancelamentos,
-      pctCancel,
-      eficiencia,
-      rendaMedia,
-      ticketMedioVendido
-    };
+    return { casais, vgv, vendas, cancelamentos, pctCancel, eficiencia, rendaMedia, ticketMedioVendido };
   }
 
   function renderKPIs(){
     const k = computeKPIs(state.filtered);
-
     const cards = [
       { label:"Casais", value: k.casais.toLocaleString("pt-BR"), hint:"Total de registros" },
       { label:"Vendas (cotas)", value: k.vendas.toLocaleString("pt-BR"), hint:"ATIVO + CANCELADO" },
@@ -687,29 +668,27 @@
     const ini = parseBRDate(el("dtIni").value.trim());
     const fim = parseBRDate(el("dtFim").value.trim());
 
-    const out = state.rows.filter(o=>{
+    state.filtered = state.rows.filter(o=>{
       if (ini && (!o._date || o._date < ini)) return false;
       if (fim && (!o._date || o._date > fim)) return false;
       return true;
     });
 
-    state.filtered = out;
     renderAll();
   }
 
-  // ========= Ranking Captador (somente promotor de marketing) =========
+  // ========= Rankings =========
   function effBadge(eff){
     if (eff >= 0.25) return `<span class="badge b-good">OK</span>`;
     if (eff >= 0.20) return `<span class="badge b-med">MÉDIO</span>`;
     return `<span class="badge b-bad">RUIM</span>`;
   }
 
-  function groupRankingCaptador(rows){
-    const keyField = "promotor de marketing";
+  function groupRankingByField(rows, field, tipoForStatusKey){
     const map = new Map();
 
     for (const r of rows){
-      const nome = normName(r[keyField]);
+      const nome = normName(r[field]);
       if (!nome) continue;
 
       const s = r["status do contrato"];
@@ -729,18 +708,17 @@
     for (const x of map.values()){
       const eficiencia = x.casais > 0 ? (x.vendas / x.casais) : 0;
       const pctCancel = x.vendas > 0 ? (x.cancelamentos / x.vendas) : 0;
-      // chave para ativo/inativo: tipo = promotor de marketing, equipe = "" no ranking
-      const active = isProfActive("promotor de marketing", x.nome, "");
+      const active = isProfActive(tipoForStatusKey, x.nome, "");
       out.push({ ...x, eficiencia, pctCancel, active });
     }
     return out;
   }
 
-  function renderRanking(){
-    const sortBy = el("rankSort").value;
-    const q = normName(el("rankSearch").value);
+  function renderRankingCaptador(){
+    const sortBy = el("rankSortCaptador").value;
+    const q = normName(el("rankSearchCaptador").value);
 
-    let list = groupRankingCaptador(state.filtered);
+    let list = groupRankingByField(state.filtered, "promotor de marketing", "promotor de marketing");
     if (q) list = list.filter(x => x.nome.includes(q));
 
     const getter = {
@@ -754,7 +732,7 @@
 
     list.sort((a,b)=> (getter(b)-getter(a)));
 
-    el("rankBody").innerHTML = list.map(x=>`
+    el("rankBodyCaptador").innerHTML = list.map(x=>`
       <tr>
         <td>${escapeHtml(x.nome)}</td>
         <td class="center">${x.active ? `<span class="badge b-good">ATIVO</span>` : `<span class="badge b-bad">INATIVO</span>`}</td>
@@ -768,46 +746,36 @@
     `).join("");
   }
 
-  // ========= Heatmap =========
-  function renderHeatmap(){
-    const days = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-    const grid = Array.from({length:7}, ()=> Array.from({length:24}, ()=>0));
+  function renderRankingLinner(){
+    const sortBy = el("rankSortLinner").value;
+    const q = normName(el("rankSearchLinner").value);
 
-    for (const r of state.filtered){
-      if (!r._date || r._hora == null) continue;
-      const d = r._date.getDay();
-      const h = r._hora;
-      grid[d][h] += 1;
-    }
+    let list = groupRankingByField(state.filtered, "linner", "linner");
+    if (q) list = list.filter(x => x.nome.includes(q));
 
-    let max = 0;
-    for (const d of grid) for (const v of d) max = Math.max(max, v);
+    const getter = {
+      casais: (x)=>x.casais,
+      vendas: (x)=>x.vendas,
+      vgv: (x)=>x.vgv,
+      eficiencia: (x)=>x.eficiencia,
+      cancelamentos: (x)=>x.cancelamentos,
+      pctCancel: (x)=>x.pctCancel
+    }[sortBy] || ((x)=>x.vendas);
 
-    const colorFor = (v)=>{
-      if (max <= 0) return "rgba(0,0,0,.18)";
-      const t = v / max;
-      const a = 0.12 + 0.55 * t;
-      const hue = 265 - (265-165)*t;
-      return `hsla(${hue}deg, 85%, 55%, ${a})`;
-    };
+    list.sort((a,b)=> (getter(b)-getter(a)));
 
-    const head = `
-      <div class="heatmap">
-        <div></div>
-        ${Array.from({length:24}, (_,h)=>`<div class="hmHead">${String(h).padStart(2,"0")}</div>`).join("")}
-      </div>
-    `;
-
-    const rowsHtml = days.map((nm, di)=>`
-      <div class="heatmap" style="margin-top:6px">
-        <div class="hmRowLabel">${nm}</div>
-        ${grid[di].map(v=>`
-          <div class="hmCell" data-v="${v}" style="background:${colorFor(v)}"></div>
-        `).join("")}
-      </div>
+    el("rankBodyLinner").innerHTML = list.map(x=>`
+      <tr>
+        <td>${escapeHtml(x.nome)}</td>
+        <td class="center">${x.active ? `<span class="badge b-good">ATIVO</span>` : `<span class="badge b-bad">INATIVO</span>`}</td>
+        <td class="right">${x.casais.toLocaleString("pt-BR")}</td>
+        <td class="right">${x.vendas.toLocaleString("pt-BR")}</td>
+        <td class="right">${escapeHtml(formatMoneyBR(x.vgv))}</td>
+        <td class="right">${escapeHtml(formatPercent(x.eficiencia))} &nbsp; ${effBadge(x.eficiencia)}</td>
+        <td class="right">${x.cancelamentos.toLocaleString("pt-BR")}</td>
+        <td class="right">${escapeHtml(formatPercent(x.pctCancel))}</td>
+      </tr>
     `).join("");
-
-    el("heatmap").innerHTML = head + rowsHtml;
   }
 
   // ========= Profissionais =========
@@ -821,7 +789,7 @@
   }
 
   function listProfessionals(rows){
-    const set = new Map(); // key -> {nome,tipo,equipe}
+    const set = new Map();
     for (const r of rows){
       const pm = normName(r["promotor de marketing"]);
       if (pm){
@@ -910,7 +878,8 @@
         chk.addEventListener("change", ()=>{
           setProfActive(p.tipo, p.nome, p.equipe, chk.checked);
           renderProfKPIs();
-          renderRanking();
+          renderRankingCaptador();
+          renderRankingLinner();
         });
       }
     });
@@ -961,8 +930,8 @@
   // ========= Render all =========
   function renderAll(){
     renderKPIs();
-    renderRanking();
-    renderHeatmap();
+    renderRankingCaptador();
+    renderRankingLinner();
     renderProfKPIs();
     renderProfTable();
     renderRenda();
@@ -1009,7 +978,7 @@
         el("dtFim").value = fmt(dates[dates.length-1]);
       }
 
-      // binds
+      // binds resumo
       el("btnAplicar").addEventListener("click", applyFilters);
       el("btnLimpar").addEventListener("click", ()=>{
         el("dtIni").value = "";
@@ -1018,14 +987,30 @@
         renderAll();
       });
 
-      el("btnRankAtualizar").addEventListener("click", renderRanking);
-      el("rankSort").addEventListener("change", renderRanking);
-      el("rankSearch").addEventListener("input", ()=>{ window.clearTimeout(window.__rsT); window.__rsT=setTimeout(renderRanking, 200); });
+      // binds ranking captador
+      el("btnRankAtualizarCaptador").addEventListener("click", renderRankingCaptador);
+      el("rankSortCaptador").addEventListener("change", renderRankingCaptador);
+      el("rankSearchCaptador").addEventListener("input", ()=>{
+        window.clearTimeout(window.__rcT);
+        window.__rcT = setTimeout(renderRankingCaptador, 200);
+      });
 
+      // binds ranking linner
+      el("btnRankAtualizarLinner").addEventListener("click", renderRankingLinner);
+      el("rankSortLinner").addEventListener("change", renderRankingLinner);
+      el("rankSearchLinner").addEventListener("input", ()=>{
+        window.clearTimeout(window.__rlT);
+        window.__rlT = setTimeout(renderRankingLinner, 200);
+      });
+
+      // binds profissionais
       el("btnProfAtualizar").addEventListener("click", ()=>{ renderProfKPIs(); renderProfTable(); });
       el("profTipo").addEventListener("change", ()=>{ renderProfTable(); });
       el("profEquipe").addEventListener("change", ()=>{ renderProfTable(); });
-      el("profBusca").addEventListener("input", ()=>{ window.clearTimeout(window.__psT); window.__psT=setTimeout(renderProfTable, 200); });
+      el("profBusca").addEventListener("input", ()=>{
+        window.clearTimeout(window.__psT);
+        window.__psT = setTimeout(renderProfTable, 200);
+      });
 
       renderAll();
     }catch(err){
