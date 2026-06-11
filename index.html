@@ -242,7 +242,7 @@
 
     <nav class="tabs" aria-label="Abas do painel">
       <button class="tabbtn active" data-tab="tab-resumo">Resumo</button>
-      <button class="tabbtn" data-tab="tab-ranking">Ranking</button>
+      <button class="tabbtn" data-tab="tab-ranking">Ranking Captador</button>
       <button class="tabbtn" data-tab="tab-heatmap">Mapa de calor (hora)</button>
       <button class="tabbtn" data-tab="tab-profissionais">Profissionais (ativo/inativo)</button>
       <button class="tabbtn" data-tab="tab-renda">Resultado por renda</button>
@@ -278,20 +278,12 @@
       </div>
     </section>
 
-    <!-- RANKING -->
+    <!-- RANKING CAPTADOR (somente Promotor de marketing) -->
     <section id="tab-ranking" class="tabPanel">
       <div class="grid">
         <section class="card">
           <div class="filters">
-            <div class="row" style="grid-template-columns: repeat(3, 1fr);">
-              <div>
-                <label>Dimensão</label>
-                <select id="rankDim">
-                  <option value="promotor de marketing">Promotor de marketing</option>
-                  <option value="linner">Linner</option>
-                  <option value="consultor">Consultor</option>
-                </select>
-              </div>
+            <div class="row" style="grid-template-columns: repeat(2, 1fr);">
               <div>
                 <label>Ordenar por</label>
                 <select id="rankSort">
@@ -300,7 +292,7 @@
                   <option value="eficiencia">Eficiência</option>
                   <option value="casais">Casais</option>
                   <option value="cancelamentos">Cancelamentos</option>
-                  <option value="pctCancel">%</option>
+                  <option value="pctCancel">% Cancel.</option>
                 </select>
               </div>
               <div>
@@ -320,7 +312,7 @@
             <table>
               <thead>
                 <tr>
-                  <th>Profissional</th>
+                  <th>Captador (Promotor)</th>
                   <th class="center">Status</th>
                   <th class="right">Casais</th>
                   <th class="right">Vendas</th>
@@ -337,6 +329,9 @@
             Eficiência: <span class="badge b-good">&ge; 25%</span>,
             <span class="badge b-med">20% a 24,9%</span>,
             <span class="badge b-bad">&lt; 20%</span>.
+          </div>
+          <div class="smallNote muted" style="margin-top:10px">
+            Esta aba mostra <b>apenas</b> a coluna <span class="pill">promotor de marketing</span>. Linner e closer/consultor foram removidos do ranking.
           </div>
         </section>
       </div>
@@ -544,6 +539,16 @@
     return rows;
   }
 
+  function parseHour(v){
+    if (!v) return null;
+    const s = String(v).trim();
+    let m = s.match(/^(\d{1,2})(?::(\d{2}))?(?::(\d{2}))?$/);
+    if (!m) return null;
+    const hh = Number(m[1]);
+    if (!Number.isFinite(hh) || hh < 0 || hh > 23) return null;
+    return hh;
+  }
+
   function buildObjects(csvText){
     const matrix = parseCSV(csvText, ";");
     if (!matrix.length) return [];
@@ -587,18 +592,6 @@
     return list.filter(x => x === w).length;
   }
 
-  // ===== Hora (heatmap) =====
-  function parseHour(v){
-    if (!v) return null;
-    const s = String(v).trim();
-    // aceita "HH:MM" ou "HH:MM:SS" ou "HH"
-    let m = s.match(/^(\d{1,2})(?::(\d{2}))?(?::(\d{2}))?$/);
-    if (!m) return null;
-    const hh = Number(m[1]);
-    if (!Number.isFinite(hh) || hh < 0 || hh > 23) return null;
-    return hh;
-  }
-
   // ========= Prof status (localStorage) =========
   const LS_KEY = "painel_prof_status_v1";
 
@@ -619,7 +612,6 @@
   function isProfActive(tipo, nome, equipe){
     const k = makeProfKey(tipo, nome, equipe);
     const v = state.profStatus[k];
-    // default: ativo
     return (v === undefined) ? true : !!v;
   }
   function setProfActive(tipo, nome, equipe, active){
@@ -633,7 +625,6 @@
     const casais = rows.length;
     const vgv = rows.reduce((acc, r)=>acc + (r._valor||0), 0);
 
-    // Vendas = ATIVO + CANCELADO (CANCELADO conta como venda)
     let vendas = 0;
     let cancelamentos = 0;
 
@@ -645,19 +636,11 @@
       cancelamentos += cancelados;
     }
 
-    // Eficiência correta: vendas / casais atendidos (no seu caso, 439/2057)
-    // Aqui vamos considerar "casais atendidos" como o total de linhas filtradas (casais),
-    // que bate com seu exemplo.
     const casaisAtendidos = casais;
-
     const eficiencia = casaisAtendidos > 0 ? (vendas / casaisAtendidos) : 0;
-
-    // % cancelamento sobre vendas (mais coerente com “cotas canceladas”)
     const pctCancel = vendas > 0 ? (cancelamentos / vendas) : 0;
 
     const rendaMedia = casais > 0 ? (vgv / casais) : 0;
-
-    // Ticket médio vendido: VGV / vendas (quando houver vendas)
     const ticketMedioVendido = vendas > 0 ? (vgv / vendas) : 0;
 
     return {
@@ -714,16 +697,15 @@
     renderAll();
   }
 
-  // ========= Ranking =========
+  // ========= Ranking Captador (somente promotor de marketing) =========
   function effBadge(eff){
     if (eff >= 0.25) return `<span class="badge b-good">OK</span>`;
     if (eff >= 0.20) return `<span class="badge b-med">MÉDIO</span>`;
     return `<span class="badge b-bad">RUIM</span>`;
   }
 
-  function groupRanking(rows, dim){
-    // dim -> header name in CSV (lowercase)
-    const keyField = dim; // expects exact columns: "promotor de marketing", "linner", "consultor"
+  function groupRankingCaptador(rows){
+    const keyField = "promotor de marketing";
     const map = new Map();
 
     for (const r of rows){
@@ -734,13 +716,12 @@
       const ativos = countInStatus(s, "ATIVO");
       const cancelados = countInStatus(s, "CANCELADO");
       const vendas = ativos + cancelados;
-      const canc = cancelados;
 
       const cur = map.get(nome) || { nome, casais:0, vendas:0, vgv:0, cancelamentos:0 };
       cur.casais += 1;
       cur.vendas += vendas;
       cur.vgv += (r._valor||0);
-      cur.cancelamentos += canc;
+      cur.cancelamentos += cancelados;
       map.set(nome, cur);
     }
 
@@ -748,28 +729,20 @@
     for (const x of map.values()){
       const eficiencia = x.casais > 0 ? (x.vendas / x.casais) : 0;
       const pctCancel = x.vendas > 0 ? (x.cancelamentos / x.vendas) : 0;
-      out.push({ ...x, eficiencia, pctCancel });
+      // chave para ativo/inativo: tipo = promotor de marketing, equipe = "" no ranking
+      const active = isProfActive("promotor de marketing", x.nome, "");
+      out.push({ ...x, eficiencia, pctCancel, active });
     }
     return out;
   }
 
   function renderRanking(){
-    const dim = el("rankDim").value;
     const sortBy = el("rankSort").value;
     const q = normName(el("rankSearch").value);
 
-    let list = groupRanking(state.filtered, dim);
-
-    // aplica status ativo/inativo (se tiver cadastrado)
-    // equipe aqui fica vazia (não temos equipe para linner/consultor). Mantemos chave com equipe "".
-    list = list.map(x=>{
-      const active = isProfActive(dim, x.nome, "");
-      return { ...x, active };
-    });
-
+    let list = groupRankingCaptador(state.filtered);
     if (q) list = list.filter(x => x.nome.includes(q));
 
-    const dir = (sortBy === "cancelamentos" || sortBy === "pctCancel") ? "desc" : "desc";
     const getter = {
       casais: (x)=>x.casais,
       vendas: (x)=>x.vendas,
@@ -797,13 +770,12 @@
 
   // ========= Heatmap =========
   function renderHeatmap(){
-    // dias da semana x horas 0..23
     const days = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
     const grid = Array.from({length:7}, ()=> Array.from({length:24}, ()=>0));
 
     for (const r of state.filtered){
       if (!r._date || r._hora == null) continue;
-      const d = r._date.getDay(); // 0 dom
+      const d = r._date.getDay();
       const h = r._hora;
       grid[d][h] += 1;
     }
@@ -813,11 +785,9 @@
 
     const colorFor = (v)=>{
       if (max <= 0) return "rgba(0,0,0,.18)";
-      // escala roxo->ciano->verde
-      const t = v / max; // 0..1
+      const t = v / max;
       const a = 0.12 + 0.55 * t;
-      // mistura simples via HSL
-      const hue = 265 - (265-165)*t; // 265->165
+      const hue = 265 - (265-165)*t;
       return `hsla(${hue}deg, 85%, 55%, ${a})`;
     };
 
@@ -842,7 +812,6 @@
 
   // ========= Profissionais =========
   function inferEquipePromotor(row){
-    // tenta achar colunas conhecidas; se não existir, retorna ""
     const v = row["equipe"] ?? row["equipe promotor"] ?? row["time"] ?? row["origem"] ?? "";
     const s = normName(v);
     if (!s) return "";
@@ -852,7 +821,6 @@
   }
 
   function listProfessionals(rows){
-    // coleta únicos de promotor/linner/consultor a partir do CSV
     const set = new Map(); // key -> {nome,tipo,equipe}
     for (const r of rows){
       const pm = normName(r["promotor de marketing"]);
@@ -934,7 +902,6 @@
       `;
     }).join("");
 
-    // bind events
     profs.forEach(p=>{
       const key = makeProfKey(p.tipo, p.nome, p.equipe);
       const id = `chk_${btoa(unescape(encodeURIComponent(key))).replaceAll("=","")}`;
@@ -951,14 +918,13 @@
 
   // ========= Renda =========
   function rendaBucketLabel(value){
-    // bucket de 1000: 10000 -> "10", 10999 -> "10", 11000 -> "11"
     if (!Number.isFinite(value) || value <= 0) return null;
     const k = Math.floor(value / 1000);
-    return String(k); // "10" => 10 mil
+    return String(k);
   }
 
   function renderRenda(){
-    const map = new Map(); // bucket -> metrics
+    const map = new Map();
     for (const r of state.filtered){
       const b = rendaBucketLabel(r._renda);
       if (!b) continue;
@@ -1035,7 +1001,6 @@
       state.rows = rows;
       state.filtered = rows;
 
-      // período sugerido
       const dates = rows.map(r=>r._date).filter(Boolean).sort((a,b)=>a-b);
       if (dates.length){
         const pad = (n)=> String(n).padStart(2,"0");
@@ -1054,7 +1019,6 @@
       });
 
       el("btnRankAtualizar").addEventListener("click", renderRanking);
-      el("rankDim").addEventListener("change", renderRanking);
       el("rankSort").addEventListener("change", renderRanking);
       el("rankSearch").addEventListener("input", ()=>{ window.clearTimeout(window.__rsT); window.__rsT=setTimeout(renderRanking, 200); });
 
@@ -1064,15 +1028,6 @@
       el("profBusca").addEventListener("input", ()=>{ window.clearTimeout(window.__psT); window.__psT=setTimeout(renderProfTable, 200); });
 
       renderAll();
-
-      // Avisos se faltarem colunas essenciais para abas
-      const headers = Object.keys(rows[0] || {});
-      const needs = [
-        { key:"promotor de marketing", label:"Ranking (promotor de marketing)" },
-        { key:"linner", label:"Ranking (linner)" },
-        { key:"consultor", label:"Ranking (consultor)" },
-      ];
-      // (heatmap/renda são "best-effort" e podem ficar vazios sem quebrar)
     }catch(err){
       el("statusPill").textContent = "Erro";
       showError(String(err && err.message ? err.message : err));
