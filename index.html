@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Análise de Horários - Wedding Planner</title>
+    <title>Painel de Atendimentos</title>
     <style>
         :root {
             --bg: #0f0f23;
@@ -11,8 +11,12 @@
             --accent: #00d4aa;
             --text: #ffffff;
             --muted: #8892b0;
-            --border: rgba(255,255,255,0.1);
+            --border: rgba(255,255,255,0.08);
             --mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --gradient-tertiary: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --gradient-quaternary: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
         }
 
         * {
@@ -32,67 +36,101 @@
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 2rem;
+            padding: 1.5rem;
+        }
+
+        /* Header mais clean */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
         }
 
         h1 {
-            text-align: center;
-            margin-bottom: 2rem;
-            color: var(--accent);
-            font-size: 2.5rem;
-            font-weight: 700;
+            color: var(--text);
+            font-size: 2.8rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+            letter-spacing: -1px;
         }
 
+        .subtitle {
+            color: var(--muted);
+            font-size: 1rem;
+            font-weight: 400;
+        }
+
+        /* Upload area mais minimalista */
         .upload-area {
-            border: 2px dashed var(--border);
-            border-radius: 12px;
-            padding: 3rem;
+            border: 1.5px dashed var(--border);
+            border-radius: 16px;
+            padding: 2.5rem;
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 3rem;
             transition: all 0.3s ease;
-            background: rgba(255,255,255,0.02);
+            background: rgba(255,255,255,0.01);
         }
 
         .upload-area:hover {
             border-color: var(--accent);
-            background: rgba(0,212,170,0.05);
+            background: rgba(0,212,170,0.03);
         }
 
         .upload-area.dragover {
             border-color: var(--accent);
-            background: rgba(0,212,170,0.1);
-            transform: scale(1.02);
+            background: rgba(0,212,170,0.08);
+            transform: translateY(-2px);
+        }
+
+        .upload-title {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+
+        .upload-description {
+            color: var(--muted);
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
         }
 
         input[type="file"] {
-            margin: 1rem 0;
-            padding: 0.75rem;
+            padding: 0.75rem 1.5rem;
             background: var(--card);
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: 10px;
             color: var(--text);
             width: 100%;
-            max-width: 400px;
+            max-width: 350px;
+            font-size: 0.9rem;
         }
 
+        /* Tabs redesenhadas - mais elegantes */
         .tabs {
             display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            border-bottom: 1px solid var(--border);
-            flex-wrap: wrap;
+            gap: 0;
+            margin-bottom: 3rem;
+            background: rgba(255,255,255,0.03);
+            border-radius: 16px;
+            padding: 6px;
+            overflow-x: auto;
+            border: 1px solid var(--border);
         }
 
         .tab {
-            padding: 1rem 1.5rem;
+            padding: 1rem 1.8rem;
             background: transparent;
             border: none;
             color: var(--muted);
             cursor: pointer;
-            border-bottom: 2px solid transparent;
+            border-radius: 12px;
             transition: all 0.3s ease;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 500;
+            white-space: nowrap;
+            position: relative;
+            overflow: hidden;
         }
 
         .tab:hover {
@@ -101,119 +139,177 @@
         }
 
         .tab.active {
-            color: var(--accent);
-            border-bottom-color: var(--accent);
-            background: rgba(0,212,170,0.1);
+            color: white;
+            background: var(--gradient-primary);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .tab.active::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: inherit;
+            filter: blur(8px);
+            opacity: 0.4;
+            z-index: -1;
+        }
+
+        /* Diferentes gradientes para cada tab quando ativa */
+        .tab[data-tab="resumo"].active {
+            background: var(--gradient-primary);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .tab[data-tab="dados"].active {
+            background: var(--gradient-secondary);
+            box-shadow: 0 4px 12px rgba(245, 87, 108, 0.3);
+        }
+
+        .tab[data-tab="grafico"].active {
+            background: var(--gradient-tertiary);
+            box-shadow: 0 4px 12px rgba(79, 172, 254, 0.3);
+        }
+
+        .tab[data-tab="heatmap"].active {
+            background: var(--gradient-quaternary);
+            box-shadow: 0 4px 12px rgba(67, 233, 123, 0.3);
         }
 
         .tab-content {
-            background: var(--card);
-            border-radius: 12px;
-            padding: 2rem;
+            background: rgba(255,255,255,0.02);
+            border-radius: 20px;
+            padding: 2.5rem;
             margin-bottom: 2rem;
             border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
         }
 
         .hidden {
             display: none;
         }
 
+        /* Info box mais sutil */
         .info-box {
-            background: rgba(0,212,170,0.1);
-            border: 1px solid rgba(0,212,170,0.3);
-            border-radius: 8px;
-            padding: 1.5rem;
+            background: rgba(0,212,170,0.06);
+            border: 1px solid rgba(0,212,170,0.2);
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
             margin-bottom: 2rem;
             color: var(--text);
+            font-size: 0.95rem;
+            line-height: 1.5;
         }
 
+        /* Grid de estatísticas mais clean */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+            border-color: rgba(255,255,255,0.15);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--accent);
+            font-family: var(--mono);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Tabela mais elegante */
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 1rem;
-            background: rgba(255,255,255,0.02);
-            border-radius: 8px;
+            background: rgba(255,255,255,0.01);
+            border-radius: 12px;
             overflow: hidden;
+            border: 1px solid var(--border);
         }
 
         th, td {
-            padding: 1rem;
+            padding: 1rem 1.25rem;
             text-align: left;
             border-bottom: 1px solid var(--border);
         }
 
         th {
-            background: rgba(0,212,170,0.2);
-            color: var(--accent);
+            background: rgba(255,255,255,0.05);
+            color: var(--text);
             font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         tr:hover {
-            background: rgba(255,255,255,0.05);
+            background: rgba(255,255,255,0.03);
         }
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, rgba(0,212,170,0.1), rgba(0,212,170,0.05));
-            border: 1px solid rgba(0,212,170,0.3);
-            border-radius: 12px;
-            padding: 2rem;
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 3rem;
-            font-weight: 700;
-            color: var(--accent);
-            font-family: var(--mono);
-        }
-
-        .stat-label {
-            color: var(--muted);
-            margin-top: 0.5rem;
-            font-size: 1.1rem;
-        }
-
-        /* Novo estilo para o gráfico - Cards organizados em grid */
+        /* Charts mais elegantes */
         .chart-container {
             margin: 2rem 0;
         }
 
         .chart-title {
-            font-size: 1.5rem;
-            color: var(--accent);
-            margin-bottom: 1.5rem;
+            font-size: 1.3rem;
+            color: var(--text);
+            margin-bottom: 2rem;
             text-align: center;
-            font-weight: 600;
+            font-weight: 400;
+            letter-spacing: -0.5px;
         }
 
         .hours-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.25rem;
             margin-bottom: 2rem;
         }
 
         .hour-card {
-            background: linear-gradient(135deg, var(--card), rgba(255,255,255,0.05));
+            background: rgba(255,255,255,0.03);
             border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 1.5rem;
+            border-radius: 14px;
+            padding: 1.5rem 1rem;
             text-align: center;
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
+            backdrop-filter: blur(5px);
         }
 
         .hour-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
             border-color: var(--accent);
         }
 
@@ -223,56 +319,55 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 4px;
+            height: 3px;
             background: linear-gradient(90deg, var(--accent), #22d3ee);
         }
 
         .hour-time {
-            font-size: 1.4rem;
-            font-weight: 700;
+            font-size: 1.1rem;
+            font-weight: 600;
             color: var(--text);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
             font-family: var(--mono);
         }
 
         .hour-count {
-            font-size: 2rem;
-            font-weight: 800;
+            font-size: 1.8rem;
+            font-weight: 700;
             color: var(--accent);
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.5rem;
             font-family: var(--mono);
         }
 
         .hour-label {
             color: var(--muted);
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             text-transform: uppercase;
             letter-spacing: 1px;
+            margin-bottom: 1rem;
         }
 
-        /* Barra visual de intensidade */
         .intensity-bar {
             width: 100%;
-            height: 8px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 4px;
-            margin: 1rem 0 0.5rem;
+            height: 4px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 2px;
             overflow: hidden;
         }
 
         .intensity-fill {
             height: 100%;
             background: linear-gradient(90deg, var(--accent), #22d3ee);
-            border-radius: 4px;
-            transition: width 0.5s ease;
+            border-radius: 2px;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Heatmap melhorado */
+        /* Heatmap mais clean */
         .heat-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
             gap: 1rem;
-            margin-top: 1rem;
+            margin-top: 1.5rem;
         }
 
         .heat-cell {
@@ -281,89 +376,135 @@
             text-align: center;
             border: 1px solid var(--border);
             transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
         }
 
         .heat-cell:hover {
-            transform: scale(1.05);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            transform: scale(1.03);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.15);
         }
 
         .heat-cell .h {
             font-family: var(--mono);
-            font-weight: 700;
-            font-size: 1.1rem;
+            font-weight: 600;
+            font-size: 1rem;
             margin-bottom: 0.5rem;
+            color: var(--text);
         }
 
         .heat-cell .c {
             color: var(--muted);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         #heat-diagnose {
             background: rgba(255,255,255,0.02);
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: 10px;
             padding: 1.5rem;
             margin-top: 1.5rem;
             font-family: var(--mono);
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             color: var(--muted);
             white-space: pre-line;
-            line-height: 1.4;
+            line-height: 1.5;
         }
 
-        /* Responsividade melhorada */
+        /* Responsividade aprimorada */
         @media (max-width: 768px) {
             .container {
                 padding: 1rem;
             }
             
             h1 {
-                font-size: 2rem;
+                font-size: 2.2rem;
             }
             
             .tabs {
-                justify-content: center;
+                padding: 4px;
+                gap: 0;
             }
             
             .tab {
-                padding: 0.75rem 1rem;
-                font-size: 0.9rem;
+                padding: 0.8rem 1.2rem;
+                font-size: 0.85rem;
+            }
+            
+            .tab-content {
+                padding: 1.5rem;
             }
             
             .hours-grid {
-                grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
                 gap: 1rem;
             }
             
             .heat-grid {
                 grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
             }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .tabs {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .tab {
+                text-align: center;
+                padding: 1rem;
+            }
+        }
+
+        /* Scrollbar customizada */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.3);
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>📊 Análise de Horários - Wedding Planner</h1>
+        <div class="header">
+            <h1>Painel de Atendimentos</h1>
+            <div class="subtitle">Análise inteligente de horários e distribuição de eventos</div>
+        </div>
         
         <div class="upload-area" id="upload-area">
-            <h3>📁 Arraste e solte seu arquivo Excel aqui</h3>
-            <p>ou clique para selecionar</p>
+            <div class="upload-title">📁 Carregar Arquivo</div>
+            <div class="upload-description">Arraste e solte seu arquivo Excel ou CSV aqui</div>
             <input type="file" id="file-input" accept=".xlsx,.xls,.csv">
         </div>
 
         <div class="tabs">
-            <button class="tab active" data-tab="resumo">📈 Resumo</button>
+            <button class="tab active" data-tab="resumo">📊 Resumo</button>
             <button class="tab" data-tab="dados">📋 Dados</button>
-            <button class="tab" data-tab="grafico">📊 Gráfico por Hora</button>
+            <button class="tab" data-tab="grafico">⏰ Por Hora</button>
             <button class="tab" data-tab="heatmap">🔥 Mapa de Calor</button>
         </div>
 
         <div id="resumo" class="tab-content">
             <div class="info-box">
-                <strong>Horários considerados:</strong> 10:00 até 22:00, a partir da <strong>1ª coluna</strong> (precisa ter data e hora).
-                <br>Abaixo: estatísticas gerais + gráfico por hora.
+                <strong>📈 Visão Geral:</strong> Análise completa dos horários de atendimento (10:00 às 22:00)<br>
+                Os dados são extraídos automaticamente da primeira coluna do arquivo.
             </div>
             
             <div class="stats-grid">
@@ -391,16 +532,16 @@
 
         <div id="grafico" class="tab-content hidden">
             <div class="info-box">
-                <strong>Horários considerados:</strong> 10:00 até 22:00, a partir da <strong>1ª coluna</strong> (precisa ter data e hora).
-                <br>Abaixo: gráfico por hora + visualização em cards.
+                <strong>⏰ Análise por Horário:</strong> Distribuição detalhada de eventos por hora<br>
+                Visualização em cards para melhor compreensão dos dados.
             </div>
             <div id="heat-chart"></div>
         </div>
 
         <div id="heatmap" class="tab-content hidden">
             <div class="info-box">
-                <strong>Horários considerados:</strong> 10:00 até 22:00, a partir da <strong>1ª coluna</strong> (precisa ter data e hora).
-                <br>Abaixo: mapa de calor de contagem por hora.
+                <strong>🔥 Mapa de Calor:</strong> Intensidade de eventos por horário<br>
+                Cores mais intensas indicam maior concentração de eventos.
             </div>
             <div id="heat"></div>
             <div id="heat-diagnose" style="display:none;"></div>
@@ -523,14 +664,14 @@
             
             dataInfo.innerHTML = `
                 <div class="info-box">
-                    <strong>Arquivo processado com sucesso!</strong><br>
+                    <strong>📁 Arquivo Carregado:</strong><br>
                     📊 ${state.rows.length} linhas de dados<br>
                     📋 ${state.headers.length} colunas: ${state.headers.join(", ")}
                 </div>
             `;
             
             if (state.rows.length === 0) {
-                dataTable.innerHTML = '<p>Nenhum dado para exibir.</p>';
+                dataTable.innerHTML = '<p style="color: var(--muted); text-align: center; padding: 2rem;">Nenhum dado para exibir.</p>';
                 return;
             }
             
@@ -545,7 +686,7 @@
                         ).join('')}
                     </tbody>
                 </table>
-                ${state.rows.length > 50 ? `<p style="margin-top: 1rem; color: var(--muted);">Mostrando primeiras 50 linhas de ${state.rows.length}</p>` : ''}
+                ${state.rows.length > 50 ? `<p style="margin-top: 1.5rem; color: var(--muted); text-align: center;">Mostrando primeiras 50 linhas de ${state.rows.length}</p>` : ''}
             `;
             
             dataTable.innerHTML = tableHTML;
@@ -638,9 +779,9 @@
             const arr = hours.map(h => ({ h, c: counts.get(h) || 0 }));
             const max = Math.max(...arr.map(x => x.c), 0);
 
-            // Novo gráfico em cards espaçados
+            // Cards para visualização por hora
             chartEl.innerHTML = `
-                <div class="chart-title">📊 Visualização por Hora</div>
+                <div class="chart-title">⏰ Eventos por Horário</div>
                 <div class="hours-grid">
                     ${arr.map(x => {
                         const intensity = max > 0 ? (x.c / max) * 100 : 0;
@@ -648,7 +789,7 @@
                             <div class="hour-card">
                                 <div class="hour-time">${String(x.h).padStart(2, '0')}:00</div>
                                 <div class="hour-count">${x.c}</div>
-                                <div class="hour-label">casais</div>
+                                <div class="hour-label">eventos</div>
                                 <div class="intensity-bar">
                                     <div class="intensity-fill" style="width: ${intensity}%"></div>
                                 </div>
@@ -659,9 +800,9 @@
             `;
 
             const bg = (c) => {
-                if (max <= 0) return "rgba(255,255,255,.03)";
+                if (max <= 0) return "rgba(255,255,255,.02)";
                 const t = c / max;
-                const a = 0.10 + 0.40 * t;
+                const a = 0.08 + 0.35 * t;
                 return t < 0.5 ? `rgba(124,92,255,${a})` : `rgba(34,211,238,${a})`;
             };
 
@@ -670,27 +811,27 @@
                     ${arr.map(x => `
                         <div class="heat-cell" style="background:${bg(x.c)}">
                             <div class="h">${String(x.h).padStart(2, "0")}:00</div>
-                            <div class="c">${x.c} casais</div>
+                            <div class="c">${x.c} eventos</div>
                         </div>
                     `).join("")}
                 </div>
             `;
 
-            const samples = (state.rows.slice(0, 8)
+            const samples = (state.rows.slice(0, 6)
                 .map(r => (r[state.meta.firstColKey] ?? "").toString())
                 .filter(Boolean));
 
             diagEl.style.display = "block";
             diagEl.textContent = `
-Diagnóstico (1ª coluna):
-• Chave (normalizada): "${state.meta.firstColKey}"
-• Linhas filtradas: ${rows.length}
-• Horário extraído/parseado: ${parsedOk} de ${parsedTotal}
-• Exemplos:
-  - ${samples.join("\n  - ") || "(sem exemplos)"}
+Diagnóstico da Primeira Coluna:
+• Campo analisado: "${state.meta.firstColKey}"
+• Total de linhas: ${rows.length}
+• Horários extraídos: ${parsedOk} de ${parsedTotal}
+• Exemplos de dados:
+  ${samples.map(s => `- ${s}`).join('\n  ') || "(sem exemplos)"}
 
-Regra: sempre usa HH de "HH:MM" quando existir (ex.: 11:04 -> 11h).
-            `;
+Método: extração de horário no formato HH:MM
+            `.trim();
         }
 
         // Função auxiliar para extrair hora do texto
