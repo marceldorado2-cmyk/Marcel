@@ -66,6 +66,7 @@
       color:var(--muted);
       font-weight:400;
     }
+
     .controls{
       display:flex;
       flex-wrap:wrap;
@@ -105,6 +106,7 @@
     select:hover, input:hover{
       border-color:rgba(255,255,255,0.2);
     }
+
     .tabs{
       display:flex;
       gap:4px;
@@ -125,6 +127,9 @@
       position:relative;
       color:var(--muted);
       user-select:none;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
     .tab:hover{
       color:var(--text);
@@ -146,6 +151,7 @@
       from{opacity:0; transform:translateY(10px)}
       to{opacity:1; transform:translateY(0)}
     }
+
     .stats{
       display:grid;
       grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
@@ -178,7 +184,7 @@
       background:linear-gradient(90deg, var(--accent), var(--accent2));
     }
     .stat-value{
-      font-size:2.8rem;
+      font-size:2.6rem;
       font-weight:700;
       margin:0 0 8px;
       font-family:var(--mono);
@@ -190,68 +196,107 @@
       font-weight:500;
       letter-spacing:0.5px;
     }
-    .ranking-list{
+
+    .note{
+      background:rgba(124,92,255,0.1);
+      border:1px solid rgba(124,92,255,0.2);
+      border-radius:var(--radius2);
+      padding:16px 20px;
+      margin:20px 0;
+      font-size:0.9rem;
+      color:var(--muted);
+      line-height:1.5;
+    }
+    .pill{
+      background:var(--accent);
+      color:white;
+      padding:2px 8px;
+      border-radius:12px;
+      font-size:0.8rem;
+      font-weight:600;
+      font-family:var(--mono);
+    }
+
+    .error{
+      background:rgba(255,107,139,0.1);
+      border:1px solid rgba(255,107,139,0.3);
+      border-radius:var(--radius2);
+      padding:20px;
+      margin:20px 0;
+      color:#ff6b8b;
+      text-align:center;
+      white-space:pre-wrap;
+    }
+    .loading{
+      text-align:center;
+      padding:40px 20px;
+      color:var(--muted);
+      font-size:1.1rem;
+    }
+
+    /* ranking table */
+    .table-wrap{
       background:var(--card);
       border:1px solid var(--stroke);
       border-radius:var(--radius);
-      padding:0;
-      margin:20px 0;
+      overflow:hidden;
       backdrop-filter:blur(10px);
-      overflow:hidden;
+      margin:18px 0 30px;
     }
-    .ranking-item{
-      display:flex;
-      align-items:center;
-      padding:20px 24px;
-      border-bottom:1px solid rgba(255,255,255,0.05);
-      transition:all 0.2s ease;
-      gap:10px;
+    table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
     }
-    .ranking-item:last-child{ border-bottom:none; }
-    .ranking-item:hover{ background:rgba(255,255,255,0.03); }
-    .rank-position{
-      font-size:1.5rem;
-      font-weight:700;
-      color:var(--accent);
-      margin-right:10px;
-      min-width:44px;
-      font-family:var(--mono);
-    }
-    .rank-name{
-      flex:1;
-      font-size:1.1rem;
-      font-weight:600;
-      overflow:hidden;
-      text-overflow:ellipsis;
+    thead th{
+      text-align:left;
+      padding:14px 16px;
+      font-size:0.85rem;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.5px;
+      background:rgba(255,255,255,0.03);
+      border-bottom:1px solid rgba(255,255,255,0.06);
+      position:sticky;
+      top:0;
+      z-index:1;
       white-space:nowrap;
     }
-    .rank-value{
-      font-size:1.2rem;
+    tbody td{
+      padding:14px 16px;
+      border-bottom:1px solid rgba(255,255,255,0.05);
+      vertical-align:middle;
+      white-space:nowrap;
+    }
+    tbody tr:hover{ background:rgba(255,255,255,0.03); }
+    tbody tr:last-child td{ border-bottom:none; }
+    .rank-col{
+      font-family:var(--mono);
+      color:var(--accent);
+      font-weight:800;
+      width:60px;
+    }
+    .num{
+      font-family:var(--mono);
+      text-align:right;
+    }
+    .name{
       font-weight:700;
-      color:var(--accent2);
-      font-family:var(--mono);
-      min-width:64px;
-      text-align:right;
+      max-width:420px;
+      overflow:hidden;
+      text-overflow:ellipsis;
     }
-    .rank-percentage{
-      font-size:0.9rem;
+    .badge{
+      display:inline-block;
+      padding:2px 8px;
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:999px;
+      font-size:.8rem;
       color:var(--muted);
-      margin-left:10px;
-      min-width:70px;
-      text-align:right;
       font-family:var(--mono);
+      margin-left:8px;
     }
-    .rank-extra{
-      font-size:0.9rem;
-      color:var(--muted);
-      margin-left:10px;
-      min-width:160px;
-      text-align:right;
-      font-family:var(--mono);
-    }
-    .gold{color:#FFD700!important}
-    .silver{color:#C0C0C0!important}
-    .bronze{color:#CD7F32!important}
+
     .prof-grid{
       display:grid;
       grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
@@ -273,7 +318,7 @@
     }
     .prof-name{
       font-size:1.2rem;
-      font-weight:600;
+      font-weight:700;
       margin:0 0 8px;
       color:var(--accent2);
     }
@@ -283,50 +328,17 @@
       line-height:1.45;
     }
     .prof-details strong{ color:var(--text); }
-    .note{
-      background:rgba(124,92,255,0.1);
-      border:1px solid rgba(124,92,255,0.2);
-      border-radius:var(--radius2);
-      padding:16px 20px;
-      margin:20px 0;
-      font-size:0.9rem;
-      color:var(--muted);
-      line-height:1.5;
-    }
-    .pill{
-      background:var(--accent);
-      color:white;
-      padding:2px 8px;
-      border-radius:12px;
-      font-size:0.8rem;
-      font-weight:600;
-      font-family:var(--mono);
-    }
-    .error{
-      background:rgba(255,107,139,0.1);
-      border:1px solid rgba(255,107,139,0.3);
-      border-radius:var(--radius2);
-      padding:20px;
-      margin:20px 0;
-      color:#ff6b8b;
-      text-align:center;
-      white-space:pre-wrap;
-    }
-    .loading{
-      text-align:center;
-      padding:40px 20px;
-      color:var(--muted);
-      font-size:1.1rem;
-    }
-    @media (max-width: 768px){
+
+    @media (max-width: 980px){
       .wrap{padding:0 16px}
-      h1{font-size:2.5rem}
+      h1{font-size:2.4rem}
       .controls{flex-direction:column; align-items:stretch}
       .control-group{min-width:auto}
       .tabs{flex-direction:column}
       .stats{grid-template-columns:1fr}
       .prof-grid{grid-template-columns:1fr}
-      .rank-extra{display:none;}
+      .hide-sm{display:none;}
+      table{font-size:0.95rem}
     }
   </style>
 </head>
@@ -335,7 +347,7 @@
   <div class="wrap">
     <header>
       <h1>Painel de Atendimentos</h1>
-      <p class="subtitle">Dashboard analítico a partir do <span class="pill">dados.csv</span> (GitHub Pages)</p>
+      <p class="subtitle">Métricas por casal e por profissional (GitHub Pages) — fonte: <span class="pill">dados.csv</span></p>
     </header>
 
     <div class="controls">
@@ -359,6 +371,7 @@
           <option value="ativo">Ativo</option>
           <option value="cancelado">Cancelado</option>
           <option value="sem_status">Sem status</option>
+          <option value="outro">Outro</option>
         </select>
       </div>
 
@@ -401,26 +414,27 @@
       <div id="tab-resumo" class="tab-content active">
         <div class="stats" id="stats"></div>
         <div class="note" id="dataset-note" style="display:none"></div>
+        <div class="note">
+          <strong>Regras usadas:</strong><br>
+          • <span class="pill">Casais</span> = quantidade de linhas (cada linha é 1 casal).<br>
+          • <span class="pill">Vendas</span> = contagem de ocorrências no campo <span class="pill">Status do contrato</span>:
+          <span class="pill">ATIVO</span> vale 1, <span class="pill">ATIVO # ATIVO</span> vale 2, <span class="pill">CANCELADO # CANCELADO</span> vale 2 (canceladas), etc.<br>
+          • <span class="pill">VGV</span> é ponderado pela quantidade de vendas na linha (ativo/cancelado). Ex.: linha com 2 ATIVO soma $$2 \times$$ Valor vendido.
+        </div>
       </div>
 
       <div id="tab-ranking-promotor" class="tab-content">
-        <div class="note">
-          Ranking baseado na coluna <span class="pill">Promotor de marketing</span>.
-        </div>
+        <div class="note">Ranking por <span class="pill">Promotor de marketing</span>.</div>
         <div id="ranking-promotor"></div>
       </div>
 
       <div id="tab-ranking-liner" class="tab-content">
-        <div class="note">
-          Ranking baseado na coluna <span class="pill">Liner</span>.
-        </div>
+        <div class="note">Ranking por <span class="pill">Liner</span>.</div>
         <div id="ranking-liner"></div>
       </div>
 
       <div id="tab-ranking-closer" class="tab-content">
-        <div class="note">
-          Ranking baseado na coluna <span class="pill">Closer</span>.
-        </div>
+        <div class="note">Ranking por <span class="pill">Closer</span>.</div>
         <div id="ranking-closer"></div>
       </div>
 
@@ -431,30 +445,44 @@
   </div>
 
 <script>
-  // GitHub Pages: mantenha index.html e dados.csv na mesma pasta.
   const CSV_URL = new URL("dados.csv", document.baseURI).toString();
-
   const el = (id) => document.getElementById(id);
   const state = { rows: [], filtered: [] };
+
+  const KEY = {
+    data: normalizeHeader("data de atendimento"),
+    statusContrato: normalizeHeader("status do contrato"),
+    valorVendido: normalizeHeader("valor vendido"),
+    renda: normalizeHeader("renda"),
+    uf: normalizeHeader("uf"),
+    promotor: normalizeHeader("promotor de marketing"),
+    liner: normalizeHeader("liner"),
+    closer: normalizeHeader("closer"),
+  };
 
   function normalizeHeader(str) {
     return (str ?? "").toString().toLowerCase().trim().replace(/\s+/g, " ");
   }
 
-  // CSV do arquivo fornecido está com ';' como separador
-  // e possui campos com aspas e ';' dentro -> parser simples com suporte a aspas.
+  // Delimitador ';' + suporte básico a aspas
   function parseDelimited(text, delimiter = ";") {
-    const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n").filter(l => l.trim().length);
+    const lines = text
+      .replace(/\r\n/g, "\n")
+      .replace(/\r/g, "\n")
+      .split("\n")
+      .filter(l => l.trim().length);
+
     if (!lines.length) return [];
 
     const parseLine = (line) => {
       const out = [];
       let cur = "";
       let inQuotes = false;
+
       for (let i = 0; i < line.length; i++) {
         const ch = line[i];
         if (ch === '"') {
-          if (inQuotes && line[i+1] === '"') { cur += '"'; i++; }
+          if (inQuotes && line[i + 1] === '"') { cur += '"'; i++; }
           else inQuotes = !inQuotes;
         } else if (ch === delimiter && !inQuotes) {
           out.push(cur);
@@ -478,6 +506,7 @@
       headers.forEach((h, idx) => row[normalizeHeader(h)] = vals[idx] ?? "");
       data.push(row);
     }
+
     return data;
   }
 
@@ -489,12 +518,12 @@
     let m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
     if (m) {
       const [, d, mo, y] = m;
-      return new Date(+y, (+mo)-1, +d);
+      return new Date(+y, (+mo) - 1, +d);
     }
     m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
     if (m) {
       const [, y, mo, d] = m;
-      return new Date(+y, (+mo)-1, +d);
+      return new Date(+y, (+mo) - 1, +d);
     }
     return null;
   }
@@ -518,31 +547,51 @@
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v || 0);
   }
 
+  function formatPct(v) {
+    return `${(v || 0).toFixed(1)}%`;
+  }
+
+  function splitStatusTokens(statusStr) {
+    const raw = (statusStr || "").toString().trim();
+    if (!raw) return [];
+    // separa por '#'
+    return raw.split("#").map(s => s.trim()).filter(Boolean);
+  }
+
+  function countSalesFromStatus(statusStr) {
+    const toks = splitStatusTokens(statusStr).map(normalizeHeader);
+    let ativo = 0;
+    let cancelado = 0;
+
+    toks.forEach(t => {
+      if (t.includes("ativo")) ativo++;
+      if (t.includes("cancelado")) cancelado++;
+    });
+
+    return { ativo, cancelado, total: ativo + cancelado };
+  }
+
+  function contractBucket(statusStr) {
+    const s = normalizeHeader(statusStr || "");
+    if (!s) return "sem_status";
+    // se tem qualquer ativo/cancelado, consideramos conforme presença
+    if (s.includes("ativo")) return "ativo";
+    if (s.includes("cancelado")) return "cancelado";
+    return "outro";
+  }
+
   function buildObjects(rows) {
     if (!rows || !rows.length) throw new Error("CSV vazio ou inválido.");
 
-    // chaves do seu CSV
-    const DATA_KEY = normalizeHeader("data de atendimento");
-    const VALOR_KEY = normalizeHeader("valor vendido");
-    const RENDA_KEY = normalizeHeader("renda");
-    const STATUS_CONTRATO_KEY = normalizeHeader("status do contrato");
-
-    return rows.map((r) => {
+    return rows.map(r => {
       const out = { ...r };
-      out._date = parseBRDate(out[DATA_KEY]);
-      out._valor = parseMoneyBR(out[VALOR_KEY]);
-      out._renda = parseMoneyBR(out[RENDA_KEY]);
-      out._statusContratoNorm = normalizeHeader(out[STATUS_CONTRATO_KEY] || "");
+      out._date = parseBRDate(out[KEY.data]);
+      out._valor = parseMoneyBR(out[KEY.valorVendido]);
+      out._renda = parseMoneyBR(out[KEY.renda]);
+      out._sales = countSalesFromStatus(out[KEY.statusContrato]);
+      out._bucket = contractBucket(out[KEY.statusContrato]);
       return out;
     });
-  }
-
-  function contractBucket(row) {
-    const s = row._statusContratoNorm || "";
-    if (!s) return "sem_status";
-    if (s.includes("cancelado")) return "cancelado";
-    if (s.includes("ativo")) return "ativo";
-    return "outro";
   }
 
   function applyFilters(rows) {
@@ -590,11 +639,11 @@
     }
 
     if (status !== "todos") {
-      filtered = filtered.filter(r => contractBucket(r) === status);
+      filtered = filtered.filter(r => r._bucket === status);
     }
 
     if (uf !== "todos") {
-      filtered = filtered.filter(r => (r[normalizeHeader("uf")] || "").trim() === uf);
+      filtered = filtered.filter(r => (r[KEY.uf] || "").trim() === uf);
     }
 
     if (profNome !== "todos") {
@@ -604,119 +653,204 @@
     return filtered;
   }
 
+  function sumSales(rows) {
+    return rows.reduce((acc, r) => {
+      acc.ativo += (r._sales?.ativo || 0);
+      acc.cancelado += (r._sales?.cancelado || 0);
+      acc.total += (r._sales?.total || 0);
+      return acc;
+    }, { ativo: 0, cancelado: 0, total: 0 });
+  }
+
+  function sumVGVWeighted(rows) {
+    // VGV total ponderado pela quantidade de vendas (ativo/cancelado) de cada linha
+    return rows.reduce((acc, r) => {
+      const v = r._valor || 0;
+      const a = r._sales?.ativo || 0;
+      const c = r._sales?.cancelado || 0;
+      acc.ativo += v * a;
+      acc.cancelado += v * c;
+      acc.total += v * (a + c);
+      return acc;
+    }, { ativo: 0, cancelado: 0, total: 0 });
+  }
+
+  function avgRenda(rows) {
+    if (!rows.length) return 0;
+    const sum = rows.reduce((s, r) => s + (r._renda || 0), 0);
+    return sum / rows.length;
+  }
+
   function updateStats(rows) {
-    const total = rows.length;
+    const casais = rows.length;
 
-    const ativos = rows.filter(r => contractBucket(r) === "ativo").length;
-    const cancelados = rows.filter(r => contractBucket(r) === "cancelado").length;
-    const semStatus = rows.filter(r => contractBucket(r) === "sem_status").length;
+    const sales = sumSales(rows);
+    const vgv = sumVGVWeighted(rows);
 
-    const volumeTotal = rows.reduce((s, r) => s + (r._valor || 0), 0);
-    const rendaMedia = total ? rows.reduce((s, r) => s + (r._renda || 0), 0) / total : 0;
+    const eficiencia = casais ? (sales.total / casais) : 0; // vendas por casal
+    const pctCancel = sales.total ? (sales.cancelado / sales.total * 100) : 0;
 
-    const taxaAtivo = total ? ((ativos / total) * 100).toFixed(1) : "0.0";
+    const rendaMedia = avgRenda(rows);
 
     el("stats").innerHTML = `
       <div class="stat-card">
-        <div class="stat-value">${total}</div>
-        <div class="stat-label">Total de atendimentos</div>
+        <div class="stat-value">${casais}</div>
+        <div class="stat-label">Casais (linhas)</div>
       </div>
+
       <div class="stat-card">
-        <div class="stat-value">${ativos}</div>
-        <div class="stat-label">Contratos Ativos</div>
+        <div class="stat-value">${sales.total}</div>
+        <div class="stat-label">Vendas (ativas + canceladas)</div>
       </div>
+
       <div class="stat-card">
-        <div class="stat-value">${taxaAtivo}%</div>
-        <div class="stat-label">Taxa de Ativo</div>
+        <div class="stat-value">${formatMoney(vgv.total)}</div>
+        <div class="stat-label">VGV total (ponderado)</div>
       </div>
+
       <div class="stat-card">
-        <div class="stat-value">${cancelados}</div>
-        <div class="stat-label">Contratos Cancelados</div>
+        <div class="stat-value">${(eficiencia).toFixed(2)}</div>
+        <div class="stat-label">Eficiência (vendas ÷ casais)</div>
       </div>
+
       <div class="stat-card">
-        <div class="stat-value">${formatMoney(volumeTotal)}</div>
-        <div class="stat-label">Valor vendido (total)</div>
+        <div class="stat-value">${sales.cancelado}</div>
+        <div class="stat-label">Vendas canceladas</div>
       </div>
+
+      <div class="stat-card">
+        <div class="stat-value">${formatMoney(vgv.cancelado)}</div>
+        <div class="stat-label">VGV cancelado</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-value">${formatPct(pctCancel)}</div>
+        <div class="stat-label">% vendas canceladas</div>
+      </div>
+
       <div class="stat-card">
         <div class="stat-value">${formatMoney(rendaMedia)}</div>
-        <div class="stat-label">Renda média</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value">${semStatus}</div>
-        <div class="stat-label">Sem status do contrato</div>
+        <div class="stat-label">Renda média dos clientes</div>
       </div>
     `;
   }
 
-  function groupRankingByField(rows, fieldKeyNorm) {
-    const counts = new Map();
-    const ativos = new Map();
-    const cancelados = new Map();
-    const values = new Map();
+  function groupRanking(rows, fieldKeyNorm) {
+    const map = new Map();
 
     rows.forEach(r => {
       const name = (r[fieldKeyNorm] || "").trim();
       if (!name) return;
 
-      counts.set(name, (counts.get(name) || 0) + 1);
+      if (!map.has(name)) {
+        map.set(name, {
+          name,
+          casais: 0,
+          vendas: 0,
+          vendasAtivas: 0,
+          cancelamentos: 0,
+          vgvTotal: 0,
+          vgvAtivo: 0,
+          vgvCancelado: 0,
+          rendaSum: 0,
+        });
+      }
 
-      const bucket = contractBucket(r);
-      if (bucket === "ativo") ativos.set(name, (ativos.get(name) || 0) + 1);
-      if (bucket === "cancelado") cancelados.set(name, (cancelados.get(name) || 0) + 1);
+      const it = map.get(name);
+      it.casais += 1;
 
-      values.set(name, (values.get(name) || 0) + (r._valor || 0));
+      const a = r._sales?.ativo || 0;
+      const c = r._sales?.cancelado || 0;
+      const t = a + c;
+      const valor = r._valor || 0;
+
+      it.vendas += t;
+      it.vendasAtivas += a;
+      it.cancelamentos += c;
+
+      // VGV ponderado
+      it.vgvTotal += valor * t;
+      it.vgvAtivo += valor * a;
+      it.vgvCancelado += valor * c;
+
+      it.rendaSum += (r._renda || 0);
     });
 
-    return Array.from(counts.entries()).map(([name, total]) => {
-      const a = ativos.get(name) || 0;
+    const out = Array.from(map.values()).map(it => {
+      const eficiencia = it.casais ? (it.vendas / it.casais) : 0;
+      const pctCancel = it.vendas ? (it.cancelamentos / it.vendas * 100) : 0;
+      const ticketMedio = it.vendas ? (it.vgvTotal / it.vendas) : 0;
+      const rendaMedia = it.casais ? (it.rendaSum / it.casais) : 0;
+
       return {
-        name,
-        total,
-        ativos: a,
-        cancelados: cancelados.get(name) || 0,
-        valor: values.get(name) || 0,
-        taxaAtivo: total ? (a / total * 100) : 0
+        ...it,
+        eficiencia,
+        pctCancel,
+        ticketMedio,
+        rendaMedia
       };
-    }).sort((x, y) => (y.ativos - x.ativos) || (y.valor - x.valor) || (y.total - x.total) || x.name.localeCompare(y.name));
+    });
+
+    // ordenação: mais vendas, depois maior VGV, depois eficiência
+    out.sort((a,b) =>
+      (b.vendas - a.vendas) ||
+      (b.vgvTotal - a.vgvTotal) ||
+      (b.eficiencia - a.eficiencia) ||
+      a.name.localeCompare(b.name)
+    );
+
+    return out;
   }
 
-  function renderRanking(data, containerId) {
+  function renderRankingTable(list, containerId, titleBadge) {
     const container = el(containerId);
-    if (!data.length) {
+    if (!list.length) {
       container.innerHTML = '<div class="note">Nenhum dado para os filtros selecionados.</div>';
       return;
     }
 
-    let html = '<div class="ranking-list">';
-    data.forEach((item, idx) => {
-      const pos = idx + 1;
-      let cls = "";
-      if (pos === 1) cls = "gold";
-      else if (pos === 2) cls = "silver";
-      else if (pos === 3) cls = "bronze";
-
-      html += `
-        <div class="ranking-item">
-          <div class="rank-position ${cls}">${pos}°</div>
-          <div class="rank-name" title="${item.name}">${item.name}</div>
-          <div class="rank-value">${item.ativos}</div>
-          <div class="rank-percentage">${item.taxaAtivo.toFixed(1)}%</div>
-          <div class="rank-extra">${formatMoney(item.valor)}</div>
-        </div>
-      `;
-    });
-    html += "</div>";
-    container.innerHTML = html;
+    container.innerHTML = `
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:64px">#</th>
+              <th>Profissional ${titleBadge ? `<span class="badge">${titleBadge}</span>` : ""}</th>
+              <th class="num">Casais</th>
+              <th class="num">Vendas</th>
+              <th class="num">VGV total</th>
+              <th class="num">Eficiência</th>
+              <th class="num">Cancel.</th>
+              <th class="num">% Cancel.</th>
+              <th class="num">Ticket médio</th>
+              <th class="num hide-sm">Renda média</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${list.map((it, idx) => `
+              <tr>
+                <td class="rank-col">${idx+1}°</td>
+                <td class="name" title="${it.name}">${it.name}</td>
+                <td class="num">${it.casais}</td>
+                <td class="num">${it.vendas}</td>
+                <td class="num">${formatMoney(it.vgvTotal)}</td>
+                <td class="num">${it.eficiencia.toFixed(2)}</td>
+                <td class="num">${it.cancelamentos}</td>
+                <td class="num">${formatPct(it.pctCancel)}</td>
+                <td class="num">${formatMoney(it.ticketMedio)}</td>
+                <td class="num hide-sm">${formatMoney(it.rendaMedia)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
   }
 
   function listProfessionals(rows) {
-    const fields = [
-      normalizeHeader("promotor de marketing"),
-      normalizeHeader("liner"),
-      normalizeHeader("closer")
-    ];
-
+    const fields = [KEY.promotor, KEY.liner, KEY.closer];
     const set = new Map(); // key -> {tipo, nome}
+
     rows.forEach(r => {
       fields.forEach(f => {
         const nome = (r[f] || "").trim();
@@ -726,33 +860,32 @@
       });
     });
 
-    const order = {
-      [normalizeHeader("promotor de marketing")]: 1,
-      [normalizeHeader("liner")]: 2,
-      [normalizeHeader("closer")]: 3
-    };
-
+    const order = { [KEY.promotor]: 1, [KEY.liner]: 2, [KEY.closer]: 3 };
     return Array.from(set.values()).sort((a,b) => (order[a.tipo]-order[b.tipo]) || a.nome.localeCompare(b.nome));
   }
 
-  function countByProfessional(rows, prof) {
-    const filtered = rows.filter(r => normalizeHeader(r[prof.tipo] || "") === normalizeHeader(prof.nome));
-    const ativos = filtered.filter(r => contractBucket(r) === "ativo");
-    const valor = ativos.reduce((s, r) => s + (r._valor || 0), 0);
-
-    return {
-      total: filtered.length,
-      ativos: ativos.length,
-      taxaAtivo: filtered.length ? (ativos.length / filtered.length * 100) : 0,
-      valor
-    };
+  function tipoLabel(tipoNorm) {
+    if (tipoNorm === KEY.promotor) return "Promotor de marketing";
+    if (tipoNorm === KEY.liner) return "Liner";
+    if (tipoNorm === KEY.closer) return "Closer";
+    return tipoNorm;
   }
 
-  function tipoLabel(tipoNorm) {
-    if (tipoNorm === normalizeHeader("promotor de marketing")) return "Promotor de marketing";
-    if (tipoNorm === normalizeHeader("liner")) return "Liner";
-    if (tipoNorm === normalizeHeader("closer")) return "Closer";
-    return tipoNorm;
+  function statsForProfessional(rows, prof) {
+    const mine = rows.filter(r => normalizeHeader(r[prof.tipo] || "") === normalizeHeader(prof.nome));
+    const casais = mine.length;
+    const sales = sumSales(mine);
+    const vgv = sumVGVWeighted(mine);
+
+    const eficiencia = casais ? (sales.total / casais) : 0;
+    const pctCancel = sales.total ? (sales.cancelado / sales.total * 100) : 0;
+    const ticketMedio = sales.total ? (vgv.total / sales.total) : 0;
+    const rendaMedia = avgRenda(mine);
+
+    return {
+      casais, vendas: sales.total, cancelamentos: sales.cancelado,
+      vgvTotal: vgv.total, eficiencia, pctCancel, ticketMedio, rendaMedia
+    };
   }
 
   function renderProfessionals() {
@@ -766,16 +899,19 @@
 
     let html = "";
     professionals.forEach(p => {
-      const s = countByProfessional(state.filtered, p);
+      const s = statsForProfessional(state.filtered, p);
       html += `
         <div class="prof-card">
           <div class="prof-name">${p.nome}</div>
           <div class="prof-details">
             <strong>Tipo:</strong> ${tipoLabel(p.tipo)}<br>
-            <strong>Atendimentos:</strong> ${s.total}<br>
-            <strong>Ativos:</strong> ${s.ativos}<br>
-            <strong>Taxa de ativo:</strong> ${s.taxaAtivo.toFixed(1)}%<br>
-            <strong>Valor (ativos):</strong> ${formatMoney(s.valor)}
+            <strong>Casais:</strong> ${s.casais}<br>
+            <strong>Vendas:</strong> ${s.vendas}<br>
+            <strong>VGV:</strong> ${formatMoney(s.vgvTotal)}<br>
+            <strong>Eficiência:</strong> ${s.eficiencia.toFixed(2)}<br>
+            <strong>Cancelamentos:</strong> ${s.cancelamentos} (${formatPct(s.pctCancel)})<br>
+            <strong>Ticket médio:</strong> ${formatMoney(s.ticketMedio)}<br>
+            <strong>Renda média:</strong> ${formatMoney(s.rendaMedia)}
           </div>
         </div>
       `;
@@ -794,9 +930,7 @@
     nomeSelect.innerHTML = '<option value="todos">Todos</option>';
 
     const names = uniq(
-      state.rows
-        .map(r => (r[tipo] || "").trim())
-        .filter(Boolean)
+      state.rows.map(r => (r[tipo] || "").trim()).filter(Boolean)
     ).sort((a,b) => a.localeCompare(b));
 
     names.forEach(n => {
@@ -808,11 +942,10 @@
   }
 
   function updateUfFilter() {
-    const ufKey = normalizeHeader("uf");
     const ufSelect = el("ufSelect");
     ufSelect.innerHTML = '<option value="todos">Todas</option>';
 
-    const ufs = uniq(state.rows.map(r => (r[ufKey] || "").trim()).filter(Boolean))
+    const ufs = uniq(state.rows.map(r => (r[KEY.uf] || "").trim()).filter(Boolean))
       .sort((a,b) => a.localeCompare(b));
 
     ufs.forEach(uf => {
@@ -825,11 +958,12 @@
 
   function updateAll() {
     state.filtered = applyFilters(state.rows);
+
     updateStats(state.filtered);
 
-    renderRanking(groupRankingByField(state.filtered, normalizeHeader("promotor de marketing")), "ranking-promotor");
-    renderRanking(groupRankingByField(state.filtered, normalizeHeader("liner")), "ranking-liner");
-    renderRanking(groupRankingByField(state.filtered, normalizeHeader("closer")), "ranking-closer");
+    renderRankingTable(groupRanking(state.filtered, KEY.promotor), "ranking-promotor", "Promotor");
+    renderRankingTable(groupRanking(state.filtered, KEY.liner), "ranking-liner", "Liner");
+    renderRankingTable(groupRanking(state.filtered, KEY.closer), "ranking-closer", "Closer");
 
     renderProfessionals();
   }
@@ -873,7 +1007,7 @@
       updateProfessionalFilter();
       updateAll();
 
-      // nota do dataset (intervalo de datas)
+      // Nota de intervalo do dataset
       const dates = state.rows.map(r => r._date).filter(Boolean).sort((a,b) => a-b);
       if (dates.length) {
         const fmt = (d) => new Intl.DateTimeFormat("pt-BR").format(d);
@@ -887,7 +1021,8 @@
       console.error(err);
       el("loading").style.display = "none";
       el("error").style.display = "block";
-      el("error").textContent = `Erro ao carregar/ler dados.csv.\n\nDetalhes: ${err.message}\n\nDica: confirme se o arquivo "dados.csv" está na mesma pasta do "index.html" no GitHub Pages.`;
+      el("error").textContent =
+        `Erro ao carregar/ler dados.csv.\n\nDetalhes: ${err.message}\n\nDica: no GitHub Pages, deixe "index.html" e "dados.csv" na mesma pasta (raiz do repositório ou /docs).`;
     }
   }
 
