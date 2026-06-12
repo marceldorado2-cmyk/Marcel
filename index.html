@@ -105,12 +105,6 @@
       min-height:48px;
       line-height:1.15;
     }
-    .tab small{
-      display:block;
-      font-weight:700;
-      opacity:.78;
-      margin-top:2px;
-    }
     .tab:hover{
       transform:translateY(-1px);
       border-color:rgba(255,255,255,0.18);
@@ -343,7 +337,7 @@
           • <strong>VGV total = $$\sum(\text{coluna G})$$</strong> (soma simples).<br>
           • VGV ativo/cancelado: rateio proporcional pela quantidade de tokens ATIVO/CANCELADO na linha (quando houver mistura).<br>
           • Eficiência = vendas (cotas totais) ÷ casais (em %).<br>
-          • <strong>Média de casais (período)</strong> = total de casais ÷ quantidade de dias do período (inclusivo).
+          • <strong>Média de casais (período)</strong> = total de casais ÷ quantidade de dias do período (inclusivo, quando as duas datas estão preenchidas).
         </div>
       </div>
 
@@ -370,7 +364,7 @@
         <div class="chart-card">
           <div class="chart-head">
             <div class="chart-title">Performance por dia da semana</div>
-            <div class="chart-sub">Vendas, VGV, Casais e Aproveitamento (Eficiência) + Média de casais (período)</div>
+            <div class="chart-sub">Vendas, VGV, Casais e Aproveitamento (Eficiência) + Média de casais (por dia da semana)</div>
           </div>
           <div class="chart-wrap small">
             <canvas id="chartSemana"></canvas>
@@ -652,6 +646,9 @@
     const pct = (frac || 0) * 100;
     return new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(pct) + "%";
   }
+  function fmtNumberBR(v, min=1, max=1){
+    return new Intl.NumberFormat("pt-BR", { minimumFractionDigits:min, maximumFractionDigits:max }).format(v || 0);
+  }
 
   function parseBRDateTime(str) {
     if (!str || typeof str !== "string") return null;
@@ -796,21 +793,17 @@
     return sum / rows.length;
   }
 
-  // ====== NOVO: média de casais por dia no período (dias inclusivos) ======
+  // ===== Média do período (para o CARD) =====
   function daysInSelectedPeriodInclusive(){
     const d1 = parseDateOnlyInput(el("dateStart").value);
     const d2 = parseDateOnlyInput(el("dateEnd").value);
-
-    // Se o usuário não estipular período completo, usamos a quantidade de dias presentes nos dados filtrados (datas distintas)
     if (!d1 || !d2) return null;
-
     const start = new Date(d1.getFullYear(), d1.getMonth(), d1.getDate());
     const end = new Date(d2.getFullYear(), d2.getMonth(), d2.getDate());
     const diff = end.getTime() - start.getTime();
     if (diff < 0) return 0;
     return Math.floor(diff / (24*60*60*1000)) + 1;
   }
-
   function distinctDaysCountFromRows(rows){
     const set = new Set();
     rows.forEach(r => {
@@ -819,7 +812,6 @@
     });
     return set.size;
   }
-
   function avgCasaisPeriodo(rows){
     const casaisTotal = rows.length;
     const days = daysInSelectedPeriodInclusive();
@@ -827,11 +819,6 @@
     if (!denom) return 0;
     return casaisTotal / denom;
   }
-
-  function fmtNumberBR(v, min=1, max=1){
-    return new Intl.NumberFormat("pt-BR", { minimumFractionDigits:min, maximumFractionDigits:max }).format(v || 0);
-  }
-  // ====== fim NOVO ======
 
   function statsFor(rows) {
     const casais = rows.length;
@@ -852,14 +839,14 @@
       pctCancel,
       ticketMedio,
       rendaMed: avgRenda(rows),
-      mediaCasaisPeriodo: avgCasaisPeriodo(rows) // NOVO
+      mediaCasaisPeriodo: avgCasaisPeriodo(rows)
     };
   }
 
   function renderStatsCards(containerId, rows){
     const s = statsFor(rows);
 
-    // NOVO CARD: média de casais no período
+    // CARD permanece: média do PERÍODO (selecionado no cabeçalho)
     const mediaCard = `
       <div class="stat-card">
         <div class="stat-value">${fmtNumberBR(s.mediaCasaisPeriodo, 1, 1)}</div>
@@ -1070,6 +1057,31 @@
     };
   }
 
+  // ====== NOVO: média de casais POR DIA DA SEMANA (no período filtrado) ======
+  function weekdayMeansMonFirst(rows){
+    // raw by getDay index
+    const raw = Array.from({length:7}, () => ({ casais:0, distinctDates: new Set() }));
+
+    rows.forEach(r => {
+      if (!r._dt) return;
+      const i = weekdayIndexPtBR(r._dt);
+      raw[i].casais += 1;
+
+      // conta quantas ocorrências daquele dia da semana existem no período (datas distintas daquele weekday)
+      const d = new Date(r._dt.getFullYear(), r._dt.getMonth(), r._dt.getDate());
+      raw[i].distinctDates.add(d.getTime());
+    });
+
+    const ordered = WEEK_INDEX_ORDER_MON_FIRST.map(i => raw[i]);
+    const mean = ordered.map(x => {
+      const denom = x.distinctDates.size;
+      return denom ? (x.casais / denom) : 0;
+    });
+
+    return { labels: WEEK_LABELS_MON_FIRST, meanCasais: mean };
+  }
+  // ====== fim NOVO ======
+
   function weekdayAggMonFirst(rows){
     const raw = Array.from({length:7}, () => ({ casais:0, vendas:0, vgv:0 }));
     rows.forEach(r => {
@@ -1134,10 +1146,7 @@
     });
 
     const w = weekdayAggMonFirst(rows);
-
-    // NOVO: média de casais no período (para linha no gráfico)
-    const media = avgCasaisPeriodo(rows);
-    const mediaArr = w.labels.map(() => media);
+    const wMean = weekdayMeansMonFirst(rows); // NOVO: média específica de cada weekday
 
     destroyChartSafely(charts.semana);
     charts.semana = new Chart(el("chartSemana").getContext("2d"), {
@@ -1149,16 +1158,16 @@
           { type:"line", label:"VGV", data:w.vgv, borderColor:"rgba(34,211,238,1)", backgroundColor:"rgba(34,211,238,.10)", tension:0.25, pointRadius:2.2, yAxisID:"yMoney" },
           { type:"line", label:"Aproveitamento (Eficiência)", data:w.eficiencia.map(x => x * 100), borderColor:"rgba(255,176,32,1)", backgroundColor:"rgba(255,176,32,.10)", tension:0.25, pointRadius:2.2, yAxisID:"yPct" },
 
-          // NOVO dataset (linha): média de casais no período
+          // NOVO: ao invés de uma linha única do período, aqui vai a média do PRÓPRIO dia da semana
           {
             type:"line",
-            label:"Média de casais (período)",
-            data: mediaArr,
+            label:"Média de casais (dia da semana)",
+            data: wMean.meanCasais,
             borderColor:"rgba(234,240,255,.75)",
             backgroundColor:"rgba(234,240,255,.08)",
             borderDash:[6,6],
             tension:0,
-            pointRadius:0,
+            pointRadius:2,
             yAxisID:"yCount"
           }
         ]
@@ -1201,7 +1210,7 @@
     });
   }
 
-  // ===== Cancelamento =====
+  // ===== Cancelamento (inalterado) =====
   function avgRendaFromAgg(sum, count){ return count > 0 ? (sum / count) : 0; }
 
   function cancelamentoPorQtdCotas(rows) {
@@ -1329,7 +1338,7 @@
     });
   }
 
-  // ===== Equipes =====
+  // ===== Equipes / filtros / single (inalterados, só chamam renderStatsCards e statsFor) =====
   function listPromotoresFromAllRows(){
     const set = new Set();
     state.rows.forEach(r => {
@@ -1437,10 +1446,10 @@
       <div class="stat-card"><div class="stat-value">${fmtNumberBR(s.mediaCasaisPeriodo, 1, 1)}</div><div class="stat-label">Média de casais (período)</div></div>
       <div class="stat-card"><div class="stat-value">${s.vendas}</div><div class="stat-label">Cotas</div></div>
       <div class="stat-card"><div class="stat-value">${s.cotasCanceladas}</div><div class="stat-label">Cotas canceladas</div></div>
-      <div class="stat-card"><div class="stat-value">${fmtMoney(s.vgvTotal)}</div><div class="stat-label">VGV (Σ col G)</div></div>
+      <div class="stat-card"><div class="stat-value">${new Intl.NumberFormat("pt-BR", { style:"currency", currency:"BRL" }).format(s.vgvTotal || 0)}</div><div class="stat-label">VGV (Σ col G)</div></div>
       <div class="stat-card"><div class="stat-value">${fmtPctBR(s.eficiencia)}</div><div class="stat-label">Eficiência</div></div>
       <div class="stat-card"><div class="stat-value">${fmtPctBR(s.pctCancel)}</div><div class="stat-label">% Cancelamento</div></div>
-      <div class="stat-card"><div class="stat-value">${fmtMoney(s.ticketMedio)}</div><div class="stat-label">Ticket médio</div></div>
+      <div class="stat-card"><div class="stat-value">${new Intl.NumberFormat("pt-BR", { style:"currency", currency:"BRL" }).format(s.ticketMedio || 0)}</div><div class="stat-label">Ticket médio</div></div>
     `;
   }
 
