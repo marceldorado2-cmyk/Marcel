@@ -121,6 +121,12 @@
       text-transform:uppercase; letter-spacing:.6px; background:rgba(255,255,255,0.03);
       border-bottom:1px solid rgba(255,255,255,0.06); position:sticky; top:0; z-index:1; white-space:nowrap;
     }
+    
+    /* STYLING PARA COLUNAS SORTÁVEIS */
+    thead th.sortable{ cursor:pointer; user-select:none; transition:all 0.2s ease; }
+    thead th.sortable:hover{ color: var(--text); background:rgba(255,255,255,0.08); }
+    thead th .sort-ind{ margin-left:6px; opacity:.85; font-size:.9em; color:var(--accent2); }
+    
     tbody td{padding:12px 14px; border-bottom:1px solid rgba(255,255,255,0.05); vertical-align:middle; white-space:nowrap;}
     tbody tr:hover{ background:rgba(255,255,255,0.03); }
     tbody tr:last-child td{ border-bottom:none; }
@@ -432,7 +438,7 @@
       </div>
 
       <div id="tab-ranking-promotor" class="tab-content">
-        <div class="note">Ranking por <span class="badge">Promotor de marketing</span>. Troféus no Top 3 e badges de eficiência / % cancelamento.</div>
+        <div class="note">Ranking por <span class="badge">Promotor de marketing</span>. Troféus no Top 3 e badges de eficiência / % cancelamento. <strong>Clique nos cabeçalhos para ordenar!</strong></div>
         
         <!-- GRÁFICOS NO RANKING PROMOTOR -->
         <div class="charts-row">
@@ -450,7 +456,7 @@
       </div>
 
       <div id="tab-ranking-liner" class="tab-content">
-        <div class="note">Ranking por <span class="badge">Liner</span>. Troféus no Top 3 e badges de eficiência / % cancelamento.</div>
+        <div class="note">Ranking por <span class="badge">Liner</span>. Troféus no Top 3 e badges de eficiência / % cancelamento. <strong>Clique nos cabeçalhos para ordenar!</strong></div>
         
         <!-- GRÁFICOS NO RANKING LINER -->
         <div class="charts-row">
@@ -468,7 +474,7 @@
       </div>
 
       <div id="tab-ranking-closer" class="tab-content">
-        <div class="note">Ranking por <span class="badge">Closer</span>. Troféus no Top 3 e badges de eficiência / % cancelamento.</div>
+        <div class="note">Ranking por <span class="badge">Closer</span>. Troféus no Top 3 e badges de eficiência / % cancelamento. <strong>Clique nos cabeçalhos para ordenar!</strong></div>
         
         <!-- GRÁFICOS NO RANKING CLOSER -->
         <div class="charts-row">
@@ -498,7 +504,7 @@
       </div>
 
       <div id="tab-perfil-renda" class="tab-content">
-        <div class="note">Performance por faixa de renda (mesmas métricas do ranking).</div>
+        <div class="note">Performance por faixa de renda (mesmas métricas do ranking). <strong>Clique nos cabeçalhos para ordenar!</strong></div>
         
         <!-- GRÁFICOS NO PERFIL DE RENDA -->
         <div class="charts-row">
@@ -517,7 +523,7 @@
 
       <div id="tab-profissionais" class="tab-content">
         <div class="note">
-          Lista no <strong>mesmo formato do Ranking</strong> + seletor individual para ver o perfil de renda do profissional.
+          Lista no <strong>mesmo formato do Ranking</strong> + seletor individual para ver o perfil de renda do profissional. <strong>Clique nos cabeçalhos para ordenar!</strong>
         </div>
 
         <div class="controls" style="margin-top:10px">
@@ -577,6 +583,81 @@
     liner: norm("liner"),
     closer: norm("closer")
   };
+
+  // ===== ESTADO DE ORDENAÇÃO =====
+  const sortState = {
+    "ranking-promotor": { key: "vendas", dir: "desc" },
+    "ranking-liner": { key: "vendas", dir: "desc" },
+    "ranking-closer": { key: "vendas", dir: "desc" },
+    "profissionais-table": { key: "vendas", dir: "desc" },
+    "perfil-renda": { key: "vgvTotal", dir: "desc" },
+    "perfil-renda-single": { key: "vgvTotal", dir: "desc" },
+  };
+
+  function compareValues(a, b, key, dir = "desc") {
+    const va = a?.[key];
+    const vb = b?.[key];
+
+    // null/undefined por último
+    const aNull = va === null || va === undefined;
+    const bNull = vb === null || vb === undefined;
+    if (aNull && bNull) return 0;
+    if (aNull) return 1;
+    if (bNull) return -1;
+
+    // números
+    if (typeof va === "number" && typeof vb === "number") {
+      return dir === "asc" ? (va - vb) : (vb - va);
+    }
+
+    // strings (nome/faixa)
+    const sa = String(va);
+    const sb = String(vb);
+    const cmp = sa.localeCompare(sb, "pt-BR", { sensitivity: "base" });
+    return dir === "asc" ? cmp : -cmp;
+  }
+
+  function sortedList(list, tableId, defaultKey = "vendas") {
+    const s = sortState[tableId] || { key: defaultKey, dir: "desc" };
+    const key = s.key || defaultKey;
+    const dir = s.dir || "desc";
+
+    // cópia para não mutar
+    const arr = list.slice();
+
+    // desempate para estabilidade visual
+    arr.sort((a,b) => {
+      const main = compareValues(a,b,key,dir);
+      if (main !== 0) return main;
+      // fallback: VGV desc, vendas desc, nome asc (se existir)
+      const t1 = compareValues(a,b,"vgvTotal","desc");
+      if (t1 !== 0) return t1;
+      const t2 = compareValues(a,b,"vendas","desc");
+      if (t2 !== 0) return t2;
+      if ("name" in a && "name" in b) return compareValues(a,b,"name","asc");
+      if ("faixa" in a && "faixa" in b) return compareValues(a,b,"faixa","asc");
+      return 0;
+    });
+
+    return arr;
+  }
+
+  function setSort(tableId, key) {
+    const cur = sortState[tableId] || { key, dir: "desc" };
+    if (cur.key === key) {
+      cur.dir = (cur.dir === "desc") ? "asc" : "desc";
+    } else {
+      cur.key = key;
+      cur.dir = "desc"; // primeira vez: maior -> menor
+    }
+    sortState[tableId] = cur;
+  }
+
+  function sortIndicator(tableId, key) {
+    const cur = sortState[tableId];
+    if (!cur || cur.key !== key) return "";
+    return `<span class="sort-ind">${cur.dir === "desc" ? "▼" : "▲"}</span>`;
+  }
 
   function parseDelimited(text, delimiter = ";") {
     const lines = text.replace(/\r\n/g,"\n").replace(/\r/g,"\n").split("\n").filter(l => l.trim().length);
@@ -839,45 +920,68 @@
 
   function renderRankingTable(list, containerId, titleBadge) {
     const container = el(containerId);
-    if (!list.length) { container.innerHTML = '<div class="note">Nenhum dado para o filtro selecionado.</div>'; return; }
+    if (!list.length) { 
+      container.innerHTML = '<div class="note">Nenhum dado para o filtro selecionado.</div>'; 
+      return; 
+    }
+
+    // aplica ordenação conforme clique
+    const ordered = sortedList(list, containerId, "vendas");
 
     container.innerHTML = `
-      <div class="table-wrap"><table>
-        <thead>
-          <tr>
-            <th style="width:84px">#</th>
-            <th>Profissional ${titleBadge ? `<span class="badge">${titleBadge}</span>` : ""}</th>
-            <th class="num">Casais</th>
-            <th class="num">Cotas</th>
-            <th class="num">VGV</th>
-            <th class="num">Eficiência</th>
-            <th class="num">Cancel</th>
-            <th class="num">%Cancel</th>
-            <th class="num">Ticket Médio</th>
-            <th class="num hide-sm">Renda Média</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${list.map((it, idx) => {
-            const pos = idx + 1;
-            return `
-              <tr>
-                <td class="rank-col">${trophyFor(pos)} ${pos}°</td>
-                <td class="name" title="${it.name}">${it.name}</td>
-                <td class="num">${it.casais}</td>
-                <td class="num">${it.vendas}</td>
-                <td class="num">${fmtMoney(it.vgvTotal)}</td>
-                <td class="num"><span class="pill ${effPillClass(it.eficiencia)}">${fmtPctBR(it.eficiencia)}</span></td>
-                <td class="num">${it.cancelamentos}</td>
-                <td class="num"><span class="pill ${cancelPillClass(it.pctCancel)}">${fmtPctBR(it.pctCancel)}</span></td>
-                <td class="num">${fmtMoney(it.ticketMedio)}</td>
-                <td class="num hide-sm">${fmtMoney(it.rendaMed)}</td>
-              </tr>
-            `;
-          }).join("")}
-        </tbody>
-      </table></div>
+      <div class="table-wrap">
+        <table data-table-id="${containerId}">
+          <thead>
+            <tr>
+              <th style="width:84px">#</th>
+              <th class="sortable" data-sort="name">
+                Profissional ${titleBadge ? `<span class="badge">${titleBadge}</span>` : ""}
+                ${sortIndicator(containerId, "name")}
+              </th>
+              <th class="num sortable" data-sort="casais">Casais ${sortIndicator(containerId, "casais")}</th>
+              <th class="num sortable" data-sort="vendas">Cotas ${sortIndicator(containerId, "vendas")}</th>
+              <th class="num sortable" data-sort="vgvTotal">VGV ${sortIndicator(containerId, "vgvTotal")}</th>
+              <th class="num sortable" data-sort="eficiencia">Eficiência ${sortIndicator(containerId, "eficiencia")}</th>
+              <th class="num sortable" data-sort="cancelamentos">Cancel ${sortIndicator(containerId, "cancelamentos")}</th>
+              <th class="num sortable" data-sort="pctCancel">%Cancel ${sortIndicator(containerId, "pctCancel")}</th>
+              <th class="num sortable" data-sort="ticketMedio">Ticket Médio ${sortIndicator(containerId, "ticketMedio")}</th>
+              <th class="num hide-sm sortable" data-sort="rendaMed">Renda Média ${sortIndicator(containerId, "rendaMed")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${ordered.map((it, idx) => {
+              const pos = idx + 1;
+              return `
+                <tr>
+                  <td class="rank-col">${trophyFor(pos)} ${pos}°</td>
+                  <td class="name" title="${it.name}">${it.name}</td>
+                  <td class="num">${it.casais}</td>
+                  <td class="num">${it.vendas}</td>
+                  <td class="num">${fmtMoney(it.vgvTotal)}</td>
+                  <td class="num"><span class="pill ${effPillClass(it.eficiencia)}">${fmtPctBR(it.eficiencia)}</span></td>
+                  <td class="num">${it.cancelamentos}</td>
+                  <td class="num"><span class="pill ${cancelPillClass(it.pctCancel)}">${fmtPctBR(it.pctCancel)}</span></td>
+                  <td class="num">${fmtMoney(it.ticketMedio)}</td>
+                  <td class="num hide-sm">${fmtMoney(it.rendaMed)}</td>
+                </tr>
+              `;
+            }).join("")}
+          </tbody>
+        </table>
+      </div>
     `;
+
+    // bind de clique nos headers (após renderizar)
+    const table = container.querySelector("table");
+    table.querySelectorAll("thead th.sortable").forEach(th => {
+      th.addEventListener("click", () => {
+        const key = th.dataset.sort;
+        setSort(containerId, key);
+
+        // re-renderiza só esta tabela
+        renderRankingTable(list, containerId, titleBadge);
+      });
+    });
   }
 
   // ====== ALTERAÇÃO SOLICITADA: NOVA ESCALONAGEM DE RENDA ======
@@ -918,38 +1022,57 @@
     const container = el(containerId);
     const list = groupByRenda(rows);
 
+    // aplica ordenação conforme clique
+    const ordered = sortedList(list, containerId, "vgvTotal");
+
     container.innerHTML = `
-      <div class="table-wrap"><table>
-        <thead>
-          <tr>
-            <th>Faixa de renda</th>
-            <th class="num">Casais</th>
-            <th class="num">Cotas</th>
-            <th class="num">VGV</th>
-            <th class="num">Eficiência</th>
-            <th class="num">Cancel</th>
-            <th class="num">%Cancel</th>
-            <th class="num">Ticket Médio</th>
-            <th class="num hide-sm">Renda Média</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${list.map(it => `
-              <tr>
-                <td class="name" title="${it.faixa}">${it.faixa}</td>
-                <td class="num">${it.casais}</td>
-                <td class="num">${it.vendas}</td>
-                <td class="num">${fmtMoney(it.vgvTotal)}</td>
-                <td class="num"><span class="pill ${effPillClass(it.eficiencia)}">${fmtPctBR(it.eficiencia)}</span></td>
-                <td class="num">${it.cancelamentos}</td>
-                <td class="num"><span class="pill ${cancelPillClass(it.pctCancel)}">${fmtPctBR(it.pctCancel)}</span></td>
-                <td class="num">${fmtMoney(it.ticketMedio)}</td>
-                <td class="num hide-sm">${fmtMoney(it.rendaMed)}</td>
-              </tr>
-          `).join("")}
-        </tbody>
-      </table></div>
+      <div class="table-wrap">
+        <table data-table-id="${containerId}">
+          <thead>
+            <tr>
+              <th class="sortable" data-sort="faixa">
+                Faixa de renda ${sortIndicator(containerId, "faixa")}
+              </th>
+              <th class="num sortable" data-sort="casais">Casais ${sortIndicator(containerId, "casais")}</th>
+              <th class="num sortable" data-sort="vendas">Cotas ${sortIndicator(containerId, "vendas")}</th>
+              <th class="num sortable" data-sort="vgvTotal">VGV ${sortIndicator(containerId, "vgvTotal")}</th>
+              <th class="num sortable" data-sort="eficiencia">Eficiência ${sortIndicator(containerId, "eficiencia")}</th>
+              <th class="num sortable" data-sort="cancelamentos">Cancel ${sortIndicator(containerId, "cancelamentos")}</th>
+              <th class="num sortable" data-sort="pctCancel">%Cancel ${sortIndicator(containerId, "pctCancel")}</th>
+              <th class="num sortable" data-sort="ticketMedio">Ticket Médio ${sortIndicator(containerId, "ticketMedio")}</th>
+              <th class="num hide-sm sortable" data-sort="rendaMed">Renda Média ${sortIndicator(containerId, "rendaMed")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${ordered.map(it => `
+                <tr>
+                  <td class="name" title="${it.faixa}">${it.faixa}</td>
+                  <td class="num">${it.casais}</td>
+                  <td class="num">${it.vendas}</td>
+                  <td class="num">${fmtMoney(it.vgvTotal)}</td>
+                  <td class="num"><span class="pill ${effPillClass(it.eficiencia)}">${fmtPctBR(it.eficiencia)}</span></td>
+                  <td class="num">${it.cancelamentos}</td>
+                  <td class="num"><span class="pill ${cancelPillClass(it.pctCancel)}">${fmtPctBR(it.pctCancel)}</span></td>
+                  <td class="num">${fmtMoney(it.ticketMedio)}</td>
+                  <td class="num hide-sm">${fmtMoney(it.rendaMed)}</td>
+                </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
     `;
+
+    // bind de clique nos headers (após renderizar)
+    const table = container.querySelector("table");
+    table.querySelectorAll("thead th.sortable").forEach(th => {
+      th.addEventListener("click", () => {
+        const key = th.dataset.sort;
+        setSort(containerId, key);
+
+        // re-renderiza só esta tabela
+        renderPerfilRenda(rows, containerId);
+      });
+    });
   }
 
   function bestRendaProfile(list) {
