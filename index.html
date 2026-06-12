@@ -95,6 +95,8 @@
       border-radius:var(--radius2); padding:14px 16px; margin:14px 0; font-size:0.92rem;
       color:var(--muted); line-height:1.5;
     }
+    .note.warn{border-color:rgba(255,176,32,.35); background:rgba(255,176,32,.10);}
+    .note.bad{border-color:rgba(255,107,139,.35); background:rgba(255,107,139,.10); color:#ffd0db;}
 
     .table-wrap{
       background:var(--card); border:1px solid var(--stroke); border-radius:var(--radius);
@@ -109,7 +111,7 @@
     tbody td{padding:12px 14px; border-bottom:1px solid rgba(255,255,255,0.05); vertical-align:middle; white-space:nowrap;}
     tbody tr:hover{ background:rgba(255,255,255,0.03); }
     tbody tr:last-child td{ border-bottom:none; }
-    .rank-col{ font-family:var(--mono); font-weight:900; width:70px; }
+    .rank-col{ font-family:var(--mono); font-weight:900; width:76px; }
     .num{font-family:var(--mono); text-align:right;}
     .name{font-weight:800; max-width:420px; overflow:hidden; text-overflow:ellipsis;}
     .badge{
@@ -118,7 +120,7 @@
     }
     .eff-badge{
       display:inline-flex; align-items:center; justify-content:center;
-      min-width:84px;
+      min-width:86px;
       padding:4px 10px; border-radius:999px; font-family:var(--mono);
       font-weight:900; border:1px solid rgba(255,255,255,.14);
     }
@@ -130,18 +132,12 @@
       background:var(--card); border:1px solid var(--stroke); border-radius:var(--radius);
       padding:18px; margin:16px 0 26px; backdrop-filter:blur(10px);
     }
-    .heat-grid{
-      display:grid;
-      grid-template-columns:repeat(12, minmax(0, 1fr));
-      gap:8px;
-    }
+    .heat-grid{display:grid; grid-template-columns:repeat(7, minmax(0, 1fr)); gap:8px;}
     .heat-cell{
       border:1px solid rgba(255,255,255,.12);
       border-radius:12px;
       padding:10px 10px;
       background:rgba(255,255,255,.03);
-      position:relative;
-      overflow:hidden;
       min-height:54px;
     }
     .heat-cell .h{font-family:var(--mono); font-weight:900; color:var(--text); font-size:0.95rem;}
@@ -149,7 +145,7 @@
     .heat-legend{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:14px; color:var(--muted); font-size:.92rem;}
     .sw{width:18px;height:12px;border-radius:4px;border:1px solid rgba(255,255,255,.16); display:inline-block;}
 
-    .prof-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:18px; margin:16px 0;}
+    .prof-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:18px; margin:16px 0;}
     .prof-card{background:var(--card); border:1px solid var(--stroke); border-radius:var(--radius); padding:18px; backdrop-filter:blur(10px); transition:all 0.25s ease;}
     .prof-card:hover{transform:translateY(-2px); border-color:rgba(255,255,255,0.18); box-shadow:var(--shadow);}
     .prof-name{font-size:1.1rem; font-weight:850; margin:0 0 8px; color:var(--accent2);}
@@ -172,7 +168,7 @@
   <div class="wrap">
     <header>
       <h1>Painel de Atendimentos</h1>
-      <p class="subtitle">Métricas por casal e por profissional (GitHub Pages)</p>
+      <p class="subtitle">Fonte: <strong>dados.csv</strong> (VGV = soma simples da coluna G)</p>
     </header>
 
     <div class="controls">
@@ -235,7 +231,7 @@
 
     <div id="content">
       <div id="loading" class="note">Carregando dados...</div>
-      <div id="error" class="note" style="display:none; border-color:rgba(255,107,139,.35); background:rgba(255,107,139,.10); color:#ffd0db;"></div>
+      <div id="error" class="note bad" style="display:none"></div>
 
       <div id="tab-resumo" class="tab-content active">
         <div class="stats" id="stats"></div>
@@ -244,44 +240,74 @@
           <strong>Regras</strong><br>
           • Casais = linhas.<br>
           • Vendas = contagem de tokens em “Status do contrato” (separador #): ATIVO=1, ATIVO#ATIVO=2 etc.<br>
-          • VGV = <strong>somatório de “Valor vendido” da 7ª coluna (coluna G)</strong>, ponderado pela quantidade de vendas na linha: $$\sum(\text{colG} \times \text{vendas na linha})$$.
+          • <strong>VGV total = $$\sum(\text{coluna G})$$</strong> (soma simples da 7ª coluna, sem multiplicar por vendas).<br>
+          • Eficiência = vendas ÷ casais (mostrada em %).
         </div>
       </div>
 
       <div id="tab-ranking-promotor" class="tab-content">
-        <div class="note">Ranking por <span class="badge">Promotor de marketing</span>. Troféus no Top 3. Cor da eficiência conforme regra.</div>
+        <div class="note">Ranking por <span class="badge">Promotor de marketing</span>. Troféus no Top 3 e cor da eficiência.</div>
         <div id="ranking-promotor"></div>
       </div>
 
       <div id="tab-ranking-liner" class="tab-content">
-        <div class="note">Ranking por <span class="badge">Liner</span>. Troféus no Top 3. Cor da eficiência conforme regra.</div>
+        <div class="note">Ranking por <span class="badge">Liner</span>. Troféus no Top 3 e cor da eficiência.</div>
         <div id="ranking-liner"></div>
       </div>
 
       <div id="tab-ranking-closer" class="tab-content">
-        <div class="note">Ranking por <span class="badge">Closer</span>. Troféus no Top 3. Cor da eficiência conforme regra.</div>
+        <div class="note">Ranking por <span class="badge">Closer</span>. Troféus no Top 3 e cor da eficiência.</div>
         <div id="ranking-closer"></div>
       </div>
 
       <div id="tab-mapa-calor" class="tab-content">
         <div class="note">
-          Mapa de calor por hora (0–23) usando a <strong>1ª coluna</strong> do CSV (precisa conter data e hora).
-          Se a 1ª coluna tiver só data, a distribuição por hora não é possível.
+          Mapa de calor por hora (somente <strong>10:00 até 22:00</strong>) usando a <strong>1ª coluna</strong> do CSV (precisa ter data e hora).<br>
+          <strong>Por que pode não associar horário?</strong> Porque a 1ª coluna pode estar sem hora (só data), em formato diferente (ex.: "10h", "10:0"), ou o CSV pode estar convertendo tudo para 00:00.
+          O painel mostra abaixo um diagnóstico com exemplos lidos da 1ª coluna.
         </div>
         <div class="heat-wrap">
           <div id="heat"></div>
+          <div id="heat-diagnose" class="note warn" style="display:none"></div>
         </div>
       </div>
 
       <div id="tab-perfil-renda" class="tab-content">
-        <div class="note">
-          Performance por faixa de renda (mesmas métricas do ranking).
-        </div>
+        <div class="note">Performance por faixa de renda (mesmas métricas do ranking).</div>
         <div id="perfil-renda"></div>
       </div>
 
       <div id="tab-profissionais" class="tab-content">
-        <div class="note">Cards calculados com os filtros atuais (período, status, UF e profissional).</div>
+        <div class="note">
+          Selecione uma área e um nome para ver <strong>individual</strong> + o perfil de renda que ele mais performa.
+        </div>
+
+        <div class="controls" style="margin-top:10px">
+          <div class="control-group">
+            <label>Área (para individual)</label>
+            <select id="profTipoSingle">
+              <option value="promotor de marketing">Promotor de marketing</option>
+              <option value="liner">Liner</option>
+              <option value="closer">Closer</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label>Nome (individual)</label>
+            <select id="profNomeSingle">
+              <option value="">Selecione...</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="stats" id="stats-single" style="margin-top:10px"></div>
+
+        <div class="note" style="margin-top:8px">
+          <strong>Perfil de renda do profissional (individual)</strong> — mesma tabela da aba Perfil de renda, porém só com os casais atendidos por ele.
+          Abaixo também mostramos automaticamente qual faixa teve melhor eficiência (critério principal) e, em empate, maior VGV.
+        </div>
+        <div id="perfil-renda-single"></div>
+
+        <div class="note">Cards (lista) calculados com os filtros atuais:</div>
         <div class="prof-grid" id="prof-grid"></div>
       </div>
     </div>
@@ -290,11 +316,9 @@
 <script>
   const CSV_URL = new URL("dados.csv", document.baseURI).toString();
   const el = (id) => document.getElementById(id);
-  const state = { rows: [], filtered: [], meta: { headers: [], vgvColKey: null, firstColKey: null } };
-
+  const state = { rows: [], filtered: [], meta: { vgvColKey: null, firstColKey: null } };
   const norm = (s) => (s ?? "").toString().toLowerCase().trim().replace(/\s+/g, " ");
 
-  // Config por nomes (quando existirem), mas VGV será FORÇADO pela 7ª coluna.
   const KEY = {
     dataAtendimento: norm("data de atendimento"),
     statusContrato: norm("status do contrato"),
@@ -308,35 +332,35 @@
   function parseDelimited(text, delimiter = ";") {
     const lines = text.replace(/\r\n/g,"\n").replace(/\r/g,"\n").split("\n").filter(l => l.trim().length);
     if (!lines.length) return [];
-
     const parseLine = (line) => {
       const out = [];
-      let cur = "";
-      let inQ = false;
-      for (let i = 0; i < line.length; i++) {
-        const ch = line[i];
+      let cur = "", inQ = false;
+      for (let i=0;i<line.length;i++){
+        const ch=line[i];
         if (ch === '"') {
-          if (inQ && line[i+1] === '"') { cur += '"'; i++; }
+          if (inQ && line[i+1] === '"'){ cur += '"'; i++; }
           else inQ = !inQ;
-        } else if (ch === delimiter && !inQ) {
-          out.push(cur); cur = "";
+        } else if (ch === delimiter && !inQ){
+          out.push(cur); cur="";
         } else cur += ch;
       }
       out.push(cur);
       return out.map(v => v.trim());
     };
-
     const headers = parseLine(lines[0]).map(h => h.replace(/^"|"$/g,""));
     const data = [];
-
-    for (let i = 1; i < lines.length; i++) {
+    for (let i=1;i<lines.length;i++){
       const vals = parseLine(lines[i]).map(v => v.replace(/^"|"$/g,""));
       if (vals.length !== headers.length) continue;
       const row = {};
       headers.forEach((h, idx) => row[norm(h)] = vals[idx] ?? "");
       data.push(row);
     }
-    state.meta.headers = headers.map(h => norm(h));
+    // define colunas reais pelo 1º row
+    const keys = Object.keys(data[0] || {});
+    state.meta.firstColKey = keys[0] || null;
+    state.meta.vgvColKey = keys[6] || null; // 7ª coluna (G)
+    if (!state.meta.vgvColKey) throw new Error("CSV precisa ter pelo menos 7 colunas (para VGV na coluna G).");
     return data;
   }
 
@@ -345,8 +369,7 @@
     const c = str.replace(/[^\d,.-]/g, "");
     if (!c) return 0;
     if (c.includes(",") && c.includes(".")) {
-      const lastC = c.lastIndexOf(",");
-      const lastD = c.lastIndexOf(".");
+      const lastC = c.lastIndexOf(","), lastD = c.lastIndexOf(".");
       if (lastC > lastD) return parseFloat(c.replace(/\./g,"").replace(",", ".")) || 0;
       return parseFloat(c.replace(/,/g,"")) || 0;
     }
@@ -357,37 +380,36 @@
   function fmtMoney(v) {
     return new Intl.NumberFormat("pt-BR", { style:"currency", currency:"BRL" }).format(v || 0);
   }
-
   function fmtPctBR(frac) {
     const pct = (frac || 0) * 100;
     return new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(pct) + "%";
   }
 
-  // dd/mm/aaaa or dd/mm/aaaa hh:mm[:ss]
+  // dd/mm/yyyy [hh:mm[:ss]] or yyyy-mm-dd [hh:mm[:ss]]
   function parseBRDateTime(str) {
     if (!str || typeof str !== "string") return null;
     const s = str.trim();
     if (!s) return null;
 
-    // dd/mm/yyyy [hh:mm[:ss]]
     let m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
     if (m) {
-      const d = +m[1], mo = +m[2], y = +m[3];
-      const hh = m[4] ? +m[4] : 0;
-      const mm = m[5] ? +m[5] : 0;
-      const ss = m[6] ? +m[6] : 0;
+      const d=+m[1], mo=+m[2], y=+m[3];
+      const hh=m[4]?+m[4]:0, mm=m[5]?+m[5]:0, ss=m[6]?+m[6]:0;
       return new Date(y, mo-1, d, hh, mm, ss);
     }
-    // yyyy-mm-dd [hh:mm[:ss]]
     m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
     if (m) {
-      const y = +m[1], mo = +m[2], d = +m[3];
-      const hh = m[4] ? +m[4] : 0;
-      const mm = m[5] ? +m[5] : 0;
-      const ss = m[6] ? +m[6] : 0;
+      const y=+m[1], mo=+m[2], d=+m[3];
+      const hh=m[4]?+m[4]:0, mm=m[5]?+m[5]:0, ss=m[6]?+m[6]:0;
       return new Date(y, mo-1, d, hh, mm, ss);
     }
     return null;
+  }
+
+  function parseDateOnlyInput(s) {
+    const d = parseBRDateTime(s);
+    if (!d) return null;
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
   }
 
   function splitStatusTokens(statusStr) {
@@ -398,12 +420,12 @@
 
   function countSalesFromStatus(statusStr) {
     const toks = splitStatusTokens(statusStr).map(norm);
-    let ativo = 0, cancelado = 0;
+    let ativo=0, cancelado=0;
     toks.forEach(t => {
       if (t.includes("ativo")) ativo++;
       if (t.includes("cancelado")) cancelado++;
     });
-    return { ativo, cancelado, total: ativo + cancelado };
+    return { ativo, cancelado, total: ativo+cancelado };
   }
 
   function contractBucket(statusStr) {
@@ -414,43 +436,17 @@
     return "outro";
   }
 
-  function resolveColumnKeysFromFirstRow(rawRow) {
-    const keys = Object.keys(rawRow || {});
-    // 1ª coluna (para mapa de calor): a primeira chave do objeto (reflete a 1ª coluna do CSV)
-    state.meta.firstColKey = keys[0] || null;
-
-    // VGV: 7ª coluna (Excel G) => índice 6
-    state.meta.vgvColKey = keys[6] || null;
-    if (!state.meta.vgvColKey) {
-      throw new Error("Não consegui localizar a 7ª coluna (coluna G) para VGV. Verifique se o CSV tem pelo menos 7 colunas.");
-    }
-  }
-
   function buildObjects(rows) {
     if (!rows.length) throw new Error("CSV vazio.");
-    resolveColumnKeysFromFirstRow(rows[0]);
-
     return rows.map(r => {
       const out = { ...r };
-
-      // data: tentamos a coluna nomeada e também a 1ª coluna (p/ heatmap)
       out._dt = parseBRDateTime(out[KEY.dataAtendimento]) || parseBRDateTime(out[state.meta.firstColKey]);
-
-      // VGV vindo EXCLUSIVAMENTE da 7ª coluna:
-      out._valorVgv = parseMoneyBR(out[state.meta.vgvColKey]);
-
+      out._valorVgv = parseMoneyBR(out[state.meta.vgvColKey]); // coluna G
       out._renda = parseMoneyBR(out[KEY.renda]);
       out._sales = countSalesFromStatus(out[KEY.statusContrato]);
       out._bucket = contractBucket(out[KEY.statusContrato]);
-
       return out;
     });
-  }
-
-  function parseDateOnlyInput(s) {
-    const d = parseBRDateTime(s);
-    if (!d) return null;
-    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
   }
 
   function applyFilters(rows) {
@@ -464,20 +460,14 @@
 
     let filtered = rows.slice();
 
-    // período por data inicial/final (inclui o dia final inteiro)
     if (d1 || d2) {
       const start = d1 ? d1.getTime() : -Infinity;
       const end = d2 ? (new Date(d2.getFullYear(), d2.getMonth(), d2.getDate(), 23, 59, 59, 999)).getTime() : Infinity;
-
-      filtered = filtered.filter(r => {
-        if (!r._dt) return false;
-        const t = r._dt.getTime();
-        return t >= start && t <= end;
-      });
+      filtered = filtered.filter(r => r._dt && r._dt.getTime() >= start && r._dt.getTime() <= end);
     }
 
     if (status !== "todos") filtered = filtered.filter(r => r._bucket === status);
-    if (ufSel !== "todos") filtered = filtered.filter(r => (r[KEY.uf] ?? "").trim() === ufSel);
+    if (ufSel !== "todos") filtered = filtered.filter(r => (r[KEY.uf] ?? "").toString().trim() === ufSel);
 
     if (profNome !== "todos") {
       filtered = filtered.filter(r => norm(r[profTipo] ?? "") === norm(profNome));
@@ -495,15 +485,22 @@
     }, { ativo:0, cancelado:0, total:0 });
   }
 
-  // VGV ponderado por vendas (com colG)
-  function sumVGVWeighted(rows) {
+  // VGV agora é soma simples da coluna G, com split ativo/cancelado pela proporção de vendas na linha
+  function sumVGVSimpleWithSplit(rows) {
     return rows.reduce((acc, r) => {
       const v = r._valorVgv ?? 0;
       const a = r._sales?.ativo ?? 0;
       const c = r._sales?.cancelado ?? 0;
-      acc.ativo += v * a;
-      acc.cancelado += v * c;
-      acc.total += v * (a + c);
+      const t = a + c;
+
+      acc.total += v;
+
+      if (t > 0) {
+        acc.ativo += v * (a / t);
+        acc.cancelado += v * (c / t);
+      } else {
+        // sem status: entra só no total
+      }
       return acc;
     }, { ativo:0, cancelado:0, total:0 });
   }
@@ -514,25 +511,40 @@
     return sum / rows.length;
   }
 
-  function updateStats(rows) {
+  function statsFor(rows) {
     const casais = rows.length;
     const sales = sumSales(rows);
-    const vgv = sumVGVWeighted(rows);
+    const vgv = sumVGVSimpleWithSplit(rows);
 
-    // Eficiência em % (vendas por casal, interpretado como taxa) => vendas/casais
     const eficiencia = casais ? (sales.total / casais) : 0;
     const pctCancel = sales.total ? (sales.cancelado / sales.total) : 0;
-    const rendaMed = avgRenda(rows);
+    const ticketMedio = sales.total ? (vgv.total / sales.total) : 0;
 
+    return {
+      casais,
+      vendas: sales.total,
+      cancelamentos: sales.cancelado,
+      vgvTotal: vgv.total,
+      vgvAtivo: vgv.ativo,
+      vgvCancelado: vgv.cancelado,
+      eficiencia,
+      pctCancel,
+      ticketMedio,
+      rendaMed: avgRenda(rows)
+    };
+  }
+
+  function updateStats(rows) {
+    const s = statsFor(rows);
     el("stats").innerHTML = `
-      <div class="stat-card"><div class="stat-value">${casais}</div><div class="stat-label">Casais</div></div>
-      <div class="stat-card"><div class="stat-value">${sales.total}</div><div class="stat-label">Vendas</div></div>
-      <div class="stat-card"><div class="stat-value">${fmtMoney(vgv.total)}</div><div class="stat-label">VGV total (coluna G)</div></div>
-      <div class="stat-card"><div class="stat-value">${fmtPctBR(eficiencia)}</div><div class="stat-label">Eficiência</div></div>
-      <div class="stat-card"><div class="stat-value">${sales.cancelado}</div><div class="stat-label">Canceladas</div></div>
-      <div class="stat-card"><div class="stat-value">${fmtMoney(vgv.cancelado)}</div><div class="stat-label">VGV cancelado</div></div>
-      <div class="stat-card"><div class="stat-value">${fmtPctBR(pctCancel)}</div><div class="stat-label">% Cancelamentos</div></div>
-      <div class="stat-card"><div class="stat-value">${fmtMoney(rendaMed)}</div><div class="stat-label">Renda média</div></div>
+      <div class="stat-card"><div class="stat-value">${s.casais}</div><div class="stat-label">Casais</div></div>
+      <div class="stat-card"><div class="stat-value">${s.vendas}</div><div class="stat-label">Vendas</div></div>
+      <div class="stat-card"><div class="stat-value">${fmtMoney(s.vgvTotal)}</div><div class="stat-label">VGV total (Σ col G)</div></div>
+      <div class="stat-card"><div class="stat-value">${fmtPctBR(s.eficiencia)}</div><div class="stat-label">Eficiência</div></div>
+      <div class="stat-card"><div class="stat-value">${s.cancelamentos}</div><div class="stat-label">Canceladas</div></div>
+      <div class="stat-card"><div class="stat-value">${fmtMoney(s.vgvCancelado)}</div><div class="stat-label">VGV cancelado (rateado)</div></div>
+      <div class="stat-card"><div class="stat-value">${fmtPctBR(s.pctCancel)}</div><div class="stat-label">% Cancelamentos</div></div>
+      <div class="stat-card"><div class="stat-value">${fmtMoney(s.rendaMed)}</div><div class="stat-label">Renda média</div></div>
     `;
   }
 
@@ -542,13 +554,7 @@
     if (pct < 25) return "eff-med";
     return "eff-good";
   }
-
-  function trophyFor(pos) {
-    if (pos === 1) return "🥇";
-    if (pos === 2) return "🥈";
-    if (pos === 3) return "🥉";
-    return "";
-  }
+  function trophyFor(pos) { return pos===1?"🥇":pos===2?"🥈":pos===3?"🥉":""; }
 
   function groupRanking(rows, fieldKeyNorm) {
     const map = new Map();
@@ -556,30 +562,13 @@
       const name = (r[fieldKeyNorm] ?? "").toString().trim();
       if (!name) return;
 
-      if (!map.has(name)) {
-        map.set(name, {
-          name, casais:0, vendas:0, cancelamentos:0,
-          vgvTotal:0, rendaSum:0
-        });
-      }
-      const it = map.get(name);
-      it.casais += 1;
-
-      const s = r._sales || { ativo:0, cancelado:0, total:0 };
-      it.vendas += s.total;
-      it.cancelamentos += s.cancelado;
-
-      // VGV total ponderado
-      it.vgvTotal += (r._valorVgv || 0) * (s.total || 0);
-      it.rendaSum += (r._renda || 0);
+      if (!map.has(name)) map.set(name, []);
+      map.get(name).push(r);
     });
 
-    const out = Array.from(map.values()).map(it => {
-      const eficiencia = it.casais ? (it.vendas / it.casais) : 0;
-      const pctCancel = it.vendas ? (it.cancelamentos / it.vendas) : 0;
-      const ticketMedio = it.vendas ? (it.vgvTotal / it.vendas) : 0;
-      const rendaMed = it.casais ? (it.rendaSum / it.casais) : 0;
-      return { ...it, eficiencia, pctCancel, ticketMedio, rendaMed };
+    const out = Array.from(map.entries()).map(([name, list]) => {
+      const s = statsFor(list);
+      return { name, ...s };
     });
 
     out.sort((a,b) => (b.vendas - a.vendas) || (b.vgvTotal - a.vgvTotal) || (b.eficiencia - a.eficiencia) || a.name.localeCompare(b.name));
@@ -588,16 +577,13 @@
 
   function renderRankingTable(list, containerId, titleBadge) {
     const container = el(containerId);
-    if (!list.length) {
-      container.innerHTML = '<div class="note">Nenhum dado para o filtro selecionado.</div>';
-      return;
-    }
+    if (!list.length) { container.innerHTML = '<div class="note">Nenhum dado para o filtro selecionado.</div>'; return; }
 
-    let html = `
+    container.innerHTML = `
       <div class="table-wrap"><table>
         <thead>
           <tr>
-            <th style="width:76px">#</th>
+            <th style="width:84px">#</th>
             <th>Profissional ${titleBadge ? `<span class="badge">${titleBadge}</span>` : ""}</th>
             <th class="num">Casais</th>
             <th class="num">Vendas</th>
@@ -610,173 +596,29 @@
           </tr>
         </thead>
         <tbody>
+          ${list.map((it, idx) => {
+            const pos = idx + 1;
+            const effCls = effClass(it.eficiencia);
+            return `
+              <tr>
+                <td class="rank-col">${trophyFor(pos)} ${pos}°</td>
+                <td class="name" title="${it.name}">${it.name}</td>
+                <td class="num">${it.casais}</td>
+                <td class="num">${it.vendas}</td>
+                <td class="num">${fmtMoney(it.vgvTotal)}</td>
+                <td class="num"><span class="eff-badge ${effCls}">${fmtPctBR(it.eficiencia)}</span></td>
+                <td class="num">${it.cancelamentos}</td>
+                <td class="num">${fmtPctBR(it.pctCancel)}</td>
+                <td class="num">${fmtMoney(it.ticketMedio)}</td>
+                <td class="num hide-sm">${fmtMoney(it.rendaMed)}</td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table></div>
     `;
-
-    list.forEach((it, idx) => {
-      const pos = idx + 1;
-      const trof = trophyFor(pos);
-      const effCls = effClass(it.eficiencia);
-      html += `
-        <tr>
-          <td class="rank-col">${trof} ${pos}°</td>
-          <td class="name" title="${it.name}">${it.name}</td>
-          <td class="num">${it.casais}</td>
-          <td class="num">${it.vendas}</td>
-          <td class="num">${fmtMoney(it.vgvTotal)}</td>
-          <td class="num"><span class="eff-badge ${effCls}">${fmtPctBR(it.eficiencia)}</span></td>
-          <td class="num">${it.cancelamentos}</td>
-          <td class="num">${fmtPctBR(it.pctCancel)}</td>
-          <td class="num">${fmtMoney(it.ticketMedio)}</td>
-          <td class="num hide-sm">${fmtMoney(it.rendaMed)}</td>
-        </tr>
-      `;
-    });
-
-    html += `</tbody></table></div>`;
-    container.innerHTML = html;
   }
 
-  function updateProfFilters() {
-    const tipo = norm(el("profTipo").value);
-    const profNomeEl = el("profNome");
-    const names = new Set();
-    state.rows.forEach(r => {
-      const n = (r[tipo] ?? "").toString().trim();
-      if (n) names.add(n);
-    });
-    const arr = Array.from(names).sort((a,b) => a.localeCompare(b));
-    profNomeEl.innerHTML = '<option value="todos">Todos</option>';
-    arr.forEach(n => {
-      const opt = document.createElement("option");
-      opt.value = n;
-      opt.textContent = n;
-      profNomeEl.appendChild(opt);
-    });
-  }
-
-  function updateUfFilters() {
-    const ufEl = el("ufSelect");
-    const ufs = new Set();
-    state.rows.forEach(r => {
-      const u = (r[KEY.uf] ?? "").toString().trim();
-      if (u) ufs.add(u);
-    });
-    const arr = Array.from(ufs).sort((a,b)=>a.localeCompare(b));
-    ufEl.innerHTML = '<option value="todos">Todas</option>';
-    arr.forEach(u => {
-      const opt = document.createElement("option");
-      opt.value = u;
-      opt.textContent = u;
-      ufEl.appendChild(opt);
-    });
-  }
-
-  function listProfessionals(rows) {
-    const fields = [KEY.promotor, KEY.liner, KEY.closer];
-    const set = new Map();
-    rows.forEach(r => {
-      fields.forEach(f => {
-        const n = (r[f] ?? "").toString().trim();
-        if (!n) return;
-        const k = `${f}|${n}`;
-        if (!set.has(k)) set.set(k, { tipo: f, nome: n });
-      });
-    });
-    const order = { [KEY.promotor]:1, [KEY.liner]:2, [KEY.closer]:3 };
-    return Array.from(set.values()).sort((a,b) => (order[a.tipo]-order[b.tipo]) || a.nome.localeCompare(b.nome));
-  }
-
-  function statsFor(rows) {
-    const casais = rows.length;
-    const sales = sumSales(rows);
-    const vgv = sumVGVWeighted(rows);
-    const eficiencia = casais ? (sales.total / casais) : 0;
-    const pctCancel = sales.total ? (sales.cancelado / sales.total) : 0;
-    const ticketMedio = sales.total ? (vgv.total / sales.total) : 0;
-    const rendaMed = avgRenda(rows);
-    return { casais, vendas: sales.total, cancelamentos: sales.cancelado, vgvTotal: vgv.total, eficiencia, pctCancel, ticketMedio, rendaMed };
-  }
-
-  function renderProfessionals() {
-    const pros = listProfessionals(state.rows);
-    const grid = el("prof-grid");
-    if (!pros.length) { grid.innerHTML = '<div class="note">Nenhum profissional encontrado.</div>'; return; }
-
-    grid.innerHTML = pros.map(p => {
-      const mine = state.filtered.filter(r => norm(r[p.tipo] ?? "") === norm(p.nome));
-      const s = statsFor(mine);
-      const effCls = effClass(s.eficiencia);
-      return `
-        <div class="prof-card">
-          <div class="prof-name">${p.nome}</div>
-          <div class="prof-details">
-            <strong>Tipo:</strong> ${p.tipo}<br>
-            <strong>Casais:</strong> ${s.casais}<br>
-            <strong>Vendas:</strong> ${s.vendas}<br>
-            <strong>VGV (coluna G):</strong> ${fmtMoney(s.vgvTotal)}<br>
-            <strong>Eficiência:</strong> <span class="eff-badge ${effCls}">${fmtPctBR(s.eficiencia)}</span><br>
-            <strong>Cancelamentos:</strong> ${s.cancelamentos} (${fmtPctBR(s.pctCancel)})<br>
-            <strong>Ticket médio:</strong> ${fmtMoney(s.ticketMedio)}<br>
-            <strong>Renda média:</strong> ${fmtMoney(s.rendaMed)}
-          </div>
-        </div>
-      `;
-    }).join("");
-  }
-
-  // Heatmap por hora usando 1ª coluna (datetime)
-  function renderHeatmap(rows) {
-    const host = el("heat");
-    const counts = Array.from({length:24}, () => 0);
-
-    rows.forEach(r => {
-      const dt = r._dt;
-      if (!dt || Number.isNaN(dt.getTime())) return;
-      const h = dt.getHours();
-      counts[h] += 1;
-    });
-
-    const max = Math.max(...counts, 0);
-    const min = Math.min(...counts, 0);
-
-    const colorFor = (v) => {
-      if (max <= 0) return "rgba(255,255,255,.03)";
-      const t = v / max; // 0..1
-      // gradiente roxo->ciano->verde
-      const a = 0.10 + 0.35 * t;
-      // mistura simples via HSL-like na mão:
-      if (t < 0.5) return `rgba(124,92,255,${a})`;
-      return `rgba(34,211,238,${a})`;
-    };
-
-    const grid = `
-      <div class="heat-grid">
-        ${counts.map((c, h) => `
-          <div class="heat-cell" style="background:${colorFor(c)}">
-            <div class="h">${String(h).padStart(2,"0")}:00</div>
-            <div class="c">${c} casais</div>
-          </div>
-        `).join("")}
-      </div>
-      <div class="heat-legend">
-        <span>Menor: <strong>${min}</strong></span>
-        <span>Maior: <strong>${max}</strong></span>
-        <span class="sw" style="background:rgba(255,255,255,.03)"></span><span>baixo</span>
-        <span class="sw" style="background:rgba(124,92,255,.28)"></span><span>médio</span>
-        <span class="sw" style="background:rgba(34,211,238,.38)"></span><span>alto</span>
-      </div>
-    `;
-
-    // aviso se não tiver hora (quase tudo 00:00)
-    const nonMidnight = counts.reduce((s, c, h) => s + (h === 0 ? 0 : c), 0);
-    const hint = (max > 0 && nonMidnight === 0)
-      ? `<div class="note" style="margin-top:14px">Parece que a 1ª coluna não tem horário (quase tudo caiu em 00:00). Para o mapa de calor funcionar, a 1ª coluna precisa ter hora (ex.: 01/01/2026 14:35).</div>`
-      : "";
-
-    host.innerHTML = grid + hint;
-  }
-
-  // Perfil de renda: faixas fixas e métricas tipo ranking
   function rendaBucket(v) {
     const x = v || 0;
     if (x <= 9900) return "Até R$ 9,9 mil";
@@ -788,13 +630,6 @@
   }
 
   function groupByRenda(rows) {
-    const map = new Map();
-    rows.forEach(r => {
-      const b = rendaBucket(r._renda);
-      if (!map.has(b)) map.set(b, []);
-      map.get(b).push(r);
-    });
-
     const order = [
       "Até R$ 9,9 mil",
       "R$ 10 mil a R$ 11,9 mil",
@@ -804,18 +639,17 @@
       "Acima de R$ 50,1 mil"
     ];
 
-    return order.map(k => {
-      const list = map.get(k) || [];
-      const s = statsFor(list);
-      return { faixa: k, ...s };
-    });
+    const map = new Map(order.map(k => [k, []]));
+    rows.forEach(r => map.get(rendaBucket(r._renda)).push(r));
+
+    return order.map(k => ({ faixa: k, ...statsFor(map.get(k) || []) }));
   }
 
-  function renderPerfilRenda(rows) {
-    const container = el("perfil-renda");
+  function renderPerfilRenda(rows, containerId) {
+    const container = el(containerId);
     const list = groupByRenda(rows);
 
-    const html = `
+    container.innerHTML = `
       <div class="table-wrap"><table>
         <thead>
           <tr>
@@ -850,7 +684,196 @@
         </tbody>
       </table></div>
     `;
-    container.innerHTML = html;
+  }
+
+  function bestRendaProfile(list) {
+    const eligible = list.filter(x => x.casais > 0);
+    if (!eligible.length) return null;
+    eligible.sort((a,b) => (b.eficiencia - a.eficiencia) || (b.vgvTotal - a.vgvTotal) || (b.vendas - a.vendas));
+    return eligible[0];
+  }
+
+  function renderHeatmap(rows) {
+    const heatEl = el("heat");
+    const diagEl = el("heat-diagnose");
+
+    const hours = [];
+    for (let h=10; h<=22; h++) hours.push(h);
+
+    const counts = new Map(hours.map(h => [h, 0]));
+    let parsedOk = 0;
+    let parsedTotal = 0;
+
+    rows.forEach(r => {
+      const raw = r[state.meta.firstColKey];
+      const dt = parseBRDateTime(raw);
+      parsedTotal++;
+      if (!dt || Number.isNaN(dt.getTime())) return;
+      parsedOk++;
+      const h = dt.getHours();
+      if (counts.has(h)) counts.set(h, counts.get(h) + 1);
+    });
+
+    const arr = hours.map(h => ({ h, c: counts.get(h) || 0 }));
+    const max = Math.max(...arr.map(x=>x.c), 0);
+
+    const bg = (c) => {
+      if (max <= 0) return "rgba(255,255,255,.03)";
+      const t = c / max;
+      const a = 0.10 + 0.40 * t;
+      // roxo->ciano
+      return t < 0.5 ? `rgba(124,92,255,${a})` : `rgba(34,211,238,${a})`;
+    };
+
+    heatEl.innerHTML = `
+      <div class="heat-grid">
+        ${arr.map(x => `
+          <div class="heat-cell" style="background:${bg(x.c)}">
+            <div class="h">${String(x.h).padStart(2,"0")}:00</div>
+            <div class="c">${x.c} casais</div>
+          </div>
+        `).join("")}
+      </div>
+      <div class="heat-legend">
+        <span>Maior: <strong>${max}</strong></span>
+        <span class="sw" style="background:rgba(255,255,255,.03)"></span><span>baixo</span>
+        <span class="sw" style="background:rgba(124,92,255,.28)"></span><span>médio</span>
+        <span class="sw" style="background:rgba(34,211,238,.42)"></span><span>alto</span>
+      </div>
+    `;
+
+    // Diagnóstico: por que não associa horário?
+    const samples = state.rows.slice(0, 8).map(r => (r[state.meta.firstColKey] ?? "").toString()).filter(Boolean);
+    const msg =
+      `Diagnóstico (1ª coluna):\n` +
+      `• Nome da 1ª coluna (normalizada): "${state.meta.firstColKey}"\n` +
+      `• Linhas filtradas analisadas: ${rows.length}\n` +
+      `• Datas/horas parseadas com sucesso: ${parsedOk} de ${parsedTotal}\n` +
+      `• Exemplos lidos na 1ª coluna:\n  - ${samples.join("\n  - ") || "(sem exemplos)"}\n\n` +
+      `Se o número de parseadas é baixo, normalmente é por: formato diferente do esperado (ex.: "10h"), separador diferente, ou ausência de hora (fica 00:00).`;
+
+    diagEl.style.display = "block";
+    diagEl.textContent = msg;
+  }
+
+  function updateProfFilters(mainTipoElId, mainNomeElId) {
+    const tipo = norm(el(mainTipoElId).value);
+    const nomeEl = el(mainNomeElId);
+    const names = new Set();
+    state.rows.forEach(r => {
+      const n = (r[tipo] ?? "").toString().trim();
+      if (n) names.add(n);
+    });
+    const arr = Array.from(names).sort((a,b)=>a.localeCompare(b));
+    nomeEl.innerHTML = mainNomeElId === "profNome" ? '<option value="todos">Todos</option>' : '<option value="">Selecione...</option>';
+    arr.forEach(n => {
+      const opt = document.createElement("option");
+      opt.value = n;
+      opt.textContent = n;
+      nomeEl.appendChild(opt);
+    });
+  }
+
+  function updateUfFilters() {
+    const ufEl = el("ufSelect");
+    const ufs = new Set();
+    state.rows.forEach(r => {
+      const u = (r[KEY.uf] ?? "").toString().trim();
+      if (u) ufs.add(u);
+    });
+    const arr = Array.from(ufs).sort((a,b)=>a.localeCompare(b));
+    ufEl.innerHTML = '<option value="todos">Todas</option>';
+    arr.forEach(u => {
+      const opt = document.createElement("option");
+      opt.value = u;
+      opt.textContent = u;
+      ufEl.appendChild(opt);
+    });
+  }
+
+  function listProfessionals(rows) {
+    const fields = [KEY.promotor, KEY.liner, KEY.closer];
+    const set = new Map();
+    rows.forEach(r => {
+      fields.forEach(f => {
+        const n = (r[f] ?? "").toString().trim();
+        if (!n) return;
+        const k = `${f}|${n}`;
+        if (!set.has(k)) set.set(k, { tipo: f, nome: n });
+      });
+    });
+    return Array.from(set.values()).sort((a,b) => a.nome.localeCompare(b.nome));
+  }
+
+  function renderProfessionalsGrid() {
+    const pros = listProfessionals(state.rows);
+    const grid = el("prof-grid");
+    if (!pros.length) { grid.innerHTML = '<div class="note">Nenhum profissional encontrado.</div>'; return; }
+
+    grid.innerHTML = pros.map(p => {
+      const mine = state.filtered.filter(r => norm(r[p.tipo] ?? "") === norm(p.nome));
+      const s = statsFor(mine);
+      const effCls = effClass(s.eficiencia);
+      return `
+        <div class="prof-card">
+          <div class="prof-name">${p.nome}</div>
+          <div class="prof-details">
+            <strong>Área:</strong> ${p.tipo}<br>
+            <strong>Casais:</strong> ${s.casais}<br>
+            <strong>Vendas:</strong> ${s.vendas}<br>
+            <strong>VGV (Σ col G):</strong> ${fmtMoney(s.vgvTotal)}<br>
+            <strong>Eficiência:</strong> <span class="eff-badge ${effCls}">${fmtPctBR(s.eficiencia)}</span><br>
+            <strong>Cancelamentos:</strong> ${s.cancelamentos} (${fmtPctBR(s.pctCancel)})<br>
+            <strong>Ticket médio:</strong> ${fmtMoney(s.ticketMedio)}<br>
+            <strong>Renda média:</strong> ${fmtMoney(s.rendaMed)}
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function renderSingleProfessional() {
+    const tipo = norm(el("profTipoSingle").value);
+    const nome = el("profNomeSingle").value;
+    const box = el("stats-single");
+    const tbl = el("perfil-renda-single");
+
+    if (!nome) {
+      box.innerHTML = "";
+      tbl.innerHTML = '<div class="note">Selecione um profissional para ver o detalhamento individual.</div>';
+      return;
+    }
+
+    const mine = state.filtered.filter(r => norm(r[tipo] ?? "") === norm(nome));
+    const s = statsFor(mine);
+    const effCls = effClass(s.eficiencia);
+
+    box.innerHTML = `
+      <div class="stat-card"><div class="stat-value">${nome}</div><div class="stat-label">Profissional selecionado</div></div>
+      <div class="stat-card"><div class="stat-value">${s.casais}</div><div class="stat-label">Casais</div></div>
+      <div class="stat-card"><div class="stat-value">${s.vendas}</div><div class="stat-label">Vendas</div></div>
+      <div class="stat-card"><div class="stat-value">${fmtMoney(s.vgvTotal)}</div><div class="stat-label">VGV (Σ col G)</div></div>
+      <div class="stat-card"><div class="stat-value">${fmtPctBR(s.eficiencia)}</div><div class="stat-label">Eficiência</div></div>
+      <div class="stat-card"><div class="stat-value">${s.cancelamentos}</div><div class="stat-label">Cancelamentos</div></div>
+      <div class="stat-card"><div class="stat-value">${fmtMoney(s.ticketMedio)}</div><div class="stat-label">Ticket médio</div></div>
+      <div class="stat-card"><div class="stat-value">${fmtMoney(s.rendaMed)}</div><div class="stat-label">Renda média</div></div>
+    `;
+
+    renderPerfilRenda(mine, "perfil-renda-single");
+
+    const rendaList = groupByRenda(mine);
+    const best = bestRendaProfile(rendaList);
+    if (best) {
+      tbl.insertAdjacentHTML("afterbegin", `
+        <div class="note">
+          <strong>Perfil que mais performa:</strong> ${best.faixa}<br>
+          <strong>Eficiência:</strong> <span class="eff-badge ${effClass(best.eficiencia)}">${fmtPctBR(best.eficiencia)}</span>
+          • <strong>VGV:</strong> ${fmtMoney(best.vgvTotal)}
+          • <strong>Vendas:</strong> ${best.vendas}
+          • <strong>Casais:</strong> ${best.casais}
+        </div>
+      `);
+    }
   }
 
   function updateAll() {
@@ -863,53 +886,45 @@
     renderRankingTable(groupRanking(state.filtered, KEY.closer), "ranking-closer", "Closer");
 
     renderHeatmap(state.filtered);
-    renderPerfilRenda(state.filtered);
+    renderPerfilRenda(state.filtered, "perfil-renda");
 
-    renderProfessionals();
-
-    // Debug/validação do VGV (p/ você conferir o total esperado)
-    // (Se quiser, depois eu coloco isso numa caixinha de "auditoria")
-    // console.log("VGV total (filtrado):", sumVGVWeighted(state.filtered).total);
+    renderProfessionalsGrid();
+    renderSingleProfessional();
   }
 
   function setup() {
-    // listeners
-    ["statusSelect", "profTipo", "profNome", "ufSelect", "dateStart", "dateEnd"].forEach(id => {
+    ["statusSelect","profTipo","profNome","ufSelect","dateStart","dateEnd"].forEach(id => {
       el(id).addEventListener("change", updateAll);
-      el(id).addEventListener("keyup", (e) => {
-        if (e.key === "Enter") updateAll();
-      });
+      el(id).addEventListener("keyup", (e) => { if (e.key === "Enter") updateAll(); });
     });
 
-    el("profTipo").addEventListener("change", () => { updateProfFilters(); updateAll(); });
+    el("profTipo").addEventListener("change", () => { updateProfFilters("profTipo","profNome"); updateAll(); });
 
     el("btnLimparPeriodo").addEventListener("click", () => {
-      el("dateStart").value = "";
-      el("dateEnd").value = "";
-      updateAll();
+      el("dateStart").value = ""; el("dateEnd").value = ""; updateAll();
     });
-
     el("btnHoje").addEventListener("click", () => {
       const now = new Date();
       const dd = String(now.getDate()).padStart(2,"0");
       const mm = String(now.getMonth()+1).padStart(2,"0");
       const yy = now.getFullYear();
       const s = `${dd}/${mm}/${yy}`;
-      el("dateStart").value = s;
-      el("dateEnd").value = s;
-      updateAll();
+      el("dateStart").value = s; el("dateEnd").value = s; updateAll();
     });
-
     el("btn30").addEventListener("click", () => {
       const now = new Date();
       const end = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const start = new Date(end); start.setDate(start.getDate() - 29);
-
       const fmt = (d) => `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
-      el("dateStart").value = fmt(start);
-      el("dateEnd").value = fmt(end);
-      updateAll();
+      el("dateStart").value = fmt(start); el("dateEnd").value = fmt(end); updateAll();
     });
+
+    // single professional selectors
+    el("profTipoSingle").addEventListener("change", () => {
+      updateProfFilters("profTipoSingle","profNomeSingle");
+      renderSingleProfessional();
+    });
+    el("profNomeSingle").addEventListener("change", renderSingleProfessional);
 
     // tabs
     document.querySelectorAll(".tab").forEach(t => {
@@ -934,22 +949,23 @@
       const raw = parseDelimited(text, ";");
       state.rows = buildObjects(raw);
 
-      updateProfFilters();
+      updateProfFilters("profTipo","profNome");
+      updateProfFilters("profTipoSingle","profNomeSingle");
       updateUfFilters();
       updateAll();
 
-      // Período detectado no dataset (pela _dt)
+      // nota do dataset
       const dates = state.rows.map(r => r._dt).filter(Boolean).sort((a,b)=>a-b);
       if (dates.length) {
         const fmt = (d) => new Intl.DateTimeFormat("pt-BR").format(d);
         el("dataset-note").style.display = "block";
         el("dataset-note").textContent =
-          `Período detectado no CSV: ${fmt(dates[0])} a ${fmt(dates[dates.length-1])}. (VGV lido da 7ª coluna / coluna G)`;
+          `Período detectado no CSV: ${fmt(dates[0])} a ${fmt(dates[dates.length-1])}. VGV = Σ(7ª coluna / G).`;
       }
 
-      // Checagem do VGV geral (sem filtros) — deve bater o seu número se a regra estiver correta
-      const vgvGeral = sumVGVWeighted(state.rows).total;
-      console.log("VGV geral (todos os dados, coluna G ponderada por vendas):", vgvGeral);
+      // validação VGV geral (soma simples col G)
+      const vgvGeral = state.rows.reduce((s, r) => s + (r._valorVgv || 0), 0);
+      console.log("VGV geral (Σ coluna G):", vgvGeral);
 
       el("loading").style.display = "none";
     }catch(e){
