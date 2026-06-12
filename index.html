@@ -1,1401 +1,734 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Painel de Atendimentos (dados.csv)</title>
-  <meta name="color-scheme" content="dark light" />
-  <base href="./" />
-  <style>
-    :root{
-      --bg0:#070A12; --bg1:#0B1222; --card: rgba(255,255,255,.06);
-      --stroke: rgba(255,255,255,.12); --text:#EAF0FF; --muted: rgba(234,240,255,.72);
-      --good:#5CFFB0; --med:#FFB020; --bad:#FF2D55; /* vermelho mais vibrante */
-      --accent:#7C5CFF; --accent2:#22D3EE;
-      --shadow: 0 20px 60px rgba(0,0,0,.55); --radius: 18px; --radius2: 12px;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;background:
-        radial-gradient(1200px 700px at 10% 10%, rgba(124,92,255,.25), transparent 55%),
-        radial-gradient(900px 600px at 90% 20%, rgba(34,211,238,.18), transparent 55%),
-        radial-gradient(800px 600px at 40% 90%, rgba(92,255,176,.12), transparent 55%),
-        linear-gradient(180deg, var(--bg0), var(--bg1));
-      font-family:var(--sans); color:var(--text);
-      overflow-x:hidden;
-    }
-    .wrap{display:flex;flex-direction:column;min-height:100vh;margin:0 auto; max-width:1500px; padding:0 24px;}
-    header{padding:40px 0 22px;text-align:center;}
-    h1{
-      font-size:3.2rem; font-weight:750; margin:0 0 10px;
-      background:linear-gradient(135deg, var(--accent), var(--accent2));
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-      background-clip:text; letter-spacing:-0.02em;
-    }
-    .subtitle{font-size:1.05rem; color:var(--muted); font-weight:450;}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise de Horários - Wedding Planner</title>
+    <style>
+        :root {
+            --bg: #0f0f23;
+            --card: #1a1a3a;
+            --accent: #00d4aa;
+            --text: #ffffff;
+            --muted: #8892b0;
+            --border: rgba(255,255,255,0.1);
+            --mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+        }
 
-    .controls{
-      display:flex; flex-wrap:wrap; gap:16px; margin:26px 0 10px;
-      align-items:end; justify-content:center;
-    }
-    .control-group{display:flex; flex-direction:column; gap:8px; min-width:210px;}
-    .control-group label{font-size:0.82rem; color:var(--muted); font-weight:600; letter-spacing:0.5px; text-transform:uppercase;}
-    select, input{
-      padding:12px 14px; border:1px solid var(--stroke); border-radius:var(--radius2);
-      background:var(--card); color:var(--text); font-size:1rem; outline:none;
-      transition:all 0.2s ease; backdrop-filter:blur(10px);
-    }
-    input::placeholder{color:rgba(234,240,255,.35)}
-    select:focus, input:focus{border-color:var(--accent); box-shadow:0 0 0 3px rgba(124,92,255,0.12);}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    /* ====== MELHORA DE LEGIBILIDADE DO DROPDOWN ====== */
-    select option{
-      color:#0B1222;              /* texto escuro */
-      background:#EAF0FF;         /* fundo claro */
-      font-weight:700;
-    }
-    select{
-      color: var(--text);
-    }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
 
-    .range-row{display:flex; gap:10px; align-items:center;}
-    .range-row .sep{color:var(--muted); font-weight:700; padding:0 2px; white-space:nowrap;}
-    .btn{
-      padding:12px 14px; border:1px solid rgba(255,255,255,.14);
-      border-radius:12px; background:rgba(255,255,255,.06); color:var(--text);
-      cursor:pointer; transition:all .2s ease; font-weight:650;
-    }
-    .btn:hover{border-color:rgba(255,255,255,.22); transform:translateY(-1px); box-shadow:var(--shadow);}
-    .btn:active{transform:translateY(0px); box-shadow:none;}
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
 
-    .tabs{
-      display:flex; flex-wrap:wrap; gap:6px; margin:18px 0 16px;
-      background:rgba(255,255,255,0.03); padding:6px; border-radius:var(--radius); backdrop-filter:blur(10px);
-    }
-    .tab{
-      flex:1; min-width:160px;
-      padding:12px 14px; text-align:center; cursor:pointer; border-radius:var(--radius2);
-      font-weight:650; transition:all 0.2s ease; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-      user-select:none;
-    }
-    .tab:hover{color:var(--text); background:rgba(255,255,255,0.05);}
-    .tab.active{background:var(--accent); color:white; box-shadow:var(--shadow);}
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--accent);
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
 
-    .tab-content{display:none; animation:fadeIn 0.25s ease;}
-    .tab-content.active{display:block;}
-    @keyframes fadeIn{from{opacity:0; transform:translateY(8px)}to{opacity:1; transform:translateY(0)}}
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+            background: rgba(255,255,255,0.02);
+        }
 
-    .stats{
-      display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
-      gap:18px; margin:22px 0 14px;
-    }
-    .stat-card{
-      background:var(--card); border:1px solid var(--stroke); border-radius:var(--radius);
-      padding:22px 18px; text-align:center; backdrop-filter:blur(10px);
-      position:relative; overflow:hidden; transition:all 0.25s ease;
-    }
-    .stat-card:hover{transform:translateY(-2px); border-color:rgba(255,255,255,0.18); box-shadow:var(--shadow);}
-    .stat-card::before{content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg, var(--accent), var(--accent2));}
-    .stat-value{font-size:2.25rem; font-weight:800; margin:0 0 8px; font-family:var(--mono); color:var(--accent2);}
-    .stat-label{font-size:.95rem; color:var(--muted); font-weight:600; letter-spacing:0.3px;}
+        .upload-area:hover {
+            border-color: var(--accent);
+            background: rgba(0,212,170,0.05);
+        }
 
-    .note{
-      background:rgba(124,92,255,0.1); border:1px solid rgba(124,92,255,0.22);
-      border-radius:var(--radius2); padding:14px 16px; margin:14px 0; font-size:0.92rem;
-      color:var(--muted); line-height:1.5;
-    }
-    .note.warn{border-color:rgba(255,176,32,.35); background:rgba(255,176,32,.10);}
-    .note.bad{border-color:rgba(255,45,85,.35); background:rgba(255,45,85,.10); color:#ffd0db;}
+        .upload-area.dragover {
+            border-color: var(--accent);
+            background: rgba(0,212,170,0.1);
+            transform: scale(1.02);
+        }
 
-    .table-wrap{
-      background:var(--card); border:1px solid var(--stroke); border-radius:var(--radius);
-      overflow:auto; backdrop-filter:blur(10px); margin:16px 0 26px;
-      max-height: 70vh;
-    }
-    table{width:100%; border-collapse:separate; border-spacing:0; min-width: 980px;}
-    thead th{
-      text-align:left; padding:12px 14px; font-size:0.8rem; color:var(--muted);
-      text-transform:uppercase; letter-spacing:.6px; background:rgba(255,255,255,0.03);
-      border-bottom:1px solid rgba(255,255,255,0.06); position:sticky; top:0; z-index:1; white-space:nowrap;
-    }
-    tbody td{padding:12px 14px; border-bottom:1px solid rgba(255,255,255,0.05); vertical-align:middle; white-space:nowrap;}
-    tbody tr:hover{ background:rgba(255,255,255,0.03); }
-    tbody tr:last-child td{ border-bottom:none; }
-    .rank-col{ font-family:var(--mono); font-weight:900; width:76px; }
-    .num{font-family:var(--mono); text-align:right;}
-    .name{font-weight:800; max-width:420px; overflow:hidden; text-overflow:ellipsis;}
-    .badge{
-      display:inline-block; padding:2px 8px; border:1px solid rgba(255,255,255,.14);
-      border-radius:999px; font-size:.78rem; color:var(--muted); font-family:var(--mono); margin-left:8px;
-    }
-    .pill{
-      display:inline-flex; align-items:center; justify-content:center;
-      min-width:86px;
-      padding:4px 10px; border-radius:999px; font-family:var(--mono);
-      font-weight:900; border:1px solid rgba(255,255,255,.14);
-    }
-    .p-bad{ background:rgba(255,45,85,.12); color:var(--bad); border-color:rgba(255,45,85,.28); }
-    .p-med{ background:rgba(255,176,32,.12); color:var(--med); border-color:rgba(255,176,32,.28); }
-    .p-good{ background:rgba(92,255,176,.12); color:var(--good); border-color:rgba(92,255,176,.28); }
+        input[type="file"] {
+            margin: 1rem 0;
+            padding: 0.75rem;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            width: 100%;
+            max-width: 400px;
+        }
 
-    .heat-wrap{
-      background:var(--card); border:1px solid var(--stroke); border-radius:var(--radius);
-      padding:18px; margin:16px 0 26px; backdrop-filter:blur(10px);
-    }
-    .heat-grid{display:grid; grid-template-columns:repeat(7, minmax(0, 1fr)); gap:8px; margin-top:10px;}
-    .heat-cell{
-      border:1px solid rgba(255,255,255,.12);
-      border-radius:12px;
-      padding:10px 10px;
-      background:rgba(255,255,255,.03);
-      min-height:54px;
-    }
-    .heat-cell .h{font-family:var(--mono); font-weight:900; color:var(--text); font-size:0.95rem;}
-    .heat-cell .c{font-family:var(--mono); color:var(--muted); font-size:0.92rem; margin-top:2px;}
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
 
-    /* ===== GRÁFICOS ===== */
-    .charts-row {
-      display: grid; 
-      grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); 
-      gap: 20px; 
-      margin: 20px 0;
-    }
-    
-    .chart-card {
-      background: var(--card); 
-      border: 1px solid var(--stroke); 
-      border-radius: var(--radius);
-      padding: 18px; 
-      backdrop-filter: blur(10px);
-    }
-    
-    .chart-title {
-      font-size: 1.1rem; 
-      font-weight: 700; 
-      margin-bottom: 14px; 
-      color: var(--text);
-      text-align: center;
-    }
+        .tab {
+            padding: 1rem 1.5rem;
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            font-weight: 500;
+        }
 
-    /* Gráfico de linha (VGV por dia) */
-    .line-chart {
-      position: relative;
-      height: 200px;
-      padding: 20px;
-      overflow-x: auto;
-    }
-    .line-chart svg {
-      width: 100%;
-      height: 100%;
-      min-width: 400px;
-    }
+        .tab:hover {
+            color: var(--text);
+            background: rgba(255,255,255,0.05);
+        }
 
-    /* Gráfico de barras empilhadas */
-    .stacked-chart {
-      height: 200px;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      gap: 4px;
-      padding: 20px;
-    }
-    .stacked-bar {
-      width: 60px;
-      max-height: 160px;
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      border-radius: 8px 8px 0 0;
-      overflow: hidden;
-    }
-    .stack-segment {
-      width: 100%;
-      transition: opacity 0.2s ease;
-    }
-    .stack-ativo {
-      background: linear-gradient(180deg, var(--good), rgba(92,255,176,0.8));
-    }
-    .stack-cancelado {
-      background: linear-gradient(180deg, var(--bad), rgba(255,45,85,0.8));
-    }
-    .stacked-bar:hover .stack-segment {
-      opacity: 0.8;
-    }
-    .stack-label {
-      text-align: center;
-      font-family: var(--mono);
-      font-size: 0.85rem;
-      color: var(--muted);
-      margin-top: 8px;
-    }
+        .tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+            background: rgba(0,212,170,0.1);
+        }
 
-    /* Gráfico de barras horizontais (Top 10) */
-    .horizontal-chart {
-      padding: 20px;
-      max-height: 320px;
-      overflow-y: auto;
-    }
-    .h-bar {
-      display: flex;
-      align-items: center;
-      margin-bottom: 12px;
-      gap: 12px;
-    }
-    .h-bar-label {
-      min-width: 140px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--text);
-      text-align: right;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .h-bar-container {
-      flex: 1;
-      height: 24px;
-      background: rgba(255,255,255,0.08);
-      border-radius: 12px;
-      position: relative;
-      overflow: hidden;
-    }
-    .h-bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-      border-radius: 12px;
-      transition: width 0.3s ease;
-      position: relative;
-    }
-    .h-bar-value {
-      position: absolute;
-      right: 8px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-family: var(--mono);
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: white;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-    }
+        .tab-content {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+        }
 
-    /* Legendas */
-    .chart-legend {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      margin-top: 12px;
-      font-size: 0.85rem;
-    }
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .legend-color {
-      width: 12px;
-      height: 12px;
-      border-radius: 2px;
-    }
+        .hidden {
+            display: none;
+        }
 
-    @media(max-width: 980px){
-      .wrap{padding:0 16px}
-      h1{font-size:2.3rem}
-      .control-group{min-width:unset; width:100%}
-      .range-row{flex-direction:column; align-items:stretch}
-      .range-row .sep{display:none;}
-      .heat-grid{grid-template-columns:repeat(2, minmax(0,1fr));}
-      .hide-sm{display:none;}
-      table{min-width: 820px;}
-      .charts-row {
-        grid-template-columns: 1fr;
-      }
-      .h-bar-label {
-        min-width: 100px;
-        font-size: 0.8rem;
-      }
-    }
-  </style>
+        .info-box {
+            background: rgba(0,212,170,0.1);
+            border: 1px solid rgba(0,212,170,0.3);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            color: var(--text);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            background: rgba(255,255,255,0.02);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: rgba(0,212,170,0.2);
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(0,212,170,0.1), rgba(0,212,170,0.05));
+            border: 1px solid rgba(0,212,170,0.3);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--accent);
+            font-family: var(--mono);
+        }
+
+        .stat-label {
+            color: var(--muted);
+            margin-top: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        /* Novo estilo para o gráfico - Cards organizados em grid */
+        .chart-container {
+            margin: 2rem 0;
+        }
+
+        .chart-title {
+            font-size: 1.5rem;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .hours-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .hour-card {
+            background: linear-gradient(135deg, var(--card), rgba(255,255,255,0.05));
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hour-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            border-color: var(--accent);
+        }
+
+        .hour-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), #22d3ee);
+        }
+
+        .hour-time {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+            font-family: var(--mono);
+        }
+
+        .hour-count {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--accent);
+            margin-bottom: 0.25rem;
+            font-family: var(--mono);
+        }
+
+        .hour-label {
+            color: var(--muted);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Barra visual de intensidade */
+        .intensity-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            margin: 1rem 0 0.5rem;
+            overflow: hidden;
+        }
+
+        .intensity-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #22d3ee);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        /* Heatmap melhorado */
+        .heat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .heat-cell {
+            padding: 1.5rem 1rem;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .heat-cell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .heat-cell .h {
+            font-family: var(--mono);
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .heat-cell .c {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        #heat-diagnose {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            font-family: var(--mono);
+            font-size: 0.9rem;
+            color: var(--muted);
+            white-space: pre-line;
+            line-height: 1.4;
+        }
+
+        /* Responsividade melhorada */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .tabs {
+                justify-content: center;
+            }
+            
+            .tab {
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+            }
+            
+            .hours-grid {
+                grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+                gap: 1rem;
+            }
+            
+            .heat-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            }
+        }
+    </style>
 </head>
-
 <body>
-  <div class="wrap">
-    <header>
-      <h1>Painel de Atendimentos</h1>
-      <p class="subtitle">Fonte: <strong>dados.csv</strong> (VGV = soma simples da coluna G)</p>
-    </header>
-
-    <div class="controls">
-      <div class="control-group" style="min-width:420px">
-        <label>Período (dd/mm/aaaa a dd/mm/aaaa)</label>
-        <div class="range-row">
-          <input id="dateStart" placeholder="01/01/2026" inputmode="numeric" />
-          <span class="sep">a</span>
-          <input id="dateEnd" placeholder="30/04/2026" inputmode="numeric" />
-          <button class="btn" id="btnHoje" type="button">Hoje</button>
-          <button class="btn" id="btn30" type="button">30 dias</button>
-          <button class="btn" id="btnLimparPeriodo" type="button">Limpar</button>
+    <div class="container">
+        <h1>📊 Análise de Horários - Wedding Planner</h1>
+        
+        <div class="upload-area" id="upload-area">
+            <h3>📁 Arraste e solte seu arquivo Excel aqui</h3>
+            <p>ou clique para selecionar</p>
+            <input type="file" id="file-input" accept=".xlsx,.xls,.csv">
         </div>
-      </div>
 
-      <div class="control-group">
-        <label>Status do contrato</label>
-        <select id="statusSelect">
-          <option value="todos">Todos</option>
-          <option value="ativo">Ativo</option>
-          <option value="cancelado">Cancelado</option>
-          <option value="sem_status">Sem status</option>
-          <option value="outro">Outro</option>
-        </select>
-      </div>
+        <div class="tabs">
+            <button class="tab active" data-tab="resumo">📈 Resumo</button>
+            <button class="tab" data-tab="dados">📋 Dados</button>
+            <button class="tab" data-tab="grafico">📊 Gráfico por Hora</button>
+            <button class="tab" data-tab="heatmap">🔥 Mapa de Calor</button>
+        </div>
 
-      <div class="control-group">
-        <label>Profissional</label>
-        <select id="profTipo">
-          <option value="promotor de marketing">Promotor de marketing</option>
-          <option value="liner">Liner</option>
-          <option value="closer">Closer</option>
-        </select>
-      </div>
-
-      <div class="control-group">
-        <label>Nome</label>
-        <select id="profNome">
-          <option value="todos">Todos</option>
-        </select>
-      </div>
-
-      <div class="control-group">
-        <label>UF</label>
-        <select id="ufSelect">
-          <option value="todos">Todas</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="tabs">
-      <div class="tab active" data-tab="resumo">📊 Resumo</div>
-      <div class="tab" data-tab="ranking-promotor">🎯 Ranking Promotor</div>
-      <div class="tab" data-tab="ranking-liner">💬 Ranking Liner</div>
-      <div class="tab" data-tab="ranking-closer">🤝 Ranking Closer</div>
-      <div class="tab" data-tab="mapa-calor">📈 Mapa de calor</div>
-      <div class="tab" data-tab="perfil-renda">💸 Perfil de renda</div>
-      <div class="tab" data-tab="profissionais">👥 Profissionais</div>
-    </div>
-
-    <div id="content">
-      <div id="loading" class="note">Carregando dados...</div>
-      <div id="error" class="note bad" style="display:none"></div>
-
-      <div id="tab-resumo" class="tab-content active">
-        <div class="stats" id="stats"></div>
-
-        <!-- GRÁFICOS NO RESUMO -->
-        <div class="charts-row">
-          <div class="chart-card">
-            <div class="chart-title">📈 VGV por Dia</div>
-            <div class="line-chart" id="resumo-line-chart"></div>
-          </div>
-          <div class="chart-card">
-            <div class="chart-title">📊 Cotas: Ativo vs Cancelado</div>
-            <div class="stacked-chart" id="resumo-stacked-chart"></div>
-            <div class="chart-legend">
-              <div class="legend-item">
-                <div class="legend-color" style="background: var(--good)"></div>
-                <span>Ativo</span>
-              </div>
-              <div class="legend-item">
-                <div class="legend-color" style="background: var(--bad)"></div>
-                <span>Cancelado</span>
-              </div>
+        <div id="resumo" class="tab-content">
+            <div class="info-box">
+                <strong>Horários considerados:</strong> 10:00 até 22:00, a partir da <strong>1ª coluna</strong> (precisa ter data e hora).
+                <br>Abaixo: estatísticas gerais + gráfico por hora.
             </div>
-          </div>
-        </div>
-        <div class="charts-row">
-          <div class="chart-card">
-            <div class="chart-title">🏆 Top 10 Profissionais (VGV)</div>
-            <div class="horizontal-chart" id="resumo-horizontal-chart"></div>
-          </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="total-events">0</div>
+                    <div class="stat-label">Total de Eventos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="peak-hour">--</div>
+                    <div class="stat-label">Horário de Pico</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="avg-per-hour">0</div>
+                    <div class="stat-label">Média por Hora</div>
+                </div>
+            </div>
+
+            <div id="summary-chart"></div>
         </div>
 
-        <div class="note">
-          <strong>Critérios (ajustados)</strong><br>
-          • Casais = linhas.<br>
-          • Cotas ativas/canceladas = contagem de tokens na coluna "Status do contrato" (ex.: <span class="badge">CANCELADO # CANCELADO # ATIVO</span>).<br>
-          • <strong>VGV total = $$\sum(\text{coluna G})$$</strong> (soma simples).<br>
-          • VGV ativo/cancelado: rateio proporcional pela quantidade de tokens ATIVO/CANCELADO na linha (quando houver mistura).<br>
-          • Eficiência = vendas (cotas totais) ÷ casais (em %).
-        </div>
-      </div>
-
-      <div id="tab-ranking-promotor" class="tab-content">
-        <div class="note">Ranking por <span class="badge">Promotor de marketing</span>. Troféus no Top 3 e badges de eficiência / % cancelamento.</div>
-        
-        <!-- GRÁFICOS NO RANKING PROMOTOR -->
-        <div class="charts-row">
-          <div class="chart-card">
-            <div class="chart-title">📈 VGV por Dia (Promotores)</div>
-            <div class="line-chart" id="promotor-line-chart"></div>
-          </div>
-          <div class="chart-card">
-            <div class="chart-title">🏆 Top 10 Promotores (VGV)</div>
-            <div class="horizontal-chart" id="promotor-horizontal-chart"></div>
-          </div>
-        </div>
-        
-        <div id="ranking-promotor"></div>
-      </div>
-
-      <div id="tab-ranking-liner" class="tab-content">
-        <div class="note">Ranking por <span class="badge">Liner</span>. Troféus no Top 3 e badges de eficiência / % cancelamento.</div>
-        
-        <!-- GRÁFICOS NO RANKING LINER -->
-        <div class="charts-row">
-          <div class="chart-card">
-            <div class="chart-title">📈 VGV por Dia (Liners)</div>
-            <div class="line-chart" id="liner-line-chart"></div>
-          </div>
-          <div class="chart-card">
-            <div class="chart-title">🏆 Top 10 Liners (VGV)</div>
-            <div class="horizontal-chart" id="liner-horizontal-chart"></div>
-          </div>
-        </div>
-        
-        <div id="ranking-liner"></div>
-      </div>
-
-      <div id="tab-ranking-closer" class="tab-content">
-        <div class="note">Ranking por <span class="badge">Closer</span>. Troféus no Top 3 e badges de eficiência / % cancelamento.</div>
-        
-        <!-- GRÁFICOS NO RANKING CLOSER -->
-        <div class="charts-row">
-          <div class="chart-card">
-            <div class="chart-title">📈 VGV por Dia (Closers)</div>
-            <div class="line-chart" id="closer-line-chart"></div>
-          </div>
-          <div class="chart-card">
-            <div class="chart-title">🏆 Top 10 Closers (VGV)</div>
-            <div class="horizontal-chart" id="closer-horizontal-chart"></div>
-          </div>
-        </div>
-        
-        <div id="ranking-closer"></div>
-      </div>
-
-      <div id="tab-mapa-calor" class="tab-content">
-        <div class="note">
-          Horários considerados: <strong>10:00 até 22:00</strong>, a partir da <strong>1ª coluna</strong> (precisa ter data e hora).<br>
-          Abaixo: gráfico por hora + heatmap de contagem.
-        </div>
-        <div class="heat-wrap">
-          <div id="heat-chart"></div>
-          <div id="heat"></div>
-          <div id="heat-diagnose" class="note warn" style="display:none"></div>
-        </div>
-      </div>
-
-      <div id="tab-perfil-renda" class="tab-content">
-        <div class="note">Performance por faixa de renda (mesmas métricas do ranking).</div>
-        
-        <!-- GRÁFICOS NO PERFIL DE RENDA -->
-        <div class="charts-row">
-          <div class="chart-card">
-            <div class="chart-title">📊 VGV por Faixa de Renda</div>
-            <div class="horizontal-chart" id="renda-horizontal-chart"></div>
-          </div>
-          <div class="chart-card">
-            <div class="chart-title">📈 Eficiência por Faixa de Renda</div>
-            <div class="horizontal-chart" id="renda-eficiencia-chart"></div>
-          </div>
-        </div>
-        
-        <div id="perfil-renda"></div>
-      </div>
-
-      <div id="tab-profissionais" class="tab-content">
-        <div class="note">
-          Lista no <strong>mesmo formato do Ranking</strong> + seletor individual para ver o perfil de renda do profissional.
+        <div id="dados" class="tab-content hidden">
+            <div id="data-info"></div>
+            <div id="data-table"></div>
         </div>
 
-        <div class="controls" style="margin-top:10px">
-          <div class="control-group">
-            <label>Área (para individual)</label>
-            <select id="profTipoSingle">
-              <option value="promotor de marketing">Promotor de marketing</option>
-              <option value="liner">Liner</option>
-              <option value="closer">Closer</option>
-            </select>
-          </div>
-          <div class="control-group">
-            <label>Nome (individual)</label>
-            <select id="profNomeSingle">
-              <option value="">Selecione...</option>
-            </select>
-          </div>
+        <div id="grafico" class="tab-content hidden">
+            <div class="info-box">
+                <strong>Horários considerados:</strong> 10:00 até 22:00, a partir da <strong>1ª coluna</strong> (precisa ter data e hora).
+                <br>Abaixo: gráfico por hora + visualização em cards.
+            </div>
+            <div id="heat-chart"></div>
         </div>
 
-        <div class="stats" id="stats-single" style="margin-top:10px"></div>
-
-        <!-- GRÁFICOS NA ABA PROFISSIONAIS -->
-        <div class="charts-row">
-          <div class="chart-card">
-            <div class="chart-title">📈 VGV por Dia (Profissional Individual)</div>
-            <div class="line-chart" id="prof-line-chart"></div>
-          </div>
-          <div class="chart-card">
-            <div class="chart-title">📊 Perfil de Renda (Individual)</div>
-            <div class="horizontal-chart" id="prof-renda-chart"></div>
-          </div>
+        <div id="heatmap" class="tab-content hidden">
+            <div class="info-box">
+                <strong>Horários considerados:</strong> 10:00 até 22:00, a partir da <strong>1ª coluna</strong> (precisa ter data e hora).
+                <br>Abaixo: mapa de calor de contagem por hora.
+            </div>
+            <div id="heat"></div>
+            <div id="heat-diagnose" style="display:none;"></div>
         </div>
-
-        <div class="note" style="margin-top:8px">
-          <strong>Perfil de renda do profissional (individual)</strong> — mesma tabela da aba Perfil de renda, porém apenas com os casais dele.
-        </div>
-        <div id="perfil-renda-single"></div>
-
-        <div class="note" style="margin-top:8px">Tabela "Profissionais" (mesmo padrão do ranking) com os filtros atuais:</div>
-        <div id="profissionais-table"></div>
-      </div>
     </div>
-  </div>
 
-<script>
-  const CSV_URL = new URL("dados.csv", document.baseURI).toString();
-  const el = (id) => document.getElementById(id);
-  const state = { rows: [], filtered: [], meta: { vgvColKey: null, firstColKey: null } };
-  const norm = (s) => (s ?? "").toString().toLowerCase().trim().replace(/\s+/g, " ");
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        const state = { 
+            rows: [], 
+            headers: [], 
+            meta: { firstColKey: null }
+        };
 
-  const KEY = {
-    dataAtendimento: norm("data de atendimento"),
-    statusContrato: norm("status do contrato"),
-    renda: norm("renda"),
-    uf: norm("uf"),
-    promotor: norm("promotor de marketing"),
-    liner: norm("liner"),
-    closer: norm("closer")
-  };
+        // Elementos principais
+        const el = id => document.getElementById(id);
+        const uploadArea = el("upload-area");
+        const fileInput = el("file-input");
 
-  function parseDelimited(text, delimiter = ";") {
-    const lines = text.replace(/\r\n/g,"\n").replace(/\r/g,"\n").split("\n").filter(l => l.trim().length);
-    if (!lines.length) return [];
-    const parseLine = (line) => {
-      const out = [];
-      let cur = "", inQ = false;
-      for (let i=0;i<line.length;i++){
-        const ch=line[i];
-        if (ch === '"') {
-          if (inQ && line[i+1] === '"'){ cur += '"'; i++; }
-          else inQ = !inQ;
-        } else if (ch === delimiter && !inQ){
-          out.push(cur); cur="";
-        } else cur += ch;
-      }
-      out.push(cur);
-      return out.map(v => v.trim());
-    };
-    const headers = parseLine(lines[0]).map(h => h.replace(/^"|"$/g,""));
-    const data = [];
-    for (let i=1;i<lines.length;i++){
-      const vals = parseLine(lines[i]).map(v => v.replace(/^"|"$/g,""));
-      if (vals.length !== headers.length) continue;
-      const row = {};
-      headers.forEach((h, idx) => row[norm(h)] = vals[idx] ?? "");
-      data.push(row);
-    }
-    const keys = Object.keys(data[0] || {});
-    state.meta.firstColKey = keys[0] || null;
-    state.meta.vgvColKey = keys[6] || null; // 7ª coluna (G)
-    if (!state.meta.vgvColKey) throw new Error("CSV precisa ter pelo menos 7 colunas (para VGV na coluna G).");
-    return data;
-  }
+        // Upload via drag & drop ou clique
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', e => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        uploadArea.addEventListener('drop', e => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+        fileInput.addEventListener('change', e => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
 
-  function parseMoneyBR(str) {
-    if (!str || typeof str !== "string") return 0;
-    const c = str.replace(/[^\d,.-]/g, "");
-    if (!c) return 0;
-    if (c.includes(",") && c.includes(".")) {
-      const lastC = c.lastIndexOf(","), lastD = c.lastIndexOf(".");
-      if (lastC > lastD) return parseFloat(c.replace(/\./g,"").replace(",", ".")) || 0;
-      return parseFloat(c.replace(/,/g,"")) || 0;
-    }
-    if (c.includes(",")) return parseFloat(c.replace(",", ".")) || 0;
-    return parseFloat(c) || 0;
-  }
+        // Sistema de abas
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetTab = tab.dataset.tab;
+                
+                // Remove active de todas as abas
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+                
+                // Ativa a aba clicada
+                tab.classList.add('active');
+                el(targetTab).classList.remove('hidden');
+            });
+        });
 
-  function fmtMoney(v) {
-    return new Intl.NumberFormat("pt-BR", { style:"currency", currency:"BRL" }).format(v || 0);
-  }
-  function fmtPctBR(frac) {
-    const pct = (frac || 0) * 100;
-    return new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(pct) + "%";
-  }
+        function handleFile(file) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    const workbook = XLSX.read(e.target.result, { type: 'binary' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                    
+                    if (jsonData.length === 0) {
+                        alert('Arquivo vazio ou inválido.');
+                        return;
+                    }
+                    
+                    parseData(jsonData);
+                } catch (error) {
+                    alert('Erro ao ler o arquivo: ' + error.message);
+                }
+            };
+            reader.readAsBinaryString(file);
+        }
 
-  function parseBRDateTime(str) {
-    if (!str || typeof str !== "string") return null;
-    const s = str.trim();
-    if (!s) return null;
+        function parseData(jsonData) {
+            // Primeira linha como cabeçalho
+            const rawHeaders = jsonData[0] || [];
+            state.headers = rawHeaders.map(h => (h ?? "").toString().trim()).filter(Boolean);
+            
+            if (state.headers.length === 0) {
+                alert('Nenhum cabeçalho encontrado.');
+                return;
+            }
+            
+            // Restante como dados
+            const rawRows = jsonData.slice(1);
+            state.rows = rawRows
+                .map(row => {
+                    const obj = {};
+                    state.headers.forEach((header, i) => {
+                        obj[header] = row[i] ?? "";
+                    });
+                    return obj;
+                })
+                .filter(row => Object.values(row).some(val => 
+                    (val ?? "").toString().trim() !== ""
+                ));
 
-    let m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
-    if (m) {
-      const d=+m[1], mo=+m[2], y=+m[3];
-      const hh=m[4]?+m[4]:0, mm=m[5]?+m[5]:0, ss=m[6]?+m[6]:0;
-      return new Date(y, mo-1, d, hh, mm, ss);
-    }
-    m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
-    if (m) {
-      const y=+m[1], mo=+m[2], d=+m[3];
-      const hh=m[4]?+m[4]:0, mm=m[5]?+m[5]:0, ss=m[6]?+m[6]:0;
-      return new Date(y, mo-1, d, hh, mm, ss);
-    }
-    return null;
-  }
+            // Define a primeira coluna como chave principal
+            state.meta.firstColKey = state.headers[0];
+            
+            console.log('Dados processados:', { 
+                headers: state.headers, 
+                totalRows: state.rows.length,
+                firstColKey: state.meta.firstColKey
+            });
+            
+            // Renderiza todas as visualizações
+            renderData();
+            renderSummary();
+            renderHeatmap(state.rows);
+        }
 
-  function parseDateOnlyInput(s) {
-    const d = parseBRDateTime(s);
-    if (!d) return null;
-    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  }
-
-  function splitStatusTokens(statusStr) {
-    const raw = (statusStr ?? "").toString().trim();
-    if (!raw) return [];
-    return raw.split("#").map(s => s.trim()).filter(Boolean);
-  }
-
-  function classifyToken(tok) {
-    const t = norm(tok).replace(/\s+/g," ");
-    if (t.includes("cancel")) return "cancelado";
-    if (t.includes("ativo")) return "ativo";
-    return "outro";
-  }
-
-  function countQuotasFromStatus(statusStr) {
-    const toks = splitStatusTokens(statusStr);
-    let ativo=0, cancelado=0, outro=0;
-    toks.forEach(tok => {
-      const k = classifyToken(tok);
-      if (k === "ativo") ativo++;
-      else if (k === "cancelado") cancelado++;
-      else outro++;
-    });
-    return { ativo, cancelado, outro, total: ativo+cancelado+outro };
-  }
-
-  function contractBucket(statusStr) {
-    const s = norm(statusStr);
-    if (!s) return "sem_status";
-    if (s.includes("cancel")) return "cancelado";
-    if (s.includes("ativo")) return "ativo";
-    return "outro";
-  }
-
-  function buildObjects(rows) {
-    if (!rows.length) throw new Error("CSV vazio.");
-    return rows.map(r => {
-      const out = { ...r };
-      out._dt = parseBRDateTime(out[KEY.dataAtendimento]) || parseBRDateTime(out[state.meta.firstColKey]);
-      out._valorVgv = parseMoneyBR(out[state.meta.vgvColKey]);
-      out._renda = parseMoneyBR(out[KEY.renda]);
-      out._quotas = countQuotasFromStatus(out[KEY.statusContrato]);
-      out._bucket = contractBucket(out[KEY.statusContrato]);
-      return out;
-    });
-  }
-
-  function applyFilters(rows) {
-    const status = el("statusSelect").value;
-    const profTipo = norm(el("profTipo").value);
-    const profNome = el("profNome").value;
-    const ufSel = el("ufSelect").value;
-
-    const d1 = parseDateOnlyInput(el("dateStart").value);
-    const d2 = parseDateOnlyInput(el("dateEnd").value);
-
-    let filtered = rows.slice();
-
-    if (d1 || d2) {
-      const start = d1 ? d1.getTime() : -Infinity;
-      const end = d2 ? (new Date(d2.getFullYear(), d2.getMonth(), d2.getDate(), 23, 59, 59, 999)).getTime() : Infinity;
-      filtered = filtered.filter(r => r._dt && r._dt.getTime() >= start && r._dt.getTime() <= end);
-    }
-
-    if (status !== "todos") filtered = filtered.filter(r => r._bucket === status);
-    if (ufSel !== "todos") filtered = filtered.filter(r => (r[KEY.uf] ?? "").toString().trim() === ufSel);
-
-    if (profNome !== "todos") {
-      filtered = filtered.filter(r => norm(r[profTipo] ?? "") === norm(profNome));
-    }
-
-    return filtered;
-  }
-
-  function sumQuotas(rows) {
-    return rows.reduce((acc, r) => {
-      acc.ativo += r._quotas?.ativo ?? 0;
-      acc.cancelado += r._quotas?.cancelado ?? 0;
-      acc.outro += r._quotas?.outro ?? 0;
-      acc.total += r._quotas?.total ?? 0;
-      return acc;
-    }, { ativo:0, cancelado:0, outro:0, total:0 });
-  }
-
-  function sumVGVSimpleWithSplit(rows) {
-    return rows.reduce((acc, r) => {
-      const v = r._valorVgv ?? 0;
-      const a = r._quotas?.ativo ?? 0;
-      const c = r._quotas?.cancelado ?? 0;
-      const t = a + c;
-
-      acc.total += v;
-
-      if (t > 0) {
-        acc.ativo += v * (a / t);
-        acc.cancelado += v * (c / t);
-      }
-      return acc;
-    }, { ativo:0, cancelado:0, total:0 });
-  }
-
-  function avgRenda(rows) {
-    if (!rows.length) return 0;
-    const sum = rows.reduce((s, r) => s + (r._renda ?? 0), 0);
-    return sum / rows.length;
-  }
-
-  function statsFor(rows) {
-    const casais = rows.length;
-    const q = sumQuotas(rows);
-    const vgv = sumVGVSimpleWithSplit(rows);
-
-    const eficiencia = casais ? (q.total / casais) : 0;
-    const pctCancel = q.total ? (q.cancelado / q.total) : 0;
-    const ticketMedio = q.total ? (vgv.total / q.total) : 0;
-
-    return {
-      casais,
-      vendas: q.total,
-      cancelamentos: q.cancelado,
-      vgvTotal: vgv.total,
-      vgvAtivo: vgv.ativo,
-      vgvCancelado: vgv.cancelado,
-      eficiencia,
-      pctCancel,
-      ticketMedio,
-      rendaMed: avgRenda(rows)
-    };
-  }
-
-  function updateStats(rows) {
-    const s = statsFor(rows);
-    el("stats").innerHTML = `
-      <div class="stat-card"><div class="stat-value">${s.casais}</div><div class="stat-label">Casais</div></div>
-      <div class="stat-card"><div class="stat-value">${s.vendas}</div><div class="stat-label">Cotas (vendas totais)</div></div>
-      <div class="stat-card"><div class="stat-value">${s.cancelamentos}</div><div class="stat-label">Cotas canceladas</div></div>
-      <div class="stat-card"><div class="stat-value">${fmtMoney(s.vgvTotal)}</div><div class="stat-label">VGV total (Σ col G)</div></div>
-      <div class="stat-card"><div class="stat-value">${fmtMoney(s.vgvCancelado)}</div><div class="stat-label">VGV cancelado (rateado)</div></div>
-      <div class="stat-card"><div class="stat-value">${fmtPctBR(s.eficiencia)}</div><div class="stat-label">Eficiência</div></div>
-      <div class="stat-card"><div class="stat-value">${fmtPctBR(s.pctCancel)}</div><div class="stat-label">% Cancelamento</div></div>
-      <div class="stat-card"><div class="stat-value">${fmtMoney(s.ticketMedio)}</div><div class="stat-label">Ticket médio (per cota)</div></div>
-      <div class="stat-card"><div class="stat-value">${fmtMoney(s.rendaMed)}</div><div class="stat-label">Renda média</div></div>
-    `;
-  }
-
-  function effPillClass(effFrac) {
-    const pct = (effFrac || 0) * 100;
-    if (pct < 19.9) return "p-bad";
-    if (pct < 25) return "p-med";
-    return "p-good";
-  }
-
-  function cancelPillClass(cancelFrac) {
-    const pct = (cancelFrac || 0) * 100;
-    if (pct < 20) return "p-good";
-    if (pct <= 30) return "p-med";
-    return "p-bad";
-  }
-
-  function trophyFor(pos) { return pos===1?"🥇":pos===2?"🥈":pos===3?"🥉":""; }
-
-  function groupRanking(rows, fieldKeyNorm) {
-    const map = new Map();
-    rows.forEach(r => {
-      const name = (r[fieldKeyNorm] ?? "").toString().trim();
-      if (!name) return;
-      if (!map.has(name)) map.set(name, []);
-      map.get(name).push(r);
-    });
-
-    const out = Array.from(map.entries()).map(([name, list]) => {
-      const s = statsFor(list);
-      return { name, ...s };
-    });
-
-    out.sort((a,b) => (b.vendas - a.vendas) || (b.vgvTotal - a.vgvTotal) || (b.eficiencia - a.eficiencia) || a.name.localeCompare(b.name));
-    return out;
-  }
-
-  function renderRankingTable(list, containerId, titleBadge) {
-    const container = el(containerId);
-    if (!list.length) { container.innerHTML = '<div class="note">Nenhum dado para o filtro selecionado.</div>'; return; }
-
-    container.innerHTML = `
-      <div class="table-wrap"><table>
-        <thead>
-          <tr>
-            <th style="width:84px">#</th>
-            <th>Profissional ${titleBadge ? `<span class="badge">${titleBadge}</span>` : ""}</th>
-            <th class="num">Casais</th>
-            <th class="num">Cotas</th>
-            <th class="num">VGV</th>
-            <th class="num">Eficiência</th>
-            <th class="num">Cancel</th>
-            <th class="num">%Cancel</th>
-            <th class="num">Ticket Médio</th>
-            <th class="num hide-sm">Renda Média</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${list.map((it, idx) => {
-            const pos = idx + 1;
-            return `
-              <tr>
-                <td class="rank-col">${trophyFor(pos)} ${pos}°</td>
-                <td class="name" title="${it.name}">${it.name}</td>
-                <td class="num">${it.casais}</td>
-                <td class="num">${it.vendas}</td>
-                <td class="num">${fmtMoney(it.vgvTotal)}</td>
-                <td class="num"><span class="pill ${effPillClass(it.eficiencia)}">${fmtPctBR(it.eficiencia)}</span></td>
-                <td class="num">${it.cancelamentos}</td>
-                <td class="num"><span class="pill ${cancelPillClass(it.pctCancel)}">${fmtPctBR(it.pctCancel)}</span></td>
-                <td class="num">${fmtMoney(it.ticketMedio)}</td>
-                <td class="num hide-sm">${fmtMoney(it.rendaMed)}</td>
-              </tr>
+        function renderData() {
+            const dataInfo = el("data-info");
+            const dataTable = el("data-table");
+            
+            dataInfo.innerHTML = `
+                <div class="info-box">
+                    <strong>Arquivo processado com sucesso!</strong><br>
+                    📊 ${state.rows.length} linhas de dados<br>
+                    📋 ${state.headers.length} colunas: ${state.headers.join(", ")}
+                </div>
             `;
-          }).join("")}
-        </tbody>
-      </table></div>
-    `;
-  }
-
-  // ====== ALTERAÇÃO SOLICITADA: NOVA ESCALONAGEM DE RENDA ======
-  function rendaBucket(v) {
-    const x = v || 0;
-
-    // Regra: abaixo de 8,9 mil soma na faixa "Acima de R$ 50,1 mil"
-    if (x < 8900) return "Acima de R$ 50,1 mil";
-
-    // Regra: faixa até 9,9 mil vira 9 mil a 9,9 mil (e inclui 8,9 a 8,999... para não perder dados)
-    if (x < 10000) return "R$ 9 mil a R$ 9,9 mil"; // inclui 8900..9999,99...
-
-    if (x <= 11900) return "R$ 10 mil a R$ 11,9 mil";
-    if (x <= 14900) return "R$ 12 mil a R$ 14,9 mil";
-    if (x <= 19900) return "R$ 15 mil a R$ 19,9 mil";
-    if (x <= 50000) return "R$ 20 mil a R$ 50 mil";
-    return "Acima de R$ 50,1 mil";
-  }
-
-  function groupByRenda(rows) {
-    const order = [
-      "R$ 9 mil a R$ 9,9 mil",
-      "R$ 10 mil a R$ 11,9 mil",
-      "R$ 12 mil a R$ 14,9 mil",
-      "R$ 15 mil a R$ 19,9 mil",
-      "R$ 20 mil a R$ 50 mil",
-      "Acima de R$ 50,1 mil"
-    ];
-
-    const map = new Map(order.map(k => [k, []]));
-    rows.forEach(r => map.get(rendaBucket(r._renda)).push(r));
-
-    return order.map(k => ({ faixa: k, ...statsFor(map.get(k) || []) }));
-  }
-  // ====== FIM DA ALTERAÇÃO ======
-
-  function renderPerfilRenda(rows, containerId) {
-    const container = el(containerId);
-    const list = groupByRenda(rows);
-
-    container.innerHTML = `
-      <div class="table-wrap"><table>
-        <thead>
-          <tr>
-            <th>Faixa de renda</th>
-            <th class="num">Casais</th>
-            <th class="num">Cotas</th>
-            <th class="num">VGV</th>
-            <th class="num">Eficiência</th>
-            <th class="num">Cancel</th>
-            <th class="num">%Cancel</th>
-            <th class="num">Ticket Médio</th>
-            <th class="num hide-sm">Renda Média</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${list.map(it => `
-              <tr>
-                <td class="name" title="${it.faixa}">${it.faixa}</td>
-                <td class="num">${it.casais}</td>
-                <td class="num">${it.vendas}</td>
-                <td class="num">${fmtMoney(it.vgvTotal)}</td>
-                <td class="num"><span class="pill ${effPillClass(it.eficiencia)}">${fmtPctBR(it.eficiencia)}</span></td>
-                <td class="num">${it.cancelamentos}</td>
-                <td class="num"><span class="pill ${cancelPillClass(it.pctCancel)}">${fmtPctBR(it.pctCancel)}</span></td>
-                <td class="num">${fmtMoney(it.ticketMedio)}</td>
-                <td class="num hide-sm">${fmtMoney(it.rendaMed)}</td>
-              </tr>
-          `).join("")}
-        </tbody>
-      </table></div>
-    `;
-  }
-
-  function bestRendaProfile(list) {
-    const eligible = list.filter(x => x.casais > 0);
-    if (!eligible.length) return null;
-    eligible.sort((a,b) => (b.eficiencia - a.eficiencia) || (b.vgvTotal - a.vgvTotal) || (b.vendas - a.vendas));
-    return eligible[0];
-  }
-
- function renderHeatmap(rows) {
-  const chartEl = el("heat-chart");
-  const heatEl = el("heat");
-  const diagEl = el("heat-diagnose");
-
-  const hours = [];
-  for (let h = 10; h <= 22; h++) hours.push(h);
-
-  const counts = new Map(hours.map(h => [h, 0]));
-  let parsedOk = 0;
-  let parsedTotal = 0;
-
-  // Extrai a hora (HH) do texto, preferencialmente do padrão HH:MM.
-  // Ex.: "11:04" -> 11, "12:30" -> 12
-  function extractHourFromText(raw) {
-    const s = (raw ?? "").toString().trim();
-    if (!s) return null;
-
-    // Pega o primeiro "HH:MM" que aparecer no texto
-    const m = s.match(/(^|[^\d])(\d{2}):(\d{2})(?!\d)/);
-    if (m) {
-      const hh = Number(m[2]);
-      if (Number.isFinite(hh) && hh >= 0 && hh <= 23) return hh;
-    }
-
-    // Fallback: tenta parsear por data/hora (se vier em outro formato)
-    const dt = parseBRDateTime(s);
-    if (dt && !Number.isNaN(dt.getTime())) return dt.getHours();
-
-    return null;
-  }
-
-  rows.forEach(r => {
-    const raw = r[state.meta.firstColKey];
-    parsedTotal++;
-
-    const h = extractHourFromText(raw);
-    if (h === null) return;
-
-    parsedOk++;
-
-    // Só contabiliza dentro do range do heatmap (10..22)
-    if (counts.has(h)) counts.set(h, counts.get(h) + 1);
-  });
-
-  const arr = hours.map(h => ({ h, c: counts.get(h) || 0 }));
-  const max = Math.max(...arr.map(x => x.c), 0);
-
-  chartEl.innerHTML = `
-    <div style="display:flex;align-items:flex-end;gap:10px;height:180px;padding:14px;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(255,255,255,.03);overflow-x:auto;">
-      ${arr.map(x => {
-        const pct = max ? (x.c / max) : 0;
-        const height = Math.max(6, Math.round(150 * pct));
-        return `
-          <div style="width:42px;min-width:42px;display:flex;flex-direction:column;align-items:center;gap:8px;">
-            <div style="font-family:var(--mono);color:var(--text);font-size:.9rem;font-weight:900;">${x.c}</div>
-            <div style="width:100%;height:${height}px;border-radius:12px;background:linear-gradient(180deg,rgba(34,211,238,.9),rgba(124,92,255,.75));box-shadow:0 10px 28px rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.14);transition:transform .15s ease;"></div>
-            <div style="font-family:var(--mono);color:var(--muted);font-size:.85rem;">${String(x.h).padStart(2,"0")}h</div>
-          </div>
-        `;
-      }).join("")}
-    </div>
-  `;
-
-  const bg = (c) => {
-    if (max <= 0) return "rgba(255,255,255,.03)";
-    const t = c / max;
-    const a = 0.10 + 0.40 * t;
-    return t < 0.5 ? `rgba(124,92,255,${a})` : `rgba(34,211,238,${a})`;
-  };
-
-  heatEl.innerHTML = `
-    <div class="heat-grid">
-      ${arr.map(x => `
-        <div class="heat-cell" style="background:${bg(x.c)}">
-          <div class="h">${String(x.h).padStart(2,"0")}:00</div>
-          <div class="c">${x.c} casais</div>
-        </div>
-      `).join("")}
-    </div>
-  `;
-
-  const samples = state.rows.slice(0, 8)
-    .map(r => (r[state.meta.firstColKey] ?? "").toString())
-    .filter(Boolean);
-
-  diagEl.style.display = "block";
-  diagEl.textContent =
-    `Diagnóstico (1ª coluna):\n` +
-    `• Chave (normalizada): "${state.meta.firstColKey}"\n` +
-    `• Linhas filtradas: ${rows.length}\n` +
-    `• Horário extraído/parseado: ${parsedOk} de ${parsedTotal}\n` +
-    `• Exemplos:\n  - ${samples.join("\n  - ") || "(sem exemplos)"}\n\n` +
-    `Regra: sempre usa HH de "HH:MM" quando existir (ex.: 11:04 -> 11h).`;
-}
-
-  // ===== FUNÇÕES DE GRÁFICOS =====
-  function renderLineChart(rows, containerId) {
-    const container = el(containerId);
-    if (!rows.length) {
-      container.innerHTML = '<div style="text-align:center;color:var(--muted);padding:40px;">Nenhum dado disponível</div>';
-      return;
-    }
-
-    const dailyData = new Map();
-    rows.forEach(r => {
-      if (!r._dt) return;
-      const dayKey = r._dt.toISOString().split('T')[0];
-      if (!dailyData.has(dayKey)) {
-        dailyData.set(dayKey, { date: new Date(dayKey), vgv: 0 });
-      }
-      dailyData.get(dayKey).vgv += r._valorVgv || 0;
-    });
-
-    const data = Array.from(dailyData.values()).sort((a, b) => a.date - b.date);
-    
-    if (data.length === 0) {
-      container.innerHTML = '<div style="text-align:center;color:var(--muted);padding:40px;">Nenhum dado com data válida</div>';
-      return;
-    }
-
-    const maxVgv = Math.max(...data.map(d => d.vgv));
-    const width = Math.max(400, data.length * 60);
-    const height = 160;
-    const padding = { top: 20, right: 20, bottom: 40, left: 60 };
-    
-    const xScale = (i) => padding.left + (i / (data.length - 1 || 1)) * (width - padding.left - padding.right);
-    const yScale = (v) => height - padding.bottom - ((v / (maxVgv || 1)) * (height - padding.top - padding.bottom));
-
-    const pathData = data.map((d, i) => `${i === 0 ? 'M' : 'L'} ${xScale(i)} ${yScale(d.vgv)}`).join(' ');
-
-    container.innerHTML = `
-      <svg width="${width}" height="${height}" style="width:100%;min-width:400px;">
-        <defs>
-          <linearGradient id="lineGradient-${containerId}" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" style="stop-color:var(--accent);stop-opacity:1" />
-            <stop offset="100%" style="stop-color:var(--accent2);stop-opacity:1" />
-          </linearGradient>
-        </defs>
-        
-        ${data.map((_, i) => i % Math.ceil(data.length / 5) === 0 ? 
-          `<line x1="${xScale(i)}" y1="${padding.top}" x2="${xScale(i)}" y2="${height - padding.bottom}" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>` : ''
-        ).join('')}
-        
-        <path d="${pathData}" fill="none" stroke="url(#lineGradient-${containerId})" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-        
-        ${data.map((d, i) => `
-          <circle cx="${xScale(i)}" cy="${yScale(d.vgv)}" r="4" fill="url(#lineGradient-${containerId})" stroke="white" stroke-width="2"/>
-        `).join('')}
-        
-        ${data.map((d, i) => i % Math.ceil(data.length / 5) === 0 ? `
-          <text x="${xScale(i)}" y="${height - 10}" text-anchor="middle" fill="var(--muted)" font-size="11" font-family="var(--mono)">
-            ${d.date.getDate()}/${d.date.getMonth() + 1}
-          </text>
-        ` : '').join('')}
-        
-        ${[0, 0.25, 0.5, 0.75, 1].map(frac => `
-          <text x="10" y="${yScale(maxVgv * frac)}" text-anchor="start" fill="var(--muted)" font-size="10" font-family="var(--mono)">
-            ${fmtMoney(maxVgv * frac).replace('R$', '').trim()}
-          </text>
-        `).join('')}
-      </svg>
-    `;
-  }
-
-  function renderStackedChart(rows, containerId) {
-    const container = el(containerId);
-    const q = sumQuotas(rows);
-    
-    if (q.total === 0) {
-      container.innerHTML = '<div style="text-align:center;color:var(--muted);padding:40px;">Nenhuma cota encontrada</div>';
-      return;
-    }
-
-    const ativoHeight = Math.max(20, (q.ativo / q.total) * 140);
-    const canceladoHeight = Math.max(20, (q.cancelado / q.total) * 140);
-
-    container.innerHTML = `
-      <div class="stacked-bar">
-        <div class="stack-segment stack-ativo" style="height:${ativoHeight}px"></div>
-        <div class="stack-segment stack-cancelado" style="height:${canceladoHeight}px"></div>
-      </div>
-      <div class="stack-label">
-        <div style="margin-bottom:4px;font-weight:700;color:var(--text);">Total: ${q.total}</div>
-        <div style="color:var(--good);">Ativo: ${q.ativo}</div>
-        <div style="color:var(--bad);">Cancel: ${q.cancelado}</div>
-      </div>
-    `;
-  }
-
-  function renderHorizontalChart(list, containerId, valueKey = 'vgvTotal', labelKey = 'name') {
-    const container = el(containerId);
-    if (!list.length) {
-      container.innerHTML = '<div style="text-align:center;color:var(--muted);padding:40px;">Nenhum dado disponível</div>';
-      return;
-    }
-
-    const top10 = list.slice(0, 10);
-    const maxValue = Math.max(...top10.map(item => item[valueKey] || 0));
-
-    container.innerHTML = `
-      ${top10.map(item => {
-        const value = item[valueKey] || 0;
-        const percent = maxValue ? (value / maxValue) * 100 : 0;
-        const displayValue = valueKey === 'vgvTotal' ? fmtMoney(value) : 
-                           valueKey === 'eficiencia' ? fmtPctBR(value) :
-                           value.toString();
-        
-        return `
-          <div class="h-bar">
-            <div class="h-bar-label" title="${item[labelKey]}">${item[labelKey]}</div>
-            <div class="h-bar-container">
-              <div class="h-bar-fill" style="width:${percent}%">
-                <span class="h-bar-value">${displayValue}</span>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('')}
-    `;
-  }
-
-  function renderRendaCharts() {
-    const rendaList = groupByRenda(state.filtered);
-    renderHorizontalChart(rendaList, 'renda-horizontal-chart', 'vgvTotal', 'faixa');
-    renderHorizontalChart(rendaList, 'renda-eficiencia-chart', 'eficiencia', 'faixa');
-  }
-
-  function updateProfFilters(mainTipoElId, mainNomeElId) {
-    const tipo = norm(el(mainTipoElId).value);
-    const nomeEl = el(mainNomeElId);
-    const names = new Set();
-    state.rows.forEach(r => {
-      const n = (r[tipo] ?? "").toString().trim();
-      if (n) names.add(n);
-    });
-    const arr = Array.from(names).sort((a,b)=>a.localeCompare(b));
-    nomeEl.innerHTML = mainNomeElId === "profNome" ? '<option value="todos">Todos</option>' : '<option value="">Selecione...</option>';
-    arr.forEach(n => {
-      const opt = document.createElement("option");
-      opt.value = n;
-      opt.textContent = n;
-      nomeEl.appendChild(opt);
-    });
-  }
-
-  function updateUfFilters() {
-    const ufEl = el("ufSelect");
-    const ufs = new Set();
-    state.rows.forEach(r => {
-      const u = (r[KEY.uf] ?? "").toString().trim();
-      if (u) ufs.add(u);
-    });
-    const arr = Array.from(ufs).sort((a,b)=>a.localeCompare(b));
-    ufEl.innerHTML = '<option value="todos">Todas</option>';
-    arr.forEach(u => {
-      const opt = document.createElement("option");
-      opt.value = u;
-      opt.textContent = u;
-      ufEl.appendChild(opt);
-    });
-  }
-
-  function renderSingleProfessional() {
-    const tipo = norm(el("profTipoSingle").value);
-    const nome = el("profNomeSingle").value;
-    const box = el("stats-single");
-    const tbl = el("perfil-renda-single");
-
-    if (!nome) {
-      box.innerHTML = "";
-      tbl.innerHTML = '<div class="note">Selecione um profissional para ver o detalhamento individual.</div>';
-      el("prof-line-chart").innerHTML = '<div style="text-align:center;color:var(--muted);padding:40px;">Selecione um profissional</div>';
-      el("prof-renda-chart").innerHTML = '<div style="text-align:center;color:var(--muted);padding:40px;">Selecione um profissional</div>';
-      return;
-    }
-
-    const mine = state.filtered.filter(r => norm(r[tipo] ?? "") === norm(nome));
-    const s = statsFor(mine);
-
-    box.innerHTML = `
-      <div class="stat-card"><div class="stat-value">${nome}</div><div class="stat-label">Profissional selecionado</div></div>
-      <div class="stat-card"><div class="stat-value">${s.casais}</div><div class="stat-label">Casais</div></div>
-      <div class="stat-card"><div class="stat-value">${s.vendas}</div><div class="stat-label">Cotas</div></div>
-      <div class="stat-card"><div class="stat-value">${fmtMoney(s.vgvTotal)}</div><div class="stat-label">VGV (Σ col G)</div></div>
-      <div class="stat-card"><div class="stat-value">${fmtPctBR(s.eficiencia)}</div><div class="stat-label">Eficiência</div></div>
-      <div class="stat-card"><div class="stat-value">${fmtPctBR(s.pctCancel)}</div><div class="stat-label">% Cancelamento</div></div>
-      <div class="stat-card"><div class="stat-value">${fmtMoney(s.ticketMedio)}</div><div class="stat-label">Ticket médio</div></div>
-    `;
-
-    renderPerfilRenda(mine, "perfil-renda-single");
-
-    const rendaList = groupByRenda(mine);
-    const best = bestRendaProfile(rendaList);
-    if (best) {
-      tbl.insertAdjacentHTML("afterbegin", `
-        <div class="note">
-          <strong>Perfil que mais performa:</strong> ${best.faixa}<br>
-          <strong>Eficiência:</strong> <span class="pill ${effPillClass(best.eficiencia)}">${fmtPctBR(best.eficiencia)}</span>
-          • <strong>%Cancel:</strong> <span class="pill ${cancelPillClass(best.pctCancel)}">${fmtPctBR(best.pctCancel)}</span>
-          • <strong>VGV:</strong> ${fmtMoney(best.vgvTotal)}
-        </div>
-      `);
-    }
-
-    renderLineChart(mine, "prof-line-chart");
-    renderHorizontalChart(rendaList, "prof-renda-chart", 'vgvTotal', 'faixa');
-  }
-
-  function updateAll() {
-    state.filtered = applyFilters(state.rows);
-
-    updateStats(state.filtered);
-
-    const promotorRanking = groupRanking(state.filtered, KEY.promotor);
-    const linerRanking = groupRanking(state.filtered, KEY.liner);
-    const closerRanking = groupRanking(state.filtered, KEY.closer);
-
-    renderRankingTable(promotorRanking, "ranking-promotor", "Promotor");
-    renderRankingTable(linerRanking, "ranking-liner", "Liner");
-    renderRankingTable(closerRanking, "ranking-closer", "Closer");
-
-    renderHeatmap(state.filtered);
-    
-    renderPerfilRenda(state.filtered, "perfil-renda");
-
-    const tipo = norm(el("profTipo").value);
-    renderRankingTable(groupRanking(state.filtered, tipo), "profissionais-table", "Profissionais");
-
-    renderSingleProfessional();
-
-    renderLineChart(state.filtered, "resumo-line-chart");
-    renderStackedChart(state.filtered, "resumo-stacked-chart");
-    
-    const allProfs = new Map();
-    [KEY.promotor, KEY.liner, KEY.closer].forEach(key => {
-      state.filtered.forEach(r => {
-        const name = (r[key] ?? "").toString().trim();
-        if (!name) return;
-        const fullName = `${name} (${key.split(' ').map(w => w[0].toUpperCase()).join('')})`;
-        if (!allProfs.has(fullName)) allProfs.set(fullName, []);
-        allProfs.get(fullName).push(r);
-      });
-    });
-    
-    const allProfList = Array.from(allProfs.entries()).map(([name, list]) => ({
-      name, ...statsFor(list)
-    })).sort((a,b) => (b.vgvTotal - a.vgvTotal) || (b.vendas - a.vendas));
-    
-    renderHorizontalChart(allProfList, "resumo-horizontal-chart");
-
-    renderLineChart(state.filtered.filter(r => (r[KEY.promotor] ?? "").toString().trim()), "promotor-line-chart");
-    renderHorizontalChart(promotorRanking, "promotor-horizontal-chart");
-
-    renderLineChart(state.filtered.filter(r => (r[KEY.liner] ?? "").toString().trim()), "liner-line-chart");
-    renderHorizontalChart(linerRanking, "liner-horizontal-chart");
-
-    renderLineChart(state.filtered.filter(r => (r[KEY.closer] ?? "").toString().trim()), "closer-line-chart");
-    renderHorizontalChart(closerRanking, "closer-horizontal-chart");
-
-    renderRendaCharts();
-  }
-
-  function setup() {
-    ["statusSelect","profTipo","profNome","ufSelect","dateStart","dateEnd"].forEach(id => {
-      el(id).addEventListener("change", updateAll);
-      el(id).addEventListener("keyup", (e) => { if (e.key === "Enter") updateAll(); });
-    });
-
-    el("profTipo").addEventListener("change", () => {
-      updateProfFilters("profTipo","profNome");
-      updateAll();
-    });
-
-    el("btnLimparPeriodo").addEventListener("click", () => {
-      el("dateStart").value = ""; el("dateEnd").value = ""; updateAll();
-    });
-    el("btnHoje").addEventListener("click", () => {
-      const now = new Date();
-      const dd = String(now.getDate()).padStart(2,"0");
-      const mm = String(now.getMonth()+1).padStart(2,"0");
-      const yy = now.getFullYear();
-      const s = `${dd}/${mm}/${yy}`;
-      el("dateStart").value = s; el("dateEnd").value = s; updateAll();
-    });
-    el("btn30").addEventListener("click", () => {
-      const now = new Date();
-      const end = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const start = new Date(end); start.setDate(start.getDate() - 29);
-      const fmt = (d) => `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
-      el("dateStart").value = fmt(start); el("dateEnd").value = fmt(end); updateAll();
-    });
-
-    el("profTipoSingle").addEventListener("change", () => {
-      updateProfFilters("profTipoSingle","profNomeSingle");
-      renderSingleProfessional();
-    });
-    el("profNomeSingle").addEventListener("change", renderSingleProfessional);
-
-    document.querySelectorAll(".tab").forEach(t => {
-      t.addEventListener("click", () => {
-        document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
-        document.querySelectorAll(".tab-content").forEach(x => x.classList.remove("active"));
-        t.classList.add("active");
-        el(`tab-${t.dataset.tab}`).classList.add("active");
-      });
-    });
-  }
-
-  async function init() {
-    try{
-      el("loading").style.display = "block";
-      el("error").style.display = "none";
-
-      const resp = await fetch("dados.csv", { cache:"no-store" });
-      if(!resp.ok) throw new Error(`Erro HTTP ${resp.status}`);
-
-      const text = await resp.text();
-      const raw = parseDelimited(text, ";");
-      state.rows = buildObjects(raw);
-
-      updateProfFilters("profTipo","profNome");
-      updateProfFilters("profTipoSingle","profNomeSingle");
-      updateUfFilters();
-      updateAll();
-
-      el("loading").style.display = "none";
-    }catch(e){
-      console.error(e);
-      el("loading").style.display = "none";
-      el("error").style.display = "block";
-      el("error").textContent = `Erro ao carregar dados: ${e.message}`;
-    }
-  }
-
-  setup();
-  init();
-</script>
+            
+            if (state.rows.length === 0) {
+                dataTable.innerHTML = '<p>Nenhum dado para exibir.</p>';
+                return;
+            }
+            
+            const tableHTML = `
+                <table>
+                    <thead>
+                        <tr>${state.headers.map(h => `<th>${h}</th>`).join('')}</tr>
+                    </thead>
+                    <tbody>
+                        ${state.rows.slice(0, 50).map(row => 
+                            `<tr>${state.headers.map(h => `<td>${row[h] || ''}</td>`).join('')}</tr>`
+                        ).join('')}
+                    </tbody>
+                </table>
+                ${state.rows.length > 50 ? `<p style="margin-top: 1rem; color: var(--muted);">Mostrando primeiras 50 linhas de ${state.rows.length}</p>` : ''}
+            `;
+            
+            dataTable.innerHTML = tableHTML;
+        }
+
+        function renderSummary() {
+            const totalEvents = state.rows.length;
+            const hours = [];
+            for (let h = 10; h <= 22; h++) hours.push(h);
+            
+            const counts = new Map(hours.map(h => [h, 0]));
+            let validEvents = 0;
+            
+            state.rows.forEach(r => {
+                const raw = r[state.meta.firstColKey];
+                const h = extractHourFromText(raw);
+                if (h !== null && counts.has(h)) {
+                    counts.set(h, counts.get(h) + 1);
+                    validEvents++;
+                }
+            });
+            
+            const countsArray = hours.map(h => ({ hour: h, count: counts.get(h) || 0 }));
+            const maxCount = Math.max(...countsArray.map(x => x.count), 0);
+            const peakHour = countsArray.find(x => x.count === maxCount);
+            const avgPerHour = validEvents > 0 ? Math.round(validEvents / hours.length) : 0;
+            
+            // Atualiza estatísticas
+            el("total-events").textContent = totalEvents;
+            el("peak-hour").textContent = peakHour ? `${peakHour.hour}:00` : '--';
+            el("avg-per-hour").textContent = avgPerHour;
+            
+            // Cria gráfico em cards para o resumo
+            const summaryChart = el("summary-chart");
+            summaryChart.innerHTML = `
+                <div class="chart-title">📈 Distribuição por Horário</div>
+                <div class="hours-grid">
+                    ${countsArray.map(item => {
+                        const intensity = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
+                        return `
+                            <div class="hour-card">
+                                <div class="hour-time">${String(item.hour).padStart(2, '0')}:00</div>
+                                <div class="hour-count">${item.count}</div>
+                                <div class="hour-label">eventos</div>
+                                <div class="intensity-bar">
+                                    <div class="intensity-fill" style="width: ${intensity}%"></div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        function renderHeatmap(rows) {
+            const chartEl = el("heat-chart");
+            const heatEl = el("heat");
+            const diagEl = el("heat-diagnose");
+
+            const hours = [];
+            for (let h = 10; h <= 22; h++) hours.push(h);
+
+            const counts = new Map(hours.map(h => [h, 0]));
+            let parsedOk = 0;
+            let parsedTotal = 0;
+
+            // Extrai a hora (HH) do texto, preferencialmente do formato HH:MM.
+            function extractHourFromText(raw) {
+                const s = (raw ?? "").toString().trim();
+                if (!s) return null;
+                const m = s.match(/(^|[^\d])(\d{2}):(\d{2})(?!\d)/);
+                if (m) {
+                    const hh = Number(m[2]);
+                    if (Number.isFinite(hh) && hh >= 0 && hh <= 23) return hh;
+                }
+                const dt = parseBRDateTime(s);
+                if (dt && !Number.isNaN(dt.getTime())) return dt.getHours();
+                return null;
+            }
+
+            rows.forEach(r => {
+                const raw = r[state.meta.firstColKey];
+                parsedTotal++;
+                const h = extractHourFromText(raw);
+                if (h === null) return;
+                parsedOk++;
+                if (counts.has(h)) counts.set(h, counts.get(h) + 1);
+            });
+
+            const arr = hours.map(h => ({ h, c: counts.get(h) || 0 }));
+            const max = Math.max(...arr.map(x => x.c), 0);
+
+            // Novo gráfico em cards espaçados
+            chartEl.innerHTML = `
+                <div class="chart-title">📊 Visualização por Hora</div>
+                <div class="hours-grid">
+                    ${arr.map(x => {
+                        const intensity = max > 0 ? (x.c / max) * 100 : 0;
+                        return `
+                            <div class="hour-card">
+                                <div class="hour-time">${String(x.h).padStart(2, '0')}:00</div>
+                                <div class="hour-count">${x.c}</div>
+                                <div class="hour-label">casais</div>
+                                <div class="intensity-bar">
+                                    <div class="intensity-fill" style="width: ${intensity}%"></div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+
+            const bg = (c) => {
+                if (max <= 0) return "rgba(255,255,255,.03)";
+                const t = c / max;
+                const a = 0.10 + 0.40 * t;
+                return t < 0.5 ? `rgba(124,92,255,${a})` : `rgba(34,211,238,${a})`;
+            };
+
+            heatEl.innerHTML = `
+                <div class="heat-grid">
+                    ${arr.map(x => `
+                        <div class="heat-cell" style="background:${bg(x.c)}">
+                            <div class="h">${String(x.h).padStart(2, "0")}:00</div>
+                            <div class="c">${x.c} casais</div>
+                        </div>
+                    `).join("")}
+                </div>
+            `;
+
+            const samples = (state.rows.slice(0, 8)
+                .map(r => (r[state.meta.firstColKey] ?? "").toString())
+                .filter(Boolean));
+
+            diagEl.style.display = "block";
+            diagEl.textContent = `
+Diagnóstico (1ª coluna):
+• Chave (normalizada): "${state.meta.firstColKey}"
+• Linhas filtradas: ${rows.length}
+• Horário extraído/parseado: ${parsedOk} de ${parsedTotal}
+• Exemplos:
+  - ${samples.join("\n  - ") || "(sem exemplos)"}
+
+Regra: sempre usa HH de "HH:MM" quando existir (ex.: 11:04 -> 11h).
+            `;
+        }
+
+        // Função auxiliar para extrair hora do texto
+        function extractHourFromText(raw) {
+            const s = (raw ?? "").toString().trim();
+            if (!s) return null;
+            const m = s.match(/(^|[^\d])(\d{2}):(\d{2})(?!\d)/);
+            if (m) {
+                const hh = Number(m[2]);
+                if (Number.isFinite(hh) && hh >= 0 && hh <= 23) return hh;
+            }
+            const dt = parseBRDateTime(s);
+            if (dt && !Number.isNaN(dt.getTime())) return dt.getHours();
+            return null;
+        }
+
+        // Parser de data/hora brasileiro
+        function parseBRDateTime(input) {
+            const s = input?.toString().trim();
+            if (!s) return null;
+
+            // DD/MM/AAAA HH:MM ou DD/MM/AA HH:MM
+            const match1 = s.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})\s+(\d{1,2}):(\d{2})/);
+            if (match1) {
+                let [, day, month, year, hour, minute] = match1;
+                year = year.length === 2 ? `20${year}` : year;
+                return new Date(+year, +month - 1, +day, +hour, +minute);
+            }
+
+            // Só horário HH:MM
+            const match2 = s.match(/^(\d{1,2}):(\d{2})$/);
+            if (match2) {
+                const [, hour, minute] = match2;
+                return new Date(2024, 0, 1, +hour, +minute);
+            }
+
+            return null;
+        }
+    </script>
 </body>
 </html>
