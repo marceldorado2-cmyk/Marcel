@@ -193,6 +193,29 @@
     }
     .small{ font-size:.85rem; color:var(--muted); }
 
+    /* ===== charts ===== */
+    .chart-card{
+      background:var(--card);
+      border:1px solid var(--stroke);
+      border-radius:var(--radius);
+      backdrop-filter:blur(10px);
+      padding:14px 14px 12px;
+      margin:14px 0;
+    }
+    .chart-head{
+      display:flex; flex-wrap:wrap; gap:10px;
+      align-items:baseline; justify-content:space-between;
+      margin: 2px 2px 10px;
+    }
+    .chart-title{
+      font-weight:900;
+      letter-spacing:.2px;
+    }
+    .chart-sub{ color:var(--muted); font-size:.92rem; }
+    .chart-wrap{ height: 360px; position:relative; }
+    .chart-wrap.small{ height: 320px; }
+    canvas{ width:100% !important; height:100% !important; display:block; }
+
     @media(max-width: 980px){
       .wrap{padding:0 16px}
       h1{font-size:2.3rem}
@@ -200,8 +223,12 @@
       .range-row{flex-direction:column; align-items:stretch}
       .range-row .sep{display:none;}
       table{min-width: 820px;}
+      .chart-wrap{ height: 320px; }
     }
   </style>
+
+  <!-- Chart.js (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 </head>
 
 <body>
@@ -261,6 +288,7 @@
 
     <div class="tabs">
       <div class="tab active" data-tab="resumo">📊 Resumo</div>
+      <div class="tab" data-tab="curva">📈 Curva de casais e vendas</div>
       <div class="tab" data-tab="ranking-promotor">🎯 Ranking Promotor</div>
       <div class="tab" data-tab="ranking-liner">💬 Ranking Liner</div>
       <div class="tab" data-tab="ranking-closer">🤝 Ranking Closer</div>
@@ -282,6 +310,37 @@
           • VGV ativo/cancelado: rateio proporcional pela quantidade de tokens ATIVO/CANCELADO na linha (quando houver mistura).<br>
           • Eficiência = vendas (cotas totais) ÷ casais (em %).
         </div>
+      </div>
+
+      <!-- NOVA ABA -->
+      <div id="tab-curva" class="tab-content">
+        <div class="note">
+          Esta aba respeita os mesmos filtros (período, status, profissional, UF).<br>
+          • <strong>Casais por dia</strong> = quantidade de linhas no dia.<br>
+          • <strong>Vendas por dia</strong> = soma de cotas (tokens) no dia.
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-head">
+            <div class="chart-title">Curva diária (Casais x Vendas)</div>
+            <div class="chart-sub" id="curva-meta">—</div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="chartCurva"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-head">
+            <div class="chart-title">Performance por dia da semana</div>
+            <div class="chart-sub">Vendas, VGV, Casais e Aproveitamento (Eficiência)</div>
+          </div>
+          <div class="chart-wrap small">
+            <canvas id="chartSemana"></canvas>
+          </div>
+        </div>
+
+        <div id="semana-table" class="note" style="display:none"></div>
       </div>
 
       <div id="tab-ranking-promotor" class="tab-content">
@@ -357,7 +416,6 @@
   const state = { rows: [], filtered: [], meta: { vgvColKey: null, firstColKey: null } };
 
   // ====== AJUSTE IMPORTANTE (VOCÊ PODE PRECISAR ALTERAR) ======
-  // Nome do cliente (para a lista de cancelados)
   const CLIENT_NAME_HEADERS = [
     norm("nome do cliente"),
     norm("cliente"),
@@ -367,7 +425,6 @@
     norm("nome do casal"),
   ];
 
-  // Ano do carro (para a lista de cancelados)
   const CAR_YEAR_HEADERS = [
     norm("ano do carro"),
     norm("ano carro"),
@@ -395,6 +452,9 @@
     "profissionais-table": { key: "vendas", dir: "desc" },
     "perfil-renda": { key: "vgvTotal", dir: "desc" },
   };
+
+  // ===== charts state =====
+  const charts = { curva: null, semana: null };
 
   function compareValues(a, b, key, dir = "desc") {
     const va = a?.[key], vb = b?.[key];
@@ -508,7 +568,7 @@
     m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
     if (m) {
       const y=+m[1], mo=+m[2], d=+m[3];
-      const hh=m[4]?+m[4]:0, mm=m[5]?+m[5]:0, ss=m[6]?+m[6]:0;
+      const hh=m[4]?+m[[4]]:0, mm=m[5]?+m[5]:0, ss=m[6]?+m[6]:0;
       return new Date(y, mo-1, d, hh, mm, ss);
     }
     return null;
@@ -655,7 +715,7 @@
     return {
       casais,
       vendas: q.total,
-      cotasCanceladas: q.cancelado, // ✅ explícito para usar em cards e tabelas
+      cotasCanceladas: q.cancelado,
       cancelamentos: q.cancelado,
       vgvTotal: vgv.total,
       vgvAtivo: vgv.ativo,
@@ -667,7 +727,6 @@
     };
   }
 
-  // ✅ ABA PRINCIPAL: agora mostra "Cotas canceladas" (já tinha, mas aqui garantimos e destacamos)
   function updateStats(rows) {
     const s = statsFor(rows);
     el("stats").innerHTML = `
@@ -840,10 +899,247 @@
     });
   }
 
+  // ===== NOVO: agregações para os gráficos =====
+  function toISODateLocal(dt){
+    return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}-${String(dt.getDate()).padStart(2,"0")}`;
+  }
+  function fmtISOToBR(iso){
+    const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return iso;
+    return `${m[3]}/${m[2]}/${m[1]}`;
+  }
+  function weekdayIndexPtBR(dt){
+    // JS: 0=Dom..6=Sáb
+    return dt.getDay();
+  }
+  const WEEK_LABELS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+
+  function dailySeries(rows){
+    const map = new Map(); // iso -> {casais, vendas}
+    rows.forEach(r => {
+      if (!r._dt) return;
+      const iso = toISODateLocal(r._dt);
+      if (!map.has(iso)) map.set(iso, { casais:0, vendas:0 });
+      const it = map.get(iso);
+      it.casais += 1;
+      it.vendas += (r._quotas?.total ?? 0);
+    });
+    const keys = Array.from(map.keys()).sort();
+    return {
+      labels: keys,
+      casais: keys.map(k => map.get(k).casais),
+      vendas: keys.map(k => map.get(k).vendas),
+    };
+  }
+
+  function weekdayAgg(rows){
+    const agg = Array.from({length:7}, () => ({ casais:0, vendas:0, vgv:0 }));
+    rows.forEach(r => {
+      if (!r._dt) return;
+      const i = weekdayIndexPtBR(r._dt);
+      agg[i].casais += 1;
+      agg[i].vendas += (r._quotas?.total ?? 0);
+      agg[i].vgv += (r._valorVgv ?? 0);
+    });
+    const eff = agg.map(x => x.casais ? (x.vendas / x.casais) : 0);
+    return { labels: WEEK_LABELS, casais: agg.map(x=>x.casais), vendas: agg.map(x=>x.vendas), vgv: agg.map(x=>x.vgv), eficiencia: eff };
+  }
+
+  function destroyChartSafely(ch){
+    try { ch?.destroy?.(); } catch(e) {}
+  }
+
+  function renderCurvaCharts(rows){
+    // meta período para subtitle
+    const d1 = el("dateStart").value;
+    const d2 = el("dateEnd").value;
+    const status = el("statusSelect").value;
+    const profNome = el("profNome").value;
+    const ufSel = el("ufSelect").value;
+
+    const metaTxt = [
+      (d1 || d2) ? `Período: ${d1 ? fmtISOToBR(d1) : "—"} a ${d2 ? fmtISOToBR(d2) : "—"}` : "Período: (sem filtro)",
+      `Status: ${status}`,
+      `Nome: ${profNome}`,
+      `UF: ${ufSel}`
+    ].join(" • ");
+    el("curva-meta").textContent = metaTxt;
+
+    // --- Curva diária
+    const s = dailySeries(rows);
+    const labelsBR = s.labels.map(fmtISOToBR);
+
+    destroyChartSafely(charts.curva);
+    const ctx1 = el("chartCurva").getContext("2d");
+    charts.curva = new Chart(ctx1, {
+      type: "line",
+      data: {
+        labels: labelsBR,
+        datasets: [
+          {
+            label: "Casais (linhas)",
+            data: s.casais,
+            borderColor: "rgba(34,211,238,1)",
+            backgroundColor: "rgba(34,211,238,.15)",
+            tension: 0.25,
+            pointRadius: 2.5,
+            yAxisID: "yCasais",
+          },
+          {
+            label: "Vendas (cotas)",
+            data: s.vendas,
+            borderColor: "rgba(92,255,176,1)",
+            backgroundColor: "rgba(92,255,176,.12)",
+            tension: 0.25,
+            pointRadius: 2.5,
+            yAxisID: "yVendas",
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: { labels: { color: "rgba(234,240,255,.85)" } },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => {
+                const v = ctx.parsed.y ?? 0;
+                return `${ctx.dataset.label}: ${v}`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: "rgba(234,240,255,.7)", maxRotation: 0, autoSkip: true },
+            grid: { color: "rgba(255,255,255,.05)" }
+          },
+          yCasais: {
+            position: "left",
+            ticks: { color: "rgba(234,240,255,.7)" },
+            grid: { color: "rgba(255,255,255,.05)" },
+            title: { display: true, text: "Casais", color: "rgba(234,240,255,.7)" }
+          },
+          yVendas: {
+            position: "right",
+            ticks: { color: "rgba(234,240,255,.7)" },
+            grid: { drawOnChartArea: false },
+            title: { display: true, text: "Vendas (cotas)", color: "rgba(234,240,255,.7)" }
+          }
+        }
+      }
+    });
+
+    // --- Semana
+    const w = weekdayAgg(rows);
+    destroyChartSafely(charts.semana);
+    const ctx2 = el("chartSemana").getContext("2d");
+    charts.semana = new Chart(ctx2, {
+      data: {
+        labels: w.labels,
+        datasets: [
+          {
+            type: "bar",
+            label: "Casais",
+            data: w.casais,
+            backgroundColor: "rgba(124,92,255,.25)",
+            borderColor: "rgba(124,92,255,.65)",
+            borderWidth: 1,
+            yAxisID: "yCount"
+          },
+          {
+            type: "bar",
+            label: "Vendas (cotas)",
+            data: w.vendas,
+            backgroundColor: "rgba(92,255,176,.18)",
+            borderColor: "rgba(92,255,176,.65)",
+            borderWidth: 1,
+            yAxisID: "yCount"
+          },
+          {
+            type: "line",
+            label: "VGV",
+            data: w.vgv,
+            borderColor: "rgba(34,211,238,1)",
+            backgroundColor: "rgba(34,211,238,.10)",
+            tension: 0.25,
+            pointRadius: 2.2,
+            yAxisID: "yMoney"
+          },
+          {
+            type: "line",
+            label: "Aproveitamento (Eficiência)",
+            data: w.eficiencia.map(x => x * 100),
+            borderColor: "rgba(255,176,32,1)",
+            backgroundColor: "rgba(255,176,32,.10)",
+            tension: 0.25,
+            pointRadius: 2.2,
+            yAxisID: "yPct"
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: { labels: { color: "rgba(234,240,255,.85)" } },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => {
+                const ds = ctx.dataset.label || "";
+                const v = ctx.parsed.y ?? 0;
+                if (ds.includes("VGV")) return `${ds}: ${fmtMoney(v)}`;
+                if (ds.includes("Aproveitamento")) return `${ds}: ${new Intl.NumberFormat("pt-BR",{maximumFractionDigits:1}).format(v)}%`;
+                return `${ds}: ${v}`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: "rgba(234,240,255,.7)" },
+            grid: { color: "rgba(255,255,255,.05)" }
+          },
+          yCount: {
+            position: "left",
+            ticks: { color: "rgba(234,240,255,.7)" },
+            grid: { color: "rgba(255,255,255,.05)" },
+            title: { display: true, text: "Volume (casais/vendas)", color: "rgba(234,240,255,.7)" }
+          },
+          yMoney: {
+            position: "right",
+            ticks: {
+              color: "rgba(234,240,255,.7)",
+              callback: (val) => {
+                // abreviação simples
+                const n = Number(val) || 0;
+                if (Math.abs(n) >= 1000000) return `R$ ${(n/1000000).toFixed(1)}M`;
+                if (Math.abs(n) >= 1000) return `R$ ${(n/1000).toFixed(0)}k`;
+                return `R$ ${n.toFixed(0)}`;
+              }
+            },
+            grid: { drawOnChartArea: false },
+            title: { display: true, text: "VGV", color: "rgba(234,240,255,.7)" }
+          },
+          yPct: {
+            position: "right",
+            min: 0,
+            ticks: {
+              color: "rgba(234,240,255,.7)",
+              callback: (val) => `${val}%`
+            },
+            grid: { drawOnChartArea: false },
+            title: { display: true, text: "Eficiência (%)", color: "rgba(234,240,255,.7)" }
+          }
+        }
+      }
+    });
+  }
+
   // ✅ LISTA DE CANCELADOS COM RENDA + ANO DO CARRO
-  // valorPorCota = VGV / total de tokens da linha
-  // renda = coluna "Renda" (já existia no painel)
-  // anoCarro = detectado por CAR_YEAR_HEADERS
   function buildCanceladosList(rowsForProfessional) {
     const out = [];
 
@@ -981,7 +1277,6 @@
     });
   }
 
-  // ✅ ABA PROFISSIONAIS: agora também mostra "Cotas canceladas" nos cards do profissional
   function renderSingleProfessionalStats() {
     const tipo = norm(el("profTipoSingle").value);
     const nome = el("profNomeSingle").value;
@@ -1009,6 +1304,7 @@
 
     updateStats(state.filtered);
 
+    // rankings
     renderRankingTable(groupRanking(state.filtered, KEY.promotor), "ranking-promotor", "Promotor");
     renderRankingTable(groupRanking(state.filtered, KEY.liner), "ranking-liner", "Liner");
     renderRankingTable(groupRanking(state.filtered, KEY.closer), "ranking-closer", "Closer");
@@ -1020,6 +1316,9 @@
 
     renderSingleProfessionalStats();
     renderCanceladosBox();
+
+    // charts
+    renderCurvaCharts(state.filtered);
   }
 
   function setup() {
@@ -1072,6 +1371,13 @@
         document.querySelectorAll(".tab-content").forEach(x => x.classList.remove("active"));
         t.classList.add("active");
         el(`tab-${t.dataset.tab}`).classList.add("active");
+
+        // se trocar pra aba curva, garante resize do canvas (por causa do display none)
+        if (t.dataset.tab === "curva") {
+          setTimeout(() => {
+            try { charts.curva?.resize?.(); charts.semana?.resize?.(); } catch(e) {}
+          }, 60);
+        }
       });
     });
   }
@@ -1088,7 +1394,6 @@
       const raw = parseDelimited(text, ";");
       state.rows = buildObjects(raw);
 
-      // avisos úteis no console (caso não detecte colunas)
       const any = state.rows[0] || {};
       if (!any._clientNameKey) console.warn("Não detectei coluna do nome do cliente. Ajuste CLIENT_NAME_HEADERS.");
       if (!any._carYearKey) console.warn("Não detectei coluna do ano do carro. Ajuste CAR_YEAR_HEADERS.");
