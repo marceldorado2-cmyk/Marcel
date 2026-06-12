@@ -63,6 +63,7 @@
     }
     .btn:hover{border-color:rgba(255,255,255,.22); transform:translateY(-1px); box-shadow:var(--shadow);}
     .btn:active{transform:translateY(0px); box-shadow:none;}
+    .btn.primary{ background:rgba(124,92,255,.18); border-color:rgba(124,92,255,.35); }
 
     .tabs{
       display:flex; flex-wrap:wrap; gap:6px; margin:18px 0 16px;
@@ -139,60 +140,6 @@
     .p-med{ background:rgba(255,176,32,.12); color:var(--med); border-color:rgba(255,176,32,.28); }
     .p-good{ background:rgba(92,255,176,.12); color:var(--good); border-color:rgba(92,255,176,.28); }
 
-    /* ===== quadro de cancelados ===== */
-    .cancel-box{
-      background:rgba(255,45,85,.06);
-      border:1px solid rgba(255,45,85,.22);
-      border-radius:var(--radius);
-      padding:16px;
-      margin:14px 0 22px;
-      backdrop-filter:blur(10px);
-    }
-    .cancel-head{
-      display:flex; flex-wrap:wrap; gap:10px; align-items:baseline; justify-content:space-between;
-      margin-bottom:10px;
-    }
-    .cancel-title{
-      font-size:1.05rem; font-weight:850; color:#ffd0db;
-      display:flex; align-items:center; gap:10px;
-    }
-    .cancel-meta{color:var(--muted); font-size:.9rem;}
-    .cancel-grid{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:10px;
-      max-height: 380px;
-      overflow:auto;
-      padding-right:6px;
-    }
-    .cancel-item{
-      display:flex; gap:12px; align-items:flex-start; justify-content:space-between;
-      padding:10px 12px;
-      border-radius:14px;
-      background:rgba(255,255,255,.03);
-      border:1px solid rgba(255,255,255,.10);
-    }
-    .cancel-item .who{
-      display:flex; flex-direction:column; gap:4px;
-      min-width: 260px;
-    }
-    .cancel-item .who .nm{font-weight:850; color:var(--text); max-width: 680px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-    .cancel-item .who .sub{font-family:var(--mono); font-size:.82rem; color:var(--muted); line-height:1.35;}
-    .cancel-item .val{
-      font-family:var(--mono);
-      font-weight:900;
-      color:var(--bad);
-      white-space:nowrap;
-      padding-top: 2px;
-    }
-    .cancel-actions{
-      display:flex; gap:10px; flex-wrap:wrap;
-      margin-top: 10px;
-      align-items:center;
-      justify-content:space-between;
-    }
-    .small{ font-size:.85rem; color:var(--muted); }
-
     /* ===== charts ===== */
     .chart-card{
       background:var(--card);
@@ -207,14 +154,51 @@
       align-items:baseline; justify-content:space-between;
       margin: 2px 2px 10px;
     }
-    .chart-title{
-      font-weight:900;
-      letter-spacing:.2px;
-    }
+    .chart-title{ font-weight:900; letter-spacing:.2px; }
     .chart-sub{ color:var(--muted); font-size:.92rem; }
     .chart-wrap{ height: 360px; position:relative; }
     .chart-wrap.small{ height: 320px; }
     canvas{ width:100% !important; height:100% !important; display:block; }
+
+    /* ===== equipe UI ===== */
+    .team-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));
+      gap:14px;
+      margin: 10px 0 12px;
+    }
+    .team-card{
+      background:var(--card);
+      border:1px solid var(--stroke);
+      border-radius:var(--radius);
+      padding:14px;
+      backdrop-filter:blur(10px);
+    }
+    .team-card h3{ margin:0 0 10px; font-size:1.05rem; }
+    .team-row{
+      display:flex; gap:10px; align-items:center; justify-content:space-between;
+      padding:10px 10px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.03);
+      margin-bottom:8px;
+    }
+    .team-row .left{
+      min-width: 0;
+    }
+    .team-row .nm{
+      font-weight:850;
+      max-width: 520px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .team-row .mut{ color:var(--muted); font-size:.85rem; font-family:var(--mono); }
+    .team-actions{
+      display:flex; gap:10px; flex-wrap:wrap;
+      align-items:center; justify-content:space-between;
+      margin: 10px 0 0;
+    }
 
     @media(max-width: 980px){
       .wrap{padding:0 16px}
@@ -227,7 +211,6 @@
     }
   </style>
 
-  <!-- Chart.js (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 </head>
 
@@ -290,6 +273,7 @@
       <div class="tab active" data-tab="resumo">📊 Resumo</div>
       <div class="tab" data-tab="curva">📈 Curva de casais e vendas</div>
       <div class="tab" data-tab="cancelamento">❌ Análise de cancelamento</div>
+      <div class="tab" data-tab="equipes">🧲 Equipes de captação</div>
       <div class="tab" data-tab="ranking-promotor">🎯 Ranking Promotor</div>
       <div class="tab" data-tab="ranking-liner">💬 Ranking Liner</div>
       <div class="tab" data-tab="ranking-closer">🤝 Ranking Closer</div>
@@ -306,7 +290,7 @@
         <div class="note">
           <strong>Critérios</strong><br>
           • Casais = linhas.<br>
-          • Cotas ativas/canceladas = contagem de tokens na coluna "Status do contrato" (ex.: <span class="badge">CANCELADO # CANCELADO # ATIVO</span>).<br>
+          • Cotas ativas/canceladas = contagem de tokens na coluna "Status do contrato".<br>
           • <strong>VGV total = $$\sum(\text{coluna G})$$</strong> (soma simples).<br>
           • VGV ativo/cancelado: rateio proporcional pela quantidade de tokens ATIVO/CANCELADO na linha (quando houver mistura).<br>
           • Eficiência = vendas (cotas totais) ÷ casais (em %).
@@ -314,6 +298,9 @@
       </div>
 
       <div id="tab-curva" class="tab-content">
+        <!-- NOVO: cards no início da aba Curva -->
+        <div class="stats" id="stats-curva"></div>
+
         <div class="note">
           Esta aba respeita os mesmos filtros (período, status, profissional, UF).<br>
           • <strong>Casais por dia</strong> = quantidade de linhas no dia.<br>
@@ -341,15 +328,11 @@
         </div>
       </div>
 
-      <!-- ABA DE CANCELAMENTO -->
       <div id="tab-cancelamento" class="tab-content">
         <div class="note">
           <strong>Análise de cancelamento por quantidade de cotas vendidas</strong><br>
-          Esta análise mostra o percentual de cancelamento agrupado pela quantidade de cotas vendidas por linha (casal).<br>
-          Exemplo: linhas com 1 cota total, linhas com 2 cotas total, etc.<br>
-          • <strong>Cotas canceladas</strong> = quantidade de tokens "CANCELADO" na linha.<br>
-          • <strong>% Cancelamento</strong> = (cotas canceladas ÷ cotas totais) × 100.<br>
-          Respeita todos os filtros ativos.
+          • % Cancelamento = (cotas canceladas ÷ cotas totais) × 100.<br>
+          • Mostra também renda média por grupo.
         </div>
 
         <div class="chart-card">
@@ -363,6 +346,70 @@
         </div>
 
         <div id="cancelamento-table"></div>
+      </div>
+
+      <!-- NOVA ABA: EQUIPES DE CAPTAÇÃO -->
+      <div id="tab-equipes" class="tab-content">
+        <div class="note">
+          <strong>Equipes de captação</strong><br>
+          Aqui você marca a qual equipe cada <span class="badge">Promotor de marketing</span> pertence.<br>
+          • A associação fica salva no seu navegador (localStorage) para esse link do GitHub Pages.<br>
+          • Depois de marcar, você vê os cards (mesmos do Resumo) por equipe.
+        </div>
+
+        <div class="team-grid">
+          <div class="team-card">
+            <h3>Configurar promotores</h3>
+            <div class="controls" style="margin:0; justify-content:flex-start">
+              <div class="control-group" style="min-width:260px">
+                <label>Promotor</label>
+                <select id="teamPromotorSelect">
+                  <option value="">Carregando...</option>
+                </select>
+              </div>
+              <div class="control-group" style="min-width:220px">
+                <label>Equipe</label>
+                <select id="teamEquipeSelect">
+                  <option value="Equipe Parque">Equipe Parque</option>
+                  <option value="Equipe Externa">Equipe Externa</option>
+                </select>
+              </div>
+              <div class="control-group" style="min-width:180px">
+                <label>&nbsp;</label>
+                <button class="btn primary" id="btnSalvarEquipe" type="button">Salvar</button>
+              </div>
+              <div class="control-group" style="min-width:180px">
+                <label>&nbsp;</label>
+                <button class="btn" id="btnLimparEquipes" type="button">Limpar marcações</button>
+              </div>
+            </div>
+
+            <div class="note warn" style="margin-top:12px">
+              Dica: se o nome do promotor mudar no CSV (ex.: abreviação), ele será visto como um novo promotor para marcação.
+            </div>
+          </div>
+
+          <div class="team-card">
+            <h3>Resumo das marcações</h3>
+            <div id="teamMappingList"></div>
+          </div>
+        </div>
+
+        <div class="note">
+          <strong>Resultados por equipe (respeita todos os filtros)</strong>
+        </div>
+
+        <h3 style="margin: 10px 0 6px;">Equipe Parque</h3>
+        <div class="stats" id="stats-equipe-parque"></div>
+
+        <h3 style="margin: 16px 0 6px;">Equipe Externa</h3>
+        <div class="stats" id="stats-equipe-externa"></div>
+
+        <div class="note warn">
+          Promotores sem equipe marcada entram em <strong>Sem equipe</strong>.
+        </div>
+        <h3 style="margin: 10px 0 6px;">Sem equipe</h3>
+        <div class="stats" id="stats-equipe-sem"></div>
       </div>
 
       <div id="tab-ranking-promotor" class="tab-content">
@@ -409,20 +456,6 @@
 
         <div class="stats" id="stats-single" style="margin-top:10px"></div>
 
-        <div class="cancel-box" id="cancel-box">
-          <div class="cancel-head">
-            <div class="cancel-title">Clientes cancelados (no período)</div>
-            <div class="cancel-meta" id="cancel-meta">Selecione um profissional para listar.</div>
-          </div>
-
-          <div class="cancel-grid" id="cancel-list"></div>
-
-          <div class="cancel-actions">
-            <div class="small" id="cancel-summary"></div>
-            <button class="btn" id="btnCopyCancelados" type="button">Copiar lista</button>
-          </div>
-        </div>
-
         <div class="note" style="margin-top:8px">
           Tabela "Profissionais" (mesmo padrão do ranking) com os filtros atuais:
         </div>
@@ -446,15 +479,6 @@
     norm("nome completo"),
     norm("nome do casal"),
   ];
-
-  const CAR_YEAR_HEADERS = [
-    norm("ano do carro"),
-    norm("ano carro"),
-    norm("ano"),
-    norm("ano veiculo"),
-    norm("ano veículo"),
-    norm("ano do veículo"),
-  ];
   // ===========================================================
 
   const KEY = {
@@ -476,8 +500,24 @@
     "cancelamento-table": { key: "cotasTotal", dir: "desc" },
   };
 
-  // ===== charts state =====
   const charts = { curva: null, semana: null, cancelamento: null };
+
+  // ===== Equipes (localStorage) =====
+  const TEAM_STORAGE_KEY = "painel_equipes_promotores_v1";
+  const TEAMS = ["Equipe Parque", "Equipe Externa"];
+
+  function loadTeamMap(){
+    try{
+      const raw = localStorage.getItem(TEAM_STORAGE_KEY);
+      const obj = raw ? JSON.parse(raw) : {};
+      return (obj && typeof obj === "object") ? obj : {};
+    }catch(e){
+      return {};
+    }
+  }
+  function saveTeamMap(map){
+    localStorage.setItem(TEAM_STORAGE_KEY, JSON.stringify(map || {}));
+  }
 
   function compareValues(a, b, key, dir = "desc") {
     const va = a?.[key], vb = b?.[key];
@@ -649,7 +689,6 @@
   function buildObjects(rows) {
     if (!rows.length) throw new Error("CSV vazio.");
     const clientNameKey = findKeyByCandidates(rows[0], CLIENT_NAME_HEADERS);
-    const carYearKey = findKeyByCandidates(rows[0], CAR_YEAR_HEADERS);
 
     return rows.map(r => {
       const out = { ...r };
@@ -661,9 +700,6 @@
 
       out._clientNameKey = clientNameKey;
       out._clientName = clientNameKey ? (out[clientNameKey] ?? "").toString().trim() : "";
-
-      out._carYearKey = carYearKey;
-      out._carYear = carYearKey ? (out[carYearKey] ?? "").toString().trim() : "";
 
       return out;
     });
@@ -740,7 +776,6 @@
       casais,
       vendas: q.total,
       cotasCanceladas: q.cancelado,
-      cancelamentos: q.cancelado,
       vgvTotal: vgv.total,
       vgvAtivo: vgv.ativo,
       vgvCancelado: vgv.cancelado,
@@ -751,9 +786,9 @@
     };
   }
 
-  function updateStats(rows) {
+  function renderStatsCards(containerId, rows){
     const s = statsFor(rows);
-    el("stats").innerHTML = `
+    el(containerId).innerHTML = `
       <div class="stat-card"><div class="stat-value">${s.casais}</div><div class="stat-label">Casais</div></div>
       <div class="stat-card"><div class="stat-value">${s.vendas}</div><div class="stat-label">Cotas (vendas totais)</div></div>
       <div class="stat-card"><div class="stat-value">${s.cotasCanceladas}</div><div class="stat-label">Cotas canceladas</div></div>
@@ -764,6 +799,10 @@
       <div class="stat-card"><div class="stat-value">${fmtMoney(s.ticketMedio)}</div><div class="stat-label">Ticket médio (por cota)</div></div>
       <div class="stat-card"><div class="stat-value">${fmtMoney(s.rendaMed)}</div><div class="stat-label">Renda média</div></div>
     `;
+  }
+
+  function updateStats(rows) {
+    renderStatsCards("stats", rows);
   }
 
   function effPillClass(effFrac) {
@@ -923,7 +962,7 @@
     });
   }
 
-  // ===== AGREGAÇÕES PARA OS GRÁFICOS =====
+  // ===== Curva helpers =====
   function toISODateLocal(dt){
     return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}-${String(dt.getDate()).padStart(2,"0")}`;
   }
@@ -932,10 +971,7 @@
     if (!m) return iso;
     return `${m[3]}/${m[2]}/${m[1]}`;
   }
-  function weekdayIndexPtBR(dt){
-    // JS: 0=Dom..6=Sáb
-    return dt.getDay();
-  }
+  function weekdayIndexPtBR(dt){ return dt.getDay(); }
   const WEEK_LABELS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
   function dailySeries(rows){
@@ -969,53 +1005,11 @@
     return { labels: WEEK_LABELS, casais: agg.map(x=>x.casais), vendas: agg.map(x=>x.vendas), vgv: agg.map(x=>x.vgv), eficiencia: eff };
   }
 
-  // ===== CANCELAMENTO POR QUANTIDADE DE COTAS + RENDA MÉDIA (NOVO) =====
-  function avgRendaFromAgg(sum, count){
-    return count > 0 ? (sum / count) : 0;
-  }
-
-  function cancelamentoPorQtdCotas(rows) {
-    // Agrupa por quantidade total de cotas vendidas na linha
-    // Agora também calcula renda média do grupo (média por casal/linha)
-    const map = new Map(); // qtdCotas -> { casais, cotasCanceladas, cotasTotal, rendaSum }
-
-    rows.forEach(r => {
-      const qtdTotal = r._quotas?.total ?? 0;
-      if (qtdTotal <= 0) return; // ignora linhas sem cotas
-
-      if (!map.has(qtdTotal)) {
-        map.set(qtdTotal, { casais: 0, cotasCanceladas: 0, cotasTotal: 0, rendaSum: 0 });
-      }
-
-      const item = map.get(qtdTotal);
-      item.casais += 1;
-      item.cotasCanceladas += (r._quotas?.cancelado ?? 0);
-      item.cotasTotal += qtdTotal;
-      item.rendaSum += (r._renda ?? 0);
-    });
-
-    // Converte para array e calcula percentual + renda média
-    const result = Array.from(map.entries()).map(([qtdVendidas, data]) => ({
-      cotasVendidas: qtdVendidas,
-      casais: data.casais,
-      cotasCanceladas: data.cotasCanceladas,
-      cotasTotal: data.cotasTotal,
-      pctCancelamento: data.cotasTotal > 0 ? (data.cotasCanceladas / data.cotasTotal) : 0,
-      rendaMed: avgRendaFromAgg(data.rendaSum, data.casais)
-    }));
-
-    // Ordena por quantidade de cotas vendidas
-    result.sort((a, b) => a.cotasVendidas - b.cotasVendidas);
-
-    return result;
-  }
-
   function destroyChartSafely(ch){
     try { ch?.destroy?.(); } catch(e) {}
   }
 
   function renderCurvaCharts(rows){
-    // meta período para subtitle
     const d1 = el("dateStart").value;
     const d2 = el("dateEnd").value;
     const status = el("statusSelect").value;
@@ -1030,13 +1024,11 @@
     ].join(" • ");
     el("curva-meta").textContent = metaTxt;
 
-    // --- Curva diária
     const s = dailySeries(rows);
     const labelsBR = s.labels.map(fmtISOToBR);
 
     destroyChartSafely(charts.curva);
-    const ctx1 = el("chartCurva").getContext("2d");
-    charts.curva = new Chart(ctx1, {
+    charts.curva = new Chart(el("chartCurva").getContext("2d"), {
       type: "line",
       data: {
         labels: labelsBR,
@@ -1066,15 +1058,7 @@
         maintainAspectRatio: false,
         interaction: { mode: "index", intersect: false },
         plugins: {
-          legend: { labels: { color: "rgba(234,240,255,.85)" } },
-          tooltip: {
-            callbacks: {
-              label: (ctx) => {
-                const v = ctx.parsed.y ?? 0;
-                return `${ctx.dataset.label}: ${v}`;
-              }
-            }
-          }
+          legend: { labels: { color: "rgba(234,240,255,.85)" } }
         },
         scales: {
           x: {
@@ -1097,11 +1081,9 @@
       }
     });
 
-    // --- Semana
     const w = weekdayAgg(rows);
     destroyChartSafely(charts.semana);
-    const ctx2 = el("chartSemana").getContext("2d");
-    charts.semana = new Chart(ctx2, {
+    charts.semana = new Chart(el("chartSemana").getContext("2d"), {
       data: {
         labels: w.labels,
         datasets: [
@@ -1164,46 +1146,55 @@
           }
         },
         scales: {
-          x: {
-            ticks: { color: "rgba(234,240,255,.7)" },
-            grid: { color: "rgba(255,255,255,.05)" }
-          },
-          yCount: {
-            position: "left",
-            ticks: { color: "rgba(234,240,255,.7)" },
-            grid: { color: "rgba(255,255,255,.05)" },
-            title: { display: true, text: "Volume (casais/vendas)", color: "rgba(234,240,255,.7)" }
-          },
+          x: { ticks: { color: "rgba(234,240,255,.7)" }, grid: { color: "rgba(255,255,255,.05)" } },
+          yCount: { position:"left", ticks:{ color:"rgba(234,240,255,.7)" }, grid:{ color:"rgba(255,255,255,.05)" } },
           yMoney: {
-            position: "right",
-            ticks: {
-              color: "rgba(234,240,255,.7)",
-              callback: (val) => {
+            position:"right",
+            ticks:{
+              color:"rgba(234,240,255,.7)",
+              callback:(val)=>{
                 const n = Number(val) || 0;
                 if (Math.abs(n) >= 1000000) return `R$ ${(n/1000000).toFixed(1)}M`;
                 if (Math.abs(n) >= 1000) return `R$ ${(n/1000).toFixed(0)}k`;
                 return `R$ ${n.toFixed(0)}`;
               }
             },
-            grid: { drawOnChartArea: false },
-            title: { display: true, text: "VGV", color: "rgba(234,240,255,.7)" }
+            grid:{ drawOnChartArea:false }
           },
-          yPct: {
-            position: "right",
-            min: 0,
-            ticks: {
-              color: "rgba(234,240,255,.7)",
-              callback: (val) => `${val}%`
-            },
-            grid: { drawOnChartArea: false },
-            title: { display: true, text: "Eficiência (%)", color: "rgba(234,240,255,.7)" }
-          }
+          yPct: { position:"right", min:0, ticks:{ color:"rgba(234,240,255,.7)", callback:(v)=>`${v}%` }, grid:{ drawOnChartArea:false } }
         }
       }
     });
   }
 
-  // ===== RENDERIZAR ABA DE CANCELAMENTO (inclui renda média ao lado das canceladas) =====
+  // ===== Cancelamento (mesma lógica da sua versão anterior, com renda média) =====
+  function avgRendaFromAgg(sum, count){ return count > 0 ? (sum / count) : 0; }
+
+  function cancelamentoPorQtdCotas(rows) {
+    const map = new Map(); // qtdCotas -> { casais, cotasCanceladas, cotasTotal, rendaSum }
+    rows.forEach(r => {
+      const qtdTotal = r._quotas?.total ?? 0;
+      if (qtdTotal <= 0) return;
+      if (!map.has(qtdTotal)) map.set(qtdTotal, { casais:0, cotasCanceladas:0, cotasTotal:0, rendaSum:0 });
+      const item = map.get(qtdTotal);
+      item.casais += 1;
+      item.cotasCanceladas += (r._quotas?.cancelado ?? 0);
+      item.cotasTotal += qtdTotal;
+      item.rendaSum += (r._renda ?? 0);
+    });
+
+    const result = Array.from(map.entries()).map(([qtdVendidas, data]) => ({
+      cotasVendidas: qtdVendidas,
+      casais: data.casais,
+      cotasCanceladas: data.cotasCanceladas,
+      cotasTotal: data.cotasTotal,
+      pctCancelamento: data.cotasTotal > 0 ? (data.cotasCanceladas / data.cotasTotal) : 0,
+      rendaMed: avgRendaFromAgg(data.rendaSum, data.casais)
+    }));
+    result.sort((a,b)=>a.cotasVendidas-b.cotasVendidas);
+    return result;
+  }
+
   function renderCancelamentoAnalysis(rows) {
     const d1 = el("dateStart").value;
     const d2 = el("dateEnd").value;
@@ -1227,30 +1218,19 @@
       return;
     }
 
-    // --- Gráfico
     destroyChartSafely(charts.cancelamento);
-    const ctx = el("chartCancelamento").getContext("2d");
+    const labels = analysis.map(i => `${i.cotasVendidas} cota${i.cotasVendidas>1?"s":""}`);
+    const percentuais = analysis.map(i => i.pctCancelamento * 100);
 
-    const labels = analysis.map(item => `${item.cotasVendidas} cota${item.cotasVendidas > 1 ? 's' : ''}`);
-    const percentuais = analysis.map(item => item.pctCancelamento * 100);
-
-    charts.cancelamento = new Chart(ctx, {
+    charts.cancelamento = new Chart(el("chartCancelamento").getContext("2d"), {
       type: "bar",
       data: {
         labels,
         datasets: [{
           label: "% Cancelamento",
           data: percentuais,
-          backgroundColor: percentuais.map(pct => {
-            if (pct < 20) return "rgba(92,255,176,.25)";
-            if (pct <= 30) return "rgba(255,176,32,.25)";
-            return "rgba(255,45,85,.25)";
-          }),
-          borderColor: percentuais.map(pct => {
-            if (pct < 20) return "rgba(92,255,176,.8)";
-            if (pct <= 30) return "rgba(255,176,32,.8)";
-            return "rgba(255,45,85,.8)";
-          }),
+          backgroundColor: percentuais.map(pct => pct < 20 ? "rgba(92,255,176,.25)" : (pct <= 30 ? "rgba(255,176,32,.25)" : "rgba(255,45,85,.25)")),
+          borderColor: percentuais.map(pct => pct < 20 ? "rgba(92,255,176,.8)" : (pct <= 30 ? "rgba(255,176,32,.8)" : "rgba(255,45,85,.8)")),
           borderWidth: 2
         }]
       },
@@ -1262,8 +1242,7 @@
           tooltip: {
             callbacks: {
               label: (ctx) => {
-                const idx = ctx.dataIndex;
-                const item = analysis[idx];
+                const item = analysis[ctx.dataIndex];
                 return [
                   `% Cancelamento: ${new Intl.NumberFormat("pt-BR", {maximumFractionDigits:1}).format(ctx.parsed.y)}%`,
                   `Casais: ${item.casais}`,
@@ -1276,28 +1255,13 @@
           }
         },
         scales: {
-          x: {
-            ticks: { color: "rgba(234,240,255,.7)" },
-            grid: { color: "rgba(255,255,255,.05)" },
-            title: { display: true, text: "Quantidade de cotas vendidas", color: "rgba(234,240,255,.7)" }
-          },
-          y: {
-            min: 0,
-            max: 100,
-            ticks: {
-              color: "rgba(234,240,255,.7)",
-              callback: (val) => `${val}%`
-            },
-            grid: { color: "rgba(255,255,255,.05)" },
-            title: { display: true, text: "% Cancelamento", color: "rgba(234,240,255,.7)" }
-          }
+          x: { ticks:{ color:"rgba(234,240,255,.7)" }, grid:{ color:"rgba(255,255,255,.05)" } },
+          y: { min:0, max:100, ticks:{ color:"rgba(234,240,255,.7)", callback:(v)=>`${v}%` }, grid:{ color:"rgba(255,255,255,.05)" } }
         }
       }
     });
 
-    // --- Tabela (mudança solicitada: renda média ao lado de "cotas canceladas")
     const ordered = sortedList(analysis, "cancelamento-table", "cotasTotal");
-
     el("cancelamento-table").innerHTML = `
       <div class="table-wrap">
         <table data-table-id="cancelamento-table">
@@ -1326,7 +1290,6 @@
         </table>
       </div>
     `;
-
     const table = el("cancelamento-table").querySelector("table");
     table.querySelectorAll("thead th.sortable").forEach(th => {
       th.addEventListener("click", () => {
@@ -1336,107 +1299,62 @@
     });
   }
 
-  // ===== LISTA DE CANCELADOS =====
-  function buildCanceladosList(rowsForProfessional) {
-    const out = [];
-
-    rowsForProfessional.forEach(r => {
-      const tokens = splitStatusTokens(r[KEY.statusContrato]);
-      if (!tokens.length) return;
-
-      const totalCotasNaLinha = tokens.length;
-      const valorPorCota = totalCotasNaLinha > 0 ? ((r._valorVgv || 0) / totalCotasNaLinha) : 0;
-
-      const cliente = (r._clientName || "").trim() || "(Cliente sem nome no CSV)";
-
-      const dt = r._dt;
-      const when = dt ? `${String(dt.getDate()).padStart(2,"0")}/${String(dt.getMonth()+1).padStart(2,"0")}/${dt.getFullYear()}` : "";
-
-      const renda = r._renda || 0;
-      const anoCarro = (r._carYear || "").trim();
-
-      tokens.forEach(tok => {
-        if (classifyToken(tok) !== "cancelado") return;
-        out.push({
-          cliente,
-          valorPorCota,
-          when,
-          uf: (r[KEY.uf] ?? "").toString().trim(),
-          renda,
-          anoCarro
-        });
-      });
+  // ===== Equipes: UI + stats =====
+  function listPromotoresFromAllRows(){
+    const set = new Set();
+    state.rows.forEach(r => {
+      const name = (r[KEY.promotor] ?? "").toString().trim();
+      if (name) set.add(name);
     });
-
-    out.sort((a,b) => (b.valorPorCota - a.valorPorCota) || a.cliente.localeCompare(b.cliente, "pt-BR", {sensitivity:"base"}));
-    return out;
+    return Array.from(set).sort((a,b)=>a.localeCompare(b,"pt-BR",{sensitivity:"base"}));
   }
 
-  function renderCanceladosBox() {
-    const tipo = norm(el("profTipoSingle").value);
-    const nome = el("profNomeSingle").value;
+  function renderTeamMappingUI(){
+    const select = el("teamPromotorSelect");
+    const promotores = listPromotoresFromAllRows();
+    select.innerHTML = `<option value="">Selecione...</option>` + promotores.map(p=>`<option value="${p}">${p}</option>`).join("");
 
-    const meta = el("cancel-meta");
-    const listEl = el("cancel-list");
-    const summaryEl = el("cancel-summary");
-    const btnCopy = el("btnCopyCancelados");
+    const map = loadTeamMap();
+    const entries = Object.entries(map)
+      .filter(([k,v]) => k && v)
+      .sort((a,b)=>a[0].localeCompare(b[0],"pt-BR",{sensitivity:"base"}));
 
-    let base = state.filtered.slice();
-
-    if (!nome) {
-      meta.textContent = "Selecione um profissional para listar.";
-      listEl.innerHTML = `<div class="note bad" style="margin:0">Nenhum profissional selecionado.</div>`;
-      summaryEl.textContent = "";
-      btnCopy.disabled = true;
-      return;
-    }
-
-    base = base.filter(r => norm(r[tipo] ?? "") === norm(nome));
-
-    const cancels = buildCanceladosList(base);
-
-    meta.textContent = `${nome} • ${cancels.length} cotas canceladas listadas`;
-
-    if (!cancels.length) {
-      listEl.innerHTML = `<div class="note" style="margin:0">Não há cotas canceladas para este profissional no período/filtros atuais.</div>`;
-      summaryEl.textContent = "";
-      btnCopy.disabled = true;
-      return;
-    }
-
-    const totalCancel = cancels.reduce((s, x) => s + (x.valorPorCota || 0), 0);
-    summaryEl.textContent = `Total (somatório do valor por cota cancelada): ${fmtMoney(totalCancel)}`;
-
-    listEl.innerHTML = cancels.map((c, idx) => `
-      <div class="cancel-item">
-        <div class="who">
-          <div class="nm" title="${c.cliente}">${idx+1}. ${c.cliente}</div>
-          <div class="sub">
-            ${c.when ? `Data: ${c.when}` : "Data: —"}
-            ${c.uf ? ` • UF: ${c.uf}` : ""}
-            <br>
-            Renda: ${fmtMoney(c.renda)}${c.anoCarro ? ` • Ano carro: ${c.anoCarro}` : " • Ano carro: —"}
-          </div>
+    el("teamMappingList").innerHTML = entries.length ? entries.map(([p,t]) => `
+      <div class="team-row">
+        <div class="left">
+          <div class="nm" title="${p}">${p}</div>
+          <div class="mut">${t}</div>
         </div>
-        <div class="val">${fmtMoney(c.valorPorCota)}</div>
+        <button class="btn" type="button" data-remove-promotor="${encodeURIComponent(p)}">Remover</button>
       </div>
-    `).join("");
+    `).join("") : `<div class="note" style="margin:0">Nenhuma marcação salva ainda.</div>`;
 
-    btnCopy.disabled = false;
+    el("teamMappingList").querySelectorAll("button[data-remove-promotor]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const p = decodeURIComponent(btn.dataset.removePromotor);
+        const m2 = loadTeamMap();
+        delete m2[p];
+        saveTeamMap(m2);
+        renderTeamMappingUI();
+        renderEquipesStats();
+      });
+    });
+  }
 
-    btnCopy.onclick = async () => {
-      const text = cancels
-        .map(c =>
-          `${c.cliente}\t${fmtMoney(c.valorPorCota)}\tRenda:${fmtMoney(c.renda)}\tAno:${c.anoCarro || "-"}${c.when ? `\t${c.when}` : ""}${c.uf ? `\t${c.uf}` : ""}`
-        ).join("\n");
-      try {
-        await navigator.clipboard.writeText(text);
-        btnCopy.textContent = "Copiado!";
-        setTimeout(() => btnCopy.textContent = "Copiar lista", 1200);
-      } catch (e) {
-        prompt("Copie a lista abaixo:", text);
-      }
-    };
+  function rowsForTeam(teamName){
+    const map = loadTeamMap();
+    return state.filtered.filter(r => {
+      const prom = (r[KEY.promotor] ?? "").toString().trim();
+      const team = prom ? (map[prom] || "") : "";
+      if (teamName === "__SEM__") return !team;
+      return team === teamName;
+    });
+  }
+
+  function renderEquipesStats(){
+    renderStatsCards("stats-equipe-parque", rowsForTeam("Equipe Parque"));
+    renderStatsCards("stats-equipe-externa", rowsForTeam("Equipe Externa"));
+    renderStatsCards("stats-equipe-sem", rowsForTeam("__SEM__"));
   }
 
   function updateProfFilters(tipoElId, nomeElId) {
@@ -1478,7 +1396,6 @@
     const tipo = norm(el("profTipoSingle").value);
     const nome = el("profNomeSingle").value;
     const box = el("stats-single");
-
     if (!nome) { box.innerHTML = ""; return; }
 
     const mine = state.filtered.filter(r => norm(r[tipo] ?? "") === norm(nome));
@@ -1499,24 +1416,33 @@
   function updateAll() {
     state.filtered = applyFilters(state.rows);
 
+    // Resumo
     updateStats(state.filtered);
 
-    // rankings
+    // NOVO: cards na aba Curva
+    renderStatsCards("stats-curva", state.filtered);
+
+    // Rankings
     renderRankingTable(groupRanking(state.filtered, KEY.promotor), "ranking-promotor", "Promotor");
     renderRankingTable(groupRanking(state.filtered, KEY.liner), "ranking-liner", "Liner");
     renderRankingTable(groupRanking(state.filtered, KEY.closer), "ranking-closer", "Closer");
 
+    // Perfil renda
     renderPerfilRenda(state.filtered, "perfil-renda");
 
+    // Profissionais table: usa o tipo do filtro superior
     const tipo = norm(el("profTipo").value);
     renderRankingTable(groupRanking(state.filtered, tipo), "profissionais-table", "Profissionais");
 
+    // Individual
     renderSingleProfessionalStats();
-    renderCanceladosBox();
 
-    // charts
+    // Charts
     renderCurvaCharts(state.filtered);
     renderCancelamentoAnalysis(state.filtered);
+
+    // Equipes stats
+    renderEquipesStats();
   }
 
   function setup() {
@@ -1556,11 +1482,28 @@
     el("profTipoSingle").addEventListener("change", () => {
       updateProfFilters("profTipoSingle","profNomeSingle");
       renderSingleProfessionalStats();
-      renderCanceladosBox();
     });
     el("profNomeSingle").addEventListener("change", () => {
       renderSingleProfessionalStats();
-      renderCanceladosBox();
+    });
+
+    // Equipes events
+    el("btnSalvarEquipe").addEventListener("click", () => {
+      const prom = el("teamPromotorSelect").value;
+      const team = el("teamEquipeSelect").value;
+      if (!prom) return;
+      const map = loadTeamMap();
+      map[prom] = team;
+      saveTeamMap(map);
+      renderTeamMappingUI();
+      renderEquipesStats();
+    });
+
+    el("btnLimparEquipes").addEventListener("click", () => {
+      if (!confirm("Tem certeza que deseja limpar todas as marcações de equipes?")) return;
+      saveTeamMap({});
+      renderTeamMappingUI();
+      renderEquipesStats();
     });
 
     document.querySelectorAll(".tab").forEach(t => {
@@ -1570,7 +1513,6 @@
         t.classList.add("active");
         el(`tab-${t.dataset.tab}`).classList.add("active");
 
-        // resize charts quando mudar de aba
         if (["curva", "cancelamento"].includes(t.dataset.tab)) {
           setTimeout(() => {
             try {
@@ -1598,11 +1540,13 @@
 
       const any = state.rows[0] || {};
       if (!any._clientNameKey) console.warn("Não detectei coluna do nome do cliente. Ajuste CLIENT_NAME_HEADERS.");
-      if (!any._carYearKey) console.warn("Não detectei coluna do ano do carro. Ajuste CAR_YEAR_HEADERS.");
 
       updateProfFilters("profTipo","profNome");
       updateProfFilters("profTipoSingle","profNomeSingle");
       updateUfFilters();
+
+      // Equipes UI
+      renderTeamMappingUI();
 
       updateAll();
 
