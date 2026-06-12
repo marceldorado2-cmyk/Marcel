@@ -1,875 +1,95 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Atendimentos</title>
-    <style>
-        :root {
-            --bg: #0f0f23;
-            --card: #1a1a3a;
-            --accent: #00d4aa;
-            --text: #ffffff;
-            --muted: #8892b0;
-            --border: rgba(255,255,255,0.08);
-            --mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
-            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --gradient-tertiary: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            --gradient-quaternary: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-        }
+function renderHeatmap(rows) {
+  const chartEl = el("heat-chart");
+  const heatEl = el("heat");
+  const diagEl = el("heat-diagnose");
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  const hours = [];
+  for (let h = 10; h <= 22; h++) hours.push(h);
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-            min-height: 100vh;
-        }
+  const counts = new Map(hours.map(h => [h, 0]));
+  let parsedOk = 0;
+  let parsedTotal = 0;
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 1.5rem;
-        }
+  // Extrai a hora (HH) do texto, preferencialmente do padrão HH:MM.
+  // Ex.: "11:04" -> 11, "12:30" -> 12
+  function extractHourFromText(raw) {
+    const s = (raw ?? "").toString().trim();
+    if (!s) return null;
 
-        /* Header mais clean */
-        .header {
-            text-align: center;
-            margin-bottom: 3rem;
-            padding-bottom: 2rem;
-            border-bottom: 1px solid var(--border);
-        }
+    // Pega o primeiro "HH:MM" que aparecer no texto
+    const m = s.match(/(^|[^\d])(\d{2}):(\d{2})(?!\d)/);
+    if (m) {
+      const hh = Number(m[2]);
+      if (Number.isFinite(hh) && hh >= 0 && hh <= 23) return hh;
+    }
 
-        h1 {
-            color: var(--text);
-            font-size: 2.8rem;
-            font-weight: 300;
-            margin-bottom: 0.5rem;
-            letter-spacing: -1px;
-        }
+    // Fallback: tenta parsear por data/hora (se vier em outro formato)
+    const dt = parseBRDateTime(s);
+    if (dt && !Number.isNaN(dt.getTime())) return dt.getHours();
 
-        .subtitle {
-            color: var(--muted);
-            font-size: 1rem;
-            font-weight: 400;
-        }
+    return null;
+  }
 
-        /* Upload area mais minimalista */
-        .upload-area {
-            border: 1.5px dashed var(--border);
-            border-radius: 16px;
-            padding: 2.5rem;
-            text-align: center;
-            margin-bottom: 3rem;
-            transition: all 0.3s ease;
-            background: rgba(255,255,255,0.01);
-        }
+  rows.forEach(r => {
+    const raw = r[state.meta.firstColKey];
+    parsedTotal++;
 
-        .upload-area:hover {
-            border-color: var(--accent);
-            background: rgba(0,212,170,0.03);
-        }
+    const h = extractHourFromText(raw);
+    if (h === null) return;
 
-        .upload-area.dragover {
-            border-color: var(--accent);
-            background: rgba(0,212,170,0.08);
-            transform: translateY(-2px);
-        }
+    parsedOk++;
 
-        .upload-title {
-            font-size: 1.2rem;
-            margin-bottom: 0.5rem;
-            color: var(--text);
-        }
+    // Só contabiliza dentro do range do heatmap (10..22)
+    if (counts.has(h)) counts.set(h, counts.get(h) + 1);
+  });
 
-        .upload-description {
-            color: var(--muted);
-            margin-bottom: 1.5rem;
-            font-size: 0.95rem;
-        }
+  const arr = hours.map(h => ({ h, c: counts.get(h) || 0 }));
+  const max = Math.max(...arr.map(x => x.c), 0);
 
-        input[type="file"] {
-            padding: 0.75rem 1.5rem;
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            color: var(--text);
-            width: 100%;
-            max-width: 350px;
-            font-size: 0.9rem;
-        }
-
-        /* Tabs redesenhadas - mais elegantes */
-        .tabs {
-            display: flex;
-            gap: 0;
-            margin-bottom: 3rem;
-            background: rgba(255,255,255,0.03);
-            border-radius: 16px;
-            padding: 6px;
-            overflow-x: auto;
-            border: 1px solid var(--border);
-        }
-
-        .tab {
-            padding: 1rem 1.8rem;
-            background: transparent;
-            border: none;
-            color: var(--muted);
-            cursor: pointer;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            font-size: 0.95rem;
-            font-weight: 500;
-            white-space: nowrap;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .tab:hover {
-            color: var(--text);
-            background: rgba(255,255,255,0.05);
-        }
-
-        .tab.active {
-            color: white;
-            background: var(--gradient-primary);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-            transform: translateY(-1px);
-        }
-
-        .tab.active::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: inherit;
-            filter: blur(8px);
-            opacity: 0.4;
-            z-index: -1;
-        }
-
-        /* Diferentes gradientes para cada tab quando ativa */
-        .tab[data-tab="resumo"].active {
-            background: var(--gradient-primary);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-        }
-
-        .tab[data-tab="dados"].active {
-            background: var(--gradient-secondary);
-            box-shadow: 0 4px 12px rgba(245, 87, 108, 0.3);
-        }
-
-        .tab[data-tab="grafico"].active {
-            background: var(--gradient-tertiary);
-            box-shadow: 0 4px 12px rgba(79, 172, 254, 0.3);
-        }
-
-        .tab[data-tab="heatmap"].active {
-            background: var(--gradient-quaternary);
-            box-shadow: 0 4px 12px rgba(67, 233, 123, 0.3);
-        }
-
-        .tab-content {
-            background: rgba(255,255,255,0.02);
-            border-radius: 20px;
-            padding: 2.5rem;
-            margin-bottom: 2rem;
-            border: 1px solid var(--border);
-            backdrop-filter: blur(10px);
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        /* Info box mais sutil */
-        .info-box {
-            background: rgba(0,212,170,0.06);
-            border: 1px solid rgba(0,212,170,0.2);
-            border-radius: 12px;
-            padding: 1.25rem 1.5rem;
-            margin-bottom: 2rem;
-            color: var(--text);
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-
-        /* Grid de estatísticas mais clean */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2.5rem;
-        }
-
-        .stat-card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 2rem 1.5rem;
-            text-align: center;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
-            border-color: rgba(255,255,255,0.15);
-        }
-
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 600;
-            color: var(--accent);
-            font-family: var(--mono);
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-label {
-            color: var(--muted);
-            font-size: 0.9rem;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        /* Tabela mais elegante */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-            background: rgba(255,255,255,0.01);
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid var(--border);
-        }
-
-        th, td {
-            padding: 1rem 1.25rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
-
-        th {
-            background: rgba(255,255,255,0.05);
-            color: var(--text);
-            font-weight: 600;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        tr:hover {
-            background: rgba(255,255,255,0.03);
-        }
-
-        /* Charts mais elegantes */
-        .chart-container {
-            margin: 2rem 0;
-        }
-
-        .chart-title {
-            font-size: 1.3rem;
-            color: var(--text);
-            margin-bottom: 2rem;
-            text-align: center;
-            font-weight: 400;
-            letter-spacing: -0.5px;
-        }
-
-        .hours-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 1.25rem;
-            margin-bottom: 2rem;
-        }
-
-        .hour-card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 1.5rem 1rem;
-            text-align: center;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            backdrop-filter: blur(5px);
-        }
-
-        .hour-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-            border-color: var(--accent);
-        }
-
-        .hour-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--accent), #22d3ee);
-        }
-
-        .hour-time {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text);
-            margin-bottom: 0.75rem;
-            font-family: var(--mono);
-        }
-
-        .hour-count {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: var(--accent);
-            margin-bottom: 0.5rem;
-            font-family: var(--mono);
-        }
-
-        .hour-label {
-            color: var(--muted);
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 1rem;
-        }
-
-        .intensity-bar {
-            width: 100%;
-            height: 4px;
-            background: rgba(255,255,255,0.08);
-            border-radius: 2px;
-            overflow: hidden;
-        }
-
-        .intensity-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--accent), #22d3ee);
-            border-radius: 2px;
-            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* Heatmap mais clean */
-        .heat-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-
-        .heat-cell {
-            padding: 1.5rem 1rem;
-            border-radius: 12px;
-            text-align: center;
-            border: 1px solid var(--border);
-            transition: all 0.3s ease;
-            backdrop-filter: blur(5px);
-        }
-
-        .heat-cell:hover {
-            transform: scale(1.03);
-            box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-        }
-
-        .heat-cell .h {
-            font-family: var(--mono);
-            font-weight: 600;
-            font-size: 1rem;
-            margin-bottom: 0.5rem;
-            color: var(--text);
-        }
-
-        .heat-cell .c {
-            color: var(--muted);
-            font-size: 0.85rem;
-        }
-
-        #heat-diagnose {
-            background: rgba(255,255,255,0.02);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 1.5rem;
-            margin-top: 1.5rem;
-            font-family: var(--mono);
-            font-size: 0.8rem;
-            color: var(--muted);
-            white-space: pre-line;
-            line-height: 1.5;
-        }
-
-        /* Responsividade aprimorada */
-        @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-            
-            h1 {
-                font-size: 2.2rem;
-            }
-            
-            .tabs {
-                padding: 4px;
-                gap: 0;
-            }
-            
-            .tab {
-                padding: 0.8rem 1.2rem;
-                font-size: 0.85rem;
-            }
-            
-            .tab-content {
-                padding: 1.5rem;
-            }
-            
-            .hours-grid {
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-                gap: 1rem;
-            }
-            
-            .heat-grid {
-                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .tabs {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .tab {
-                text-align: center;
-                padding: 1rem;
-            }
-        }
-
-        /* Scrollbar customizada */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.05);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.2);
-            border-radius: 3px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255,255,255,0.3);
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Painel de Atendimentos</h1>
-            <div class="subtitle">Análise inteligente de horários e distribuição de eventos</div>
-        </div>
-        
-        <div class="upload-area" id="upload-area">
-            <div class="upload-title">📁 Carregar Arquivo</div>
-            <div class="upload-description">Arraste e solte seu arquivo Excel ou CSV aqui</div>
-            <input type="file" id="file-input" accept=".xlsx,.xls,.csv">
-        </div>
-
-        <div class="tabs">
-            <button class="tab active" data-tab="resumo">📊 Resumo</button>
-            <button class="tab" data-tab="dados">📋 Dados</button>
-            <button class="tab" data-tab="grafico">⏰ Por Hora</button>
-            <button class="tab" data-tab="heatmap">🔥 Mapa de Calor</button>
-        </div>
-
-        <div id="resumo" class="tab-content">
-            <div class="info-box">
-                <strong>📈 Visão Geral:</strong> Análise completa dos horários de atendimento (10:00 às 22:00)<br>
-                Os dados são extraídos automaticamente da primeira coluna do arquivo.
-            </div>
-            
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-number" id="total-events">0</div>
-                    <div class="stat-label">Total de Eventos</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="peak-hour">--</div>
-                    <div class="stat-label">Horário de Pico</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number" id="avg-per-hour">0</div>
-                    <div class="stat-label">Média por Hora</div>
-                </div>
-            </div>
-
-            <div id="summary-chart"></div>
-        </div>
-
-        <div id="dados" class="tab-content hidden">
-            <div id="data-info"></div>
-            <div id="data-table"></div>
-        </div>
-
-        <div id="grafico" class="tab-content hidden">
-            <div class="info-box">
-                <strong>⏰ Análise por Horário:</strong> Distribuição detalhada de eventos por hora<br>
-                Visualização em cards para melhor compreensão dos dados.
-            </div>
-            <div id="heat-chart"></div>
-        </div>
-
-        <div id="heatmap" class="tab-content hidden">
-            <div class="info-box">
-                <strong>🔥 Mapa de Calor:</strong> Intensidade de eventos por horário<br>
-                Cores mais intensas indicam maior concentração de eventos.
-            </div>
-            <div id="heat"></div>
-            <div id="heat-diagnose" style="display:none;"></div>
-        </div>
+  chartEl.innerHTML = `
+    <div style="display:flex;align-items:flex-end;gap:10px;height:180px;padding:14px;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(255,255,255,.03);overflow-x:auto;">
+      ${arr.map(x => {
+        const pct = max ? (x.c / max) : 0;
+        const height = Math.max(6, Math.round(150 * pct));
+        return `
+          <div style="width:42px;min-width:42px;display:flex;flex-direction:column;align-items:center;gap:8px;">
+            <div style="font-family:var(--mono);color:var(--text);font-size:.9rem;font-weight:900;">${x.c}</div>
+            <div style="width:100%;height:${height}px;border-radius:12px;background:linear-gradient(180deg,rgba(34,211,238,.9),rgba(124,92,255,.75));box-shadow:0 10px 28px rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.14);transition:transform .15s ease;"></div>
+            <div style="font-family:var(--mono);color:var(--muted);font-size:.85rem;">${String(x.h).padStart(2,"0")}h</div>
+          </div>
+        `;
+      }).join("")}
     </div>
+  `;
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script>
-        const state = { 
-            rows: [], 
-            headers: [], 
-            meta: { firstColKey: null }
-        };
+  const bg = (c) => {
+    if (max <= 0) return "rgba(255,255,255,.03)";
+    const t = c / max;
+    const a = 0.10 + 0.40 * t;
+    return t < 0.5 ? `rgba(124,92,255,${a})` : `rgba(34,211,238,${a})`;
+  };
 
-        // Elementos principais
-        const el = id => document.getElementById(id);
-        const uploadArea = el("upload-area");
-        const fileInput = el("file-input");
+  heatEl.innerHTML = `
+    <div class="heat-grid">
+      ${arr.map(x => `
+        <div class="heat-cell" style="background:${bg(x.c)}">
+          <div class="h">${String(x.h).padStart(2,"0")}:00</div>
+          <div class="c">${x.c} casais</div>
+        </div>
+      `).join("")}
+    </div>
+  `;
 
-        // Upload via drag & drop ou clique
-        uploadArea.addEventListener('click', () => fileInput.click());
-        uploadArea.addEventListener('dragover', e => {
-            e.preventDefault();
-            uploadArea.classList.add('dragover');
-        });
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('dragover');
-        });
-        uploadArea.addEventListener('drop', e => {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
-            if (e.dataTransfer.files.length > 0) {
-                handleFile(e.dataTransfer.files[0]);
-            }
-        });
-        fileInput.addEventListener('change', e => {
-            if (e.target.files.length > 0) {
-                handleFile(e.target.files[0]);
-            }
-        });
+  const samples = state.rows.slice(0, 8)
+    .map(r => (r[state.meta.firstColKey] ?? "").toString())
+    .filter(Boolean);
 
-        // Sistema de abas
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                const targetTab = tab.dataset.tab;
-                
-                // Remove active de todas as abas
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
-                
-                // Ativa a aba clicada
-                tab.classList.add('active');
-                el(targetTab).classList.remove('hidden');
-            });
-        });
-
-        function handleFile(file) {
-            const reader = new FileReader();
-            reader.onload = e => {
-                try {
-                    const workbook = XLSX.read(e.target.result, { type: 'binary' });
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-                    
-                    if (jsonData.length === 0) {
-                        alert('Arquivo vazio ou inválido.');
-                        return;
-                    }
-                    
-                    parseData(jsonData);
-                } catch (error) {
-                    alert('Erro ao ler o arquivo: ' + error.message);
-                }
-            };
-            reader.readAsBinaryString(file);
-        }
-
-        function parseData(jsonData) {
-            // Primeira linha como cabeçalho
-            const rawHeaders = jsonData[0] || [];
-            state.headers = rawHeaders.map(h => (h ?? "").toString().trim()).filter(Boolean);
-            
-            if (state.headers.length === 0) {
-                alert('Nenhum cabeçalho encontrado.');
-                return;
-            }
-            
-            // Restante como dados
-            const rawRows = jsonData.slice(1);
-            state.rows = rawRows
-                .map(row => {
-                    const obj = {};
-                    state.headers.forEach((header, i) => {
-                        obj[header] = row[i] ?? "";
-                    });
-                    return obj;
-                })
-                .filter(row => Object.values(row).some(val => 
-                    (val ?? "").toString().trim() !== ""
-                ));
-
-            // Define a primeira coluna como chave principal
-            state.meta.firstColKey = state.headers[0];
-            
-            console.log('Dados processados:', { 
-                headers: state.headers, 
-                totalRows: state.rows.length,
-                firstColKey: state.meta.firstColKey
-            });
-            
-            // Renderiza todas as visualizações
-            renderData();
-            renderSummary();
-            renderHeatmap(state.rows);
-        }
-
-        function renderData() {
-            const dataInfo = el("data-info");
-            const dataTable = el("data-table");
-            
-            dataInfo.innerHTML = `
-                <div class="info-box">
-                    <strong>📁 Arquivo Carregado:</strong><br>
-                    📊 ${state.rows.length} linhas de dados<br>
-                    📋 ${state.headers.length} colunas: ${state.headers.join(", ")}
-                </div>
-            `;
-            
-            if (state.rows.length === 0) {
-                dataTable.innerHTML = '<p style="color: var(--muted); text-align: center; padding: 2rem;">Nenhum dado para exibir.</p>';
-                return;
-            }
-            
-            const tableHTML = `
-                <table>
-                    <thead>
-                        <tr>${state.headers.map(h => `<th>${h}</th>`).join('')}</tr>
-                    </thead>
-                    <tbody>
-                        ${state.rows.slice(0, 50).map(row => 
-                            `<tr>${state.headers.map(h => `<td>${row[h] || ''}</td>`).join('')}</tr>`
-                        ).join('')}
-                    </tbody>
-                </table>
-                ${state.rows.length > 50 ? `<p style="margin-top: 1.5rem; color: var(--muted); text-align: center;">Mostrando primeiras 50 linhas de ${state.rows.length}</p>` : ''}
-            `;
-            
-            dataTable.innerHTML = tableHTML;
-        }
-
-        function renderSummary() {
-            const totalEvents = state.rows.length;
-            const hours = [];
-            for (let h = 10; h <= 22; h++) hours.push(h);
-            
-            const counts = new Map(hours.map(h => [h, 0]));
-            let validEvents = 0;
-            
-            state.rows.forEach(r => {
-                const raw = r[state.meta.firstColKey];
-                const h = extractHourFromText(raw);
-                if (h !== null && counts.has(h)) {
-                    counts.set(h, counts.get(h) + 1);
-                    validEvents++;
-                }
-            });
-            
-            const countsArray = hours.map(h => ({ hour: h, count: counts.get(h) || 0 }));
-            const maxCount = Math.max(...countsArray.map(x => x.count), 0);
-            const peakHour = countsArray.find(x => x.count === maxCount);
-            const avgPerHour = validEvents > 0 ? Math.round(validEvents / hours.length) : 0;
-            
-            // Atualiza estatísticas
-            el("total-events").textContent = totalEvents;
-            el("peak-hour").textContent = peakHour ? `${peakHour.hour}:00` : '--';
-            el("avg-per-hour").textContent = avgPerHour;
-            
-            // Cria gráfico em cards para o resumo
-            const summaryChart = el("summary-chart");
-            summaryChart.innerHTML = `
-                <div class="chart-title">📈 Distribuição por Horário</div>
-                <div class="hours-grid">
-                    ${countsArray.map(item => {
-                        const intensity = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
-                        return `
-                            <div class="hour-card">
-                                <div class="hour-time">${String(item.hour).padStart(2, '0')}:00</div>
-                                <div class="hour-count">${item.count}</div>
-                                <div class="hour-label">eventos</div>
-                                <div class="intensity-bar">
-                                    <div class="intensity-fill" style="width: ${intensity}%"></div>
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-            `;
-        }
-
-        function renderHeatmap(rows) {
-            const chartEl = el("heat-chart");
-            const heatEl = el("heat");
-            const diagEl = el("heat-diagnose");
-
-            const hours = [];
-            for (let h = 10; h <= 22; h++) hours.push(h);
-
-            const counts = new Map(hours.map(h => [h, 0]));
-            let parsedOk = 0;
-            let parsedTotal = 0;
-
-            // Extrai a hora (HH) do texto, preferencialmente do formato HH:MM.
-            function extractHourFromText(raw) {
-                const s = (raw ?? "").toString().trim();
-                if (!s) return null;
-                const m = s.match(/(^|[^\d])(\d{2}):(\d{2})(?!\d)/);
-                if (m) {
-                    const hh = Number(m[2]);
-                    if (Number.isFinite(hh) && hh >= 0 && hh <= 23) return hh;
-                }
-                const dt = parseBRDateTime(s);
-                if (dt && !Number.isNaN(dt.getTime())) return dt.getHours();
-                return null;
-            }
-
-            rows.forEach(r => {
-                const raw = r[state.meta.firstColKey];
-                parsedTotal++;
-                const h = extractHourFromText(raw);
-                if (h === null) return;
-                parsedOk++;
-                if (counts.has(h)) counts.set(h, counts.get(h) + 1);
-            });
-
-            const arr = hours.map(h => ({ h, c: counts.get(h) || 0 }));
-            const max = Math.max(...arr.map(x => x.c), 0);
-
-            // Cards para visualização por hora
-            chartEl.innerHTML = `
-                <div class="chart-title">⏰ Eventos por Horário</div>
-                <div class="hours-grid">
-                    ${arr.map(x => {
-                        const intensity = max > 0 ? (x.c / max) * 100 : 0;
-                        return `
-                            <div class="hour-card">
-                                <div class="hour-time">${String(x.h).padStart(2, '0')}:00</div>
-                                <div class="hour-count">${x.c}</div>
-                                <div class="hour-label">eventos</div>
-                                <div class="intensity-bar">
-                                    <div class="intensity-fill" style="width: ${intensity}%"></div>
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-            `;
-
-            const bg = (c) => {
-                if (max <= 0) return "rgba(255,255,255,.02)";
-                const t = c / max;
-                const a = 0.08 + 0.35 * t;
-                return t < 0.5 ? `rgba(124,92,255,${a})` : `rgba(34,211,238,${a})`;
-            };
-
-            heatEl.innerHTML = `
-                <div class="heat-grid">
-                    ${arr.map(x => `
-                        <div class="heat-cell" style="background:${bg(x.c)}">
-                            <div class="h">${String(x.h).padStart(2, "0")}:00</div>
-                            <div class="c">${x.c} eventos</div>
-                        </div>
-                    `).join("")}
-                </div>
-            `;
-
-            const samples = (state.rows.slice(0, 6)
-                .map(r => (r[state.meta.firstColKey] ?? "").toString())
-                .filter(Boolean));
-
-            diagEl.style.display = "block";
-            diagEl.textContent = `
-Diagnóstico da Primeira Coluna:
-• Campo analisado: "${state.meta.firstColKey}"
-• Total de linhas: ${rows.length}
-• Horários extraídos: ${parsedOk} de ${parsedTotal}
-• Exemplos de dados:
-  ${samples.map(s => `- ${s}`).join('\n  ') || "(sem exemplos)"}
-
-Método: extração de horário no formato HH:MM
-            `.trim();
-        }
-
-        // Função auxiliar para extrair hora do texto
-        function extractHourFromText(raw) {
-            const s = (raw ?? "").toString().trim();
-            if (!s) return null;
-            const m = s.match(/(^|[^\d])(\d{2}):(\d{2})(?!\d)/);
-            if (m) {
-                const hh = Number(m[2]);
-                if (Number.isFinite(hh) && hh >= 0 && hh <= 23) return hh;
-            }
-            const dt = parseBRDateTime(s);
-            if (dt && !Number.isNaN(dt.getTime())) return dt.getHours();
-            return null;
-        }
-
-        // Parser de data/hora brasileiro
-        function parseBRDateTime(input) {
-            const s = input?.toString().trim();
-            if (!s) return null;
-
-            // DD/MM/AAAA HH:MM ou DD/MM/AA HH:MM
-            const match1 = s.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})\s+(\d{1,2}):(\d{2})/);
-            if (match1) {
-                let [, day, month, year, hour, minute] = match1;
-                year = year.length === 2 ? `20${year}` : year;
-                return new Date(+year, +month - 1, +day, +hour, +minute);
-            }
-
-            // Só horário HH:MM
-            const match2 = s.match(/^(\d{1,2}):(\d{2})$/);
-            if (match2) {
-                const [, hour, minute] = match2;
-                return new Date(2024, 0, 1, +hour, +minute);
-            }
-
-            return null;
-        }
-    </script>
-</body>
-</html>
+  diagEl.style.display = "block";
+  diagEl.textContent =
+    `Diagnóstico (1ª coluna):\n` +
+    `• Chave (normalizada): "${state.meta.firstColKey}"\n` +
+    `• Linhas filtradas: ${rows.length}\n` +
+    `• Horário extraído/parseado: ${parsedOk} de ${parsedTotal}\n` +
+    `• Exemplos:\n  - ${samples.join("\n  - ") || "(sem exemplos)"}\n\n` +
+    `Regra: sempre usa HH de "HH:MM" quando existir (ex.: 11:04 -> 11h).`;
+}
