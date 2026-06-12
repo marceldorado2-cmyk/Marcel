@@ -341,7 +341,7 @@
         </div>
       </div>
 
-      <!-- NOVA ABA DE CANCELAMENTO -->
+      <!-- ABA DE CANCELAMENTO -->
       <div id="tab-cancelamento" class="tab-content">
         <div class="note">
           <strong>Análise de cancelamento por quantidade de cotas vendidas</strong><br>
@@ -969,37 +969,44 @@
     return { labels: WEEK_LABELS, casais: agg.map(x=>x.casais), vendas: agg.map(x=>x.vendas), vgv: agg.map(x=>x.vgv), eficiencia: eff };
   }
 
-  // ===== NOVA FUNCIONALIDADE: CANCELAMENTO POR QUANTIDADE DE COTAS =====
+  // ===== CANCELAMENTO POR QUANTIDADE DE COTAS + RENDA MÉDIA (NOVO) =====
+  function avgRendaFromAgg(sum, count){
+    return count > 0 ? (sum / count) : 0;
+  }
+
   function cancelamentoPorQtdCotas(rows) {
     // Agrupa por quantidade total de cotas vendidas na linha
-    const map = new Map(); // qtdCotas -> { casais, cotasCanceladas, cotasTotal }
-    
+    // Agora também calcula renda média do grupo (média por casal/linha)
+    const map = new Map(); // qtdCotas -> { casais, cotasCanceladas, cotasTotal, rendaSum }
+
     rows.forEach(r => {
       const qtdTotal = r._quotas?.total ?? 0;
       if (qtdTotal <= 0) return; // ignora linhas sem cotas
-      
+
       if (!map.has(qtdTotal)) {
-        map.set(qtdTotal, { casais: 0, cotasCanceladas: 0, cotasTotal: 0 });
+        map.set(qtdTotal, { casais: 0, cotasCanceladas: 0, cotasTotal: 0, rendaSum: 0 });
       }
-      
+
       const item = map.get(qtdTotal);
       item.casais += 1;
       item.cotasCanceladas += (r._quotas?.cancelado ?? 0);
       item.cotasTotal += qtdTotal;
+      item.rendaSum += (r._renda ?? 0);
     });
 
-    // Converte para array e calcula percentual
+    // Converte para array e calcula percentual + renda média
     const result = Array.from(map.entries()).map(([qtdVendidas, data]) => ({
       cotasVendidas: qtdVendidas,
       casais: data.casais,
       cotasCanceladas: data.cotasCanceladas,
       cotasTotal: data.cotasTotal,
-      pctCancelamento: data.cotasTotal > 0 ? (data.cotasCanceladas / data.cotasTotal) : 0
+      pctCancelamento: data.cotasTotal > 0 ? (data.cotasCanceladas / data.cotasTotal) : 0,
+      rendaMed: avgRendaFromAgg(data.rendaSum, data.casais)
     }));
 
     // Ordena por quantidade de cotas vendidas
     result.sort((a, b) => a.cotasVendidas - b.cotasVendidas);
-    
+
     return result;
   }
 
@@ -1196,7 +1203,7 @@
     });
   }
 
-  // ===== RENDERIZAR ABA DE CANCELAMENTO =====
+  // ===== RENDERIZAR ABA DE CANCELAMENTO (inclui renda média ao lado das canceladas) =====
   function renderCancelamentoAnalysis(rows) {
     const d1 = el("dateStart").value;
     const d2 = el("dateEnd").value;
@@ -1223,10 +1230,10 @@
     // --- Gráfico
     destroyChartSafely(charts.cancelamento);
     const ctx = el("chartCancelamento").getContext("2d");
-    
+
     const labels = analysis.map(item => `${item.cotasVendidas} cota${item.cotasVendidas > 1 ? 's' : ''}`);
     const percentuais = analysis.map(item => item.pctCancelamento * 100);
-    
+
     charts.cancelamento = new Chart(ctx, {
       type: "bar",
       data: {
@@ -1235,9 +1242,9 @@
           label: "% Cancelamento",
           data: percentuais,
           backgroundColor: percentuais.map(pct => {
-            if (pct < 20) return "rgba(92,255,176,.25)"; // verde (bom)
-            if (pct <= 30) return "rgba(255,176,32,.25)"; // amarelo (médio)
-            return "rgba(255,45,85,.25)"; // vermelho (ruim)
+            if (pct < 20) return "rgba(92,255,176,.25)";
+            if (pct <= 30) return "rgba(255,176,32,.25)";
+            return "rgba(255,45,85,.25)";
           }),
           borderColor: percentuais.map(pct => {
             if (pct < 20) return "rgba(92,255,176,.8)";
@@ -1261,6 +1268,7 @@
                   `% Cancelamento: ${new Intl.NumberFormat("pt-BR", {maximumFractionDigits:1}).format(ctx.parsed.y)}%`,
                   `Casais: ${item.casais}`,
                   `Cotas canceladas: ${item.cotasCanceladas}`,
+                  `Renda média: ${fmtMoney(item.rendaMed)}`,
                   `Cotas totais: ${item.cotasTotal}`
                 ];
               }
@@ -1287,7 +1295,7 @@
       }
     });
 
-    // --- Tabela
+    // --- Tabela (mudança solicitada: renda média ao lado de "cotas canceladas")
     const ordered = sortedList(analysis, "cancelamento-table", "cotasTotal");
 
     el("cancelamento-table").innerHTML = `
@@ -1299,6 +1307,7 @@
               <th class="num sortable" data-sort="casais">Casais ${sortIndicator("cancelamento-table", "casais")}</th>
               <th class="num sortable" data-sort="cotasTotal">Cotas totais ${sortIndicator("cancelamento-table", "cotasTotal")}</th>
               <th class="num sortable" data-sort="cotasCanceladas">Cotas canceladas ${sortIndicator("cancelamento-table", "cotasCanceladas")}</th>
+              <th class="num sortable" data-sort="rendaMed">Renda média ${sortIndicator("cancelamento-table", "rendaMed")}</th>
               <th class="num sortable" data-sort="pctCancelamento">% Cancelamento ${sortIndicator("cancelamento-table", "pctCancelamento")}</th>
             </tr>
           </thead>
@@ -1309,6 +1318,7 @@
                 <td class="num">${item.casais}</td>
                 <td class="num">${item.cotasTotal}</td>
                 <td class="num">${item.cotasCanceladas}</td>
+                <td class="num">${fmtMoney(item.rendaMed)}</td>
                 <td class="num"><span class="pill ${cancelPillClass(item.pctCancelamento)}">${fmtPctBR(item.pctCancelamento)}</span></td>
               </tr>
             `).join("")}
@@ -1563,9 +1573,9 @@
         // resize charts quando mudar de aba
         if (["curva", "cancelamento"].includes(t.dataset.tab)) {
           setTimeout(() => {
-            try { 
-              charts.curva?.resize?.(); 
-              charts.semana?.resize?.(); 
+            try {
+              charts.curva?.resize?.();
+              charts.semana?.resize?.();
               charts.cancelamento?.resize?.();
             } catch(e) {}
           }, 60);
