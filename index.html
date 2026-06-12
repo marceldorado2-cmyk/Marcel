@@ -959,75 +959,101 @@
     return eligible[0];
   }
 
-  function renderHeatmap(rows) {
-    const chartEl = el("heat-chart");
-    const heatEl = el("heat");
-    const diagEl = el("heat-diagnose");
+ function renderHeatmap(rows) {
+  const chartEl = el("heat-chart");
+  const heatEl = el("heat");
+  const diagEl = el("heat-diagnose");
 
-    const hours = [];
-    for (let h=10; h<=22; h++) hours.push(h);
+  const hours = [];
+  for (let h = 10; h <= 22; h++) hours.push(h);
 
-    const counts = new Map(hours.map(h => [h, 0]));
-    let parsedOk = 0;
-    let parsedTotal = 0;
+  const counts = new Map(hours.map(h => [h, 0]));
+  let parsedOk = 0;
+  let parsedTotal = 0;
 
-    rows.forEach(r => {
-      const raw = r[state.meta.firstColKey];
-      const dt = parseBRDateTime(raw);
-      parsedTotal++;
-      if (!dt || Number.isNaN(dt.getTime())) return;
-      parsedOk++;
-      const h = dt.getHours();
-      if (counts.has(h)) counts.set(h, counts.get(h) + 1);
-    });
+  // Extrai a hora (HH) do texto, preferencialmente do padrão HH:MM.
+  // Ex.: "11:04" -> 11, "12:30" -> 12
+  function extractHourFromText(raw) {
+    const s = (raw ?? "").toString().trim();
+    if (!s) return null;
 
-    const arr = hours.map(h => ({ h, c: counts.get(h) || 0 }));
-    const max = Math.max(...arr.map(x=>x.c), 0);
+    // Pega o primeiro "HH:MM" que aparecer no texto
+    const m = s.match(/(^|[^\d])(\d{2}):(\d{2})(?!\d)/);
+    if (m) {
+      const hh = Number(m[2]);
+      if (Number.isFinite(hh) && hh >= 0 && hh <= 23) return hh;
+    }
 
-    chartEl.innerHTML = `
-      <div style="display:flex;align-items:flex-end;gap:10px;height:180px;padding:14px;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(255,255,255,.03);overflow-x:auto;">
-        ${arr.map(x => {
-          const pct = max ? (x.c / max) : 0;
-          const height = Math.max(6, Math.round(150 * pct));
-          return `
-            <div style="width:42px;min-width:42px;display:flex;flex-direction:column;align-items:center;gap:8px;">
-              <div style="font-family:var(--mono);color:var(--text);font-size:.9rem;font-weight:900;">${x.c}</div>
-              <div style="width:100%;height:${height}px;border-radius:12px;background:linear-gradient(180deg,rgba(34,211,238,.9),rgba(124,92,255,.75));box-shadow:0 10px 28px rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.14);transition:transform .15s ease;"></div>
-              <div style="font-family:var(--mono);color:var(--muted);font-size:.85rem;">${String(x.h).padStart(2,"0")}h</div>
-            </div>
-          `;
-        }).join("")}
-      </div>
-    `;
+    // Fallback: tenta parsear por data/hora (se vier em outro formato)
+    const dt = parseBRDateTime(s);
+    if (dt && !Number.isNaN(dt.getTime())) return dt.getHours();
 
-    const bg = (c) => {
-      if (max <= 0) return "rgba(255,255,255,.03)";
-      const t = c / max;
-      const a = 0.10 + 0.40 * t;
-      return t < 0.5 ? `rgba(124,92,255,${a})` : `rgba(34,211,238,${a})`;
-    };
-
-    heatEl.innerHTML = `
-      <div class="heat-grid">
-        ${arr.map(x => `
-          <div class="heat-cell" style="background:${bg(x.c)}">
-            <div class="h">${String(x.h).padStart(2,"0")}:00</div>
-            <div class="c">${x.c} casais</div>
-          </div>
-        `).join("")}
-      </div>
-    `;
-
-    const samples = state.rows.slice(0, 8).map(r => (r[state.meta.firstColKey] ?? "").toString()).filter(Boolean);
-    diagEl.style.display = "block";
-    diagEl.textContent =
-      `Diagnóstico (1ª coluna):\n` +
-      `• Chave (normalizada): "${state.meta.firstColKey}"\n` +
-      `• Linhas filtradas: ${rows.length}\n` +
-      `• Datas/horas parseadas: ${parsedOk} de ${parsedTotal}\n` +
-      `• Exemplos:\n  - ${samples.join("\n  - ") || "(sem exemplos)"}\n\n` +
-      `Se parseadas ficar baixo: provavelmente falta hora (vira 00:00), ou formato diferente (ex.: "10h").`;
+    return null;
   }
+
+  rows.forEach(r => {
+    const raw = r[state.meta.firstColKey];
+    parsedTotal++;
+
+    const h = extractHourFromText(raw);
+    if (h === null) return;
+
+    parsedOk++;
+
+    // Só contabiliza dentro do range do heatmap (10..22)
+    if (counts.has(h)) counts.set(h, counts.get(h) + 1);
+  });
+
+  const arr = hours.map(h => ({ h, c: counts.get(h) || 0 }));
+  const max = Math.max(...arr.map(x => x.c), 0);
+
+  chartEl.innerHTML = `
+    <div style="display:flex;align-items:flex-end;gap:10px;height:180px;padding:14px;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(255,255,255,.03);overflow-x:auto;">
+      ${arr.map(x => {
+        const pct = max ? (x.c / max) : 0;
+        const height = Math.max(6, Math.round(150 * pct));
+        return `
+          <div style="width:42px;min-width:42px;display:flex;flex-direction:column;align-items:center;gap:8px;">
+            <div style="font-family:var(--mono);color:var(--text);font-size:.9rem;font-weight:900;">${x.c}</div>
+            <div style="width:100%;height:${height}px;border-radius:12px;background:linear-gradient(180deg,rgba(34,211,238,.9),rgba(124,92,255,.75));box-shadow:0 10px 28px rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.14);transition:transform .15s ease;"></div>
+            <div style="font-family:var(--mono);color:var(--muted);font-size:.85rem;">${String(x.h).padStart(2,"0")}h</div>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+
+  const bg = (c) => {
+    if (max <= 0) return "rgba(255,255,255,.03)";
+    const t = c / max;
+    const a = 0.10 + 0.40 * t;
+    return t < 0.5 ? `rgba(124,92,255,${a})` : `rgba(34,211,238,${a})`;
+  };
+
+  heatEl.innerHTML = `
+    <div class="heat-grid">
+      ${arr.map(x => `
+        <div class="heat-cell" style="background:${bg(x.c)}">
+          <div class="h">${String(x.h).padStart(2,"0")}:00</div>
+          <div class="c">${x.c} casais</div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+
+  const samples = state.rows.slice(0, 8)
+    .map(r => (r[state.meta.firstColKey] ?? "").toString())
+    .filter(Boolean);
+
+  diagEl.style.display = "block";
+  diagEl.textContent =
+    `Diagnóstico (1ª coluna):\n` +
+    `• Chave (normalizada): "${state.meta.firstColKey}"\n` +
+    `• Linhas filtradas: ${rows.length}\n` +
+    `• Horário extraído/parseado: ${parsedOk} de ${parsedTotal}\n` +
+    `• Exemplos:\n  - ${samples.join("\n  - ") || "(sem exemplos)"}\n\n` +
+    `Regra: sempre usa HH de "HH:MM" quando existir (ex.: 11:04 -> 11h).`;
+}
 
   // ===== FUNÇÕES DE GRÁFICOS =====
   function renderLineChart(rows, containerId) {
