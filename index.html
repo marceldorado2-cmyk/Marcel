@@ -124,6 +124,7 @@
     .rank-col{ font-family:var(--mono); font-weight:900; width:76px; }
     .num{font-family:var(--mono); text-align:right;}
     .name{font-weight:800; max-width:420px; overflow:hidden; text-overflow:ellipsis;}
+
     .badge{
       display:inline-block; padding:2px 8px; border:1px solid rgba(255,255,255,.14);
       border-radius:999px; font-size:.78rem; color:var(--muted); font-family:var(--mono); margin-left:8px;
@@ -160,12 +161,12 @@
       display:grid;
       grid-template-columns: 1fr;
       gap:10px;
-      max-height: 360px;
+      max-height: 380px;
       overflow:auto;
       padding-right:6px;
     }
     .cancel-item{
-      display:flex; gap:12px; align-items:center; justify-content:space-between;
+      display:flex; gap:12px; align-items:flex-start; justify-content:space-between;
       padding:10px 12px;
       border-radius:14px;
       background:rgba(255,255,255,.03);
@@ -173,15 +174,16 @@
     }
     .cancel-item .who{
       display:flex; flex-direction:column; gap:4px;
-      min-width: 240px;
+      min-width: 260px;
     }
-    .cancel-item .who .nm{font-weight:850; color:var(--text); max-width: 520px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-    .cancel-item .who .sub{font-family:var(--mono); font-size:.82rem; color:var(--muted);}
+    .cancel-item .who .nm{font-weight:850; color:var(--text); max-width: 680px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+    .cancel-item .who .sub{font-family:var(--mono); font-size:.82rem; color:var(--muted); line-height:1.35;}
     .cancel-item .val{
       font-family:var(--mono);
       font-weight:900;
       color:var(--bad);
       white-space:nowrap;
+      padding-top: 2px;
     }
     .cancel-actions{
       display:flex; gap:10px; flex-wrap:wrap;
@@ -189,9 +191,7 @@
       align-items:center;
       justify-content:space-between;
     }
-    .small{
-      font-size:.85rem; color:var(--muted);
-    }
+    .small{ font-size:.85rem; color:var(--muted); }
 
     @media(max-width: 980px){
       .wrap{padding:0 16px}
@@ -264,7 +264,6 @@
       <div class="tab" data-tab="ranking-promotor">🎯 Ranking Promotor</div>
       <div class="tab" data-tab="ranking-liner">💬 Ranking Liner</div>
       <div class="tab" data-tab="ranking-closer">🤝 Ranking Closer</div>
-      <div class="tab" data-tab="mapa-calor">📈 Mapa de calor</div>
       <div class="tab" data-tab="perfil-renda">💸 Perfil de renda</div>
       <div class="tab" data-tab="profissionais">👥 Profissionais</div>
     </div>
@@ -300,13 +299,6 @@
         <div id="ranking-closer"></div>
       </div>
 
-      <div id="tab-mapa-calor" class="tab-content">
-        <div class="note">
-          Horários considerados: <strong>10:00 até 22:00</strong>, a partir da <strong>1ª coluna</strong> (precisa ter data e hora).
-        </div>
-        <div class="note warn">Nesta versão enxuta, a aba Mapa de calor não está renderizando gráfico (mantive o painel focado no pedido do quadro de cancelados).</div>
-      </div>
-
       <div id="tab-perfil-renda" class="tab-content">
         <div class="note">Performance por faixa de renda. Clique nos cabeçalhos para ordenar.</div>
         <div id="perfil-renda"></div>
@@ -336,7 +328,6 @@
 
         <div class="stats" id="stats-single" style="margin-top:10px"></div>
 
-        <!-- ✅ NOVO QUADRO: CANCELADOS -->
         <div class="cancel-box" id="cancel-box">
           <div class="cancel-head">
             <div class="cancel-title">Clientes cancelados (no período)</div>
@@ -366,15 +357,24 @@
   const state = { rows: [], filtered: [], meta: { vgvColKey: null, firstColKey: null } };
 
   // ====== AJUSTE IMPORTANTE (VOCÊ PODE PRECISAR ALTERAR) ======
-  // O quadro de cancelados precisa de uma coluna com o NOME DO CLIENTE.
-  // Coloque aqui o nome EXATO do cabeçalho no seu CSV, por exemplo:
-  // "Nome do cliente", "Cliente", "Nome", "Casal", etc.
+  // Nome do cliente (para a lista de cancelados)
   const CLIENT_NAME_HEADERS = [
     norm("nome do cliente"),
     norm("cliente"),
     norm("nome"),
     norm("casal"),
     norm("nome completo"),
+    norm("nome do casal"),
+  ];
+
+  // Ano do carro (para a lista de cancelados)
+  const CAR_YEAR_HEADERS = [
+    norm("ano do carro"),
+    norm("ano carro"),
+    norm("ano"),
+    norm("ano veiculo"),
+    norm("ano veículo"),
+    norm("ano do veículo"),
   ];
   // ===========================================================
 
@@ -388,7 +388,6 @@
     closer: norm("closer")
   };
 
-  // ===== ESTADO DE ORDENAÇÃO =====
   const sortState = {
     "ranking-promotor": { key: "vendas", dir: "desc" },
     "ranking-liner": { key: "vendas", dir: "desc" },
@@ -557,20 +556,16 @@
     return "outro";
   }
 
-  function findClientNameKey(rowObj) {
+  function findKeyByCandidates(rowObj, candidates) {
     const keys = Object.keys(rowObj || {});
-    for (const cand of CLIENT_NAME_HEADERS) if (keys.includes(cand)) return cand;
-    // fallback: tenta achar qualquer coluna que contenha "cliente" ou "nome"
-    const k1 = keys.find(k => k.includes("cliente"));
-    if (k1) return k1;
-    const k2 = keys.find(k => k.includes("nome"));
-    if (k2) return k2;
+    for (const cand of candidates) if (keys.includes(cand)) return cand;
     return null;
   }
 
   function buildObjects(rows) {
     if (!rows.length) throw new Error("CSV vazio.");
-    const clientNameKey = findClientNameKey(rows[0]) || null;
+    const clientNameKey = findKeyByCandidates(rows[0], CLIENT_NAME_HEADERS);
+    const carYearKey = findKeyByCandidates(rows[0], CAR_YEAR_HEADERS);
 
     return rows.map(r => {
       const out = { ...r };
@@ -579,8 +574,13 @@
       out._renda = parseMoneyBR(out[KEY.renda]);
       out._quotas = countQuotasFromStatus(out[KEY.statusContrato]);
       out._bucket = contractBucket(out[KEY.statusContrato]);
+
       out._clientNameKey = clientNameKey;
       out._clientName = clientNameKey ? (out[clientNameKey] ?? "").toString().trim() : "";
+
+      out._carYearKey = carYearKey;
+      out._carYear = carYearKey ? (out[carYearKey] ?? "").toString().trim() : "";
+
       return out;
     });
   }
@@ -655,6 +655,7 @@
     return {
       casais,
       vendas: q.total,
+      cotasCanceladas: q.cancelado, // ✅ explícito para usar em cards e tabelas
       cancelamentos: q.cancelado,
       vgvTotal: vgv.total,
       vgvAtivo: vgv.ativo,
@@ -666,17 +667,18 @@
     };
   }
 
+  // ✅ ABA PRINCIPAL: agora mostra "Cotas canceladas" (já tinha, mas aqui garantimos e destacamos)
   function updateStats(rows) {
     const s = statsFor(rows);
     el("stats").innerHTML = `
       <div class="stat-card"><div class="stat-value">${s.casais}</div><div class="stat-label">Casais</div></div>
       <div class="stat-card"><div class="stat-value">${s.vendas}</div><div class="stat-label">Cotas (vendas totais)</div></div>
-      <div class="stat-card"><div class="stat-value">${s.cancelamentos}</div><div class="stat-label">Cotas canceladas</div></div>
+      <div class="stat-card"><div class="stat-value">${s.cotasCanceladas}</div><div class="stat-label">Cotas canceladas</div></div>
       <div class="stat-card"><div class="stat-value">${fmtMoney(s.vgvTotal)}</div><div class="stat-label">VGV total (Σ col G)</div></div>
       <div class="stat-card"><div class="stat-value">${fmtMoney(s.vgvCancelado)}</div><div class="stat-label">VGV cancelado (rateado)</div></div>
       <div class="stat-card"><div class="stat-value">${fmtPctBR(s.eficiencia)}</div><div class="stat-label">Eficiência</div></div>
       <div class="stat-card"><div class="stat-value">${fmtPctBR(s.pctCancel)}</div><div class="stat-label">% Cancelamento</div></div>
-      <div class="stat-card"><div class="stat-value">${fmtMoney(s.ticketMedio)}</div><div class="stat-label">Ticket médio (per cota)</div></div>
+      <div class="stat-card"><div class="stat-value">${fmtMoney(s.ticketMedio)}</div><div class="stat-label">Ticket médio (por cota)</div></div>
       <div class="stat-card"><div class="stat-value">${fmtMoney(s.rendaMed)}</div><div class="stat-label">Renda média</div></div>
     `;
   }
@@ -726,9 +728,9 @@
               </th>
               <th class="num sortable" data-sort="casais">Casais ${sortIndicator(containerId, "casais")}</th>
               <th class="num sortable" data-sort="vendas">Cotas ${sortIndicator(containerId, "vendas")}</th>
+              <th class="num sortable" data-sort="cotasCanceladas">Canceladas ${sortIndicator(containerId, "cotasCanceladas")}</th>
               <th class="num sortable" data-sort="vgvTotal">VGV ${sortIndicator(containerId, "vgvTotal")}</th>
               <th class="num sortable" data-sort="eficiencia">Eficiência ${sortIndicator(containerId, "eficiencia")}</th>
-              <th class="num sortable" data-sort="cancelamentos">Cancel ${sortIndicator(containerId, "cancelamentos")}</th>
               <th class="num sortable" data-sort="pctCancel">%Cancel ${sortIndicator(containerId, "pctCancel")}</th>
               <th class="num sortable" data-sort="ticketMedio">Ticket Médio ${sortIndicator(containerId, "ticketMedio")}</th>
               <th class="num sortable" data-sort="rendaMed">Renda Média ${sortIndicator(containerId, "rendaMed")}</th>
@@ -743,9 +745,9 @@
                   <td class="name" title="${it.name}">${it.name}</td>
                   <td class="num">${it.casais}</td>
                   <td class="num">${it.vendas}</td>
+                  <td class="num">${it.cotasCanceladas}</td>
                   <td class="num">${fmtMoney(it.vgvTotal)}</td>
                   <td class="num"><span class="pill ${effPillClass(it.eficiencia)}">${fmtPctBR(it.eficiencia)}</span></td>
-                  <td class="num">${it.cancelamentos}</td>
                   <td class="num"><span class="pill ${cancelPillClass(it.pctCancel)}">${fmtPctBR(it.pctCancel)}</span></td>
                   <td class="num">${fmtMoney(it.ticketMedio)}</td>
                   <td class="num">${fmtMoney(it.rendaMed)}</td>
@@ -766,7 +768,6 @@
     });
   }
 
-  // ====== RENDA (mantida da versão anterior) ======
   function rendaBucket(v) {
     const x = v || 0;
     if (x < 8900) return "Acima de R$ 50,1 mil";
@@ -803,9 +804,9 @@
               <th class="sortable" data-sort="faixa">Faixa ${sortIndicator(containerId, "faixa")}</th>
               <th class="num sortable" data-sort="casais">Casais ${sortIndicator(containerId, "casais")}</th>
               <th class="num sortable" data-sort="vendas">Cotas ${sortIndicator(containerId, "vendas")}</th>
+              <th class="num sortable" data-sort="cotasCanceladas">Canceladas ${sortIndicator(containerId, "cotasCanceladas")}</th>
               <th class="num sortable" data-sort="vgvTotal">VGV ${sortIndicator(containerId, "vgvTotal")}</th>
               <th class="num sortable" data-sort="eficiencia">Eficiência ${sortIndicator(containerId, "eficiencia")}</th>
-              <th class="num sortable" data-sort="cancelamentos">Cancel ${sortIndicator(containerId, "cancelamentos")}</th>
               <th class="num sortable" data-sort="pctCancel">%Cancel ${sortIndicator(containerId, "pctCancel")}</th>
               <th class="num sortable" data-sort="ticketMedio">Ticket ${sortIndicator(containerId, "ticketMedio")}</th>
               <th class="num sortable" data-sort="rendaMed">Renda Méd ${sortIndicator(containerId, "rendaMed")}</th>
@@ -817,9 +818,9 @@
                 <td class="name" title="${it.faixa}">${it.faixa}</td>
                 <td class="num">${it.casais}</td>
                 <td class="num">${it.vendas}</td>
+                <td class="num">${it.cotasCanceladas}</td>
                 <td class="num">${fmtMoney(it.vgvTotal)}</td>
                 <td class="num"><span class="pill ${effPillClass(it.eficiencia)}">${fmtPctBR(it.eficiencia)}</span></td>
-                <td class="num">${it.cancelamentos}</td>
                 <td class="num"><span class="pill ${cancelPillClass(it.pctCancel)}">${fmtPctBR(it.pctCancel)}</span></td>
                 <td class="num">${fmtMoney(it.ticketMedio)}</td>
                 <td class="num">${fmtMoney(it.rendaMed)}</td>
@@ -839,11 +840,10 @@
     });
   }
 
-  // ====== ✅ CANCELADOS (pedido) ======
-  // "valor de cada cota vendida": interpretado como
-  //   valorPorCota = (VGV da linha) / (total de tokens de status na linha)
-  // E para listar "clientes cancelados", selecionamos as cotas CANCELADO (tokens cancelados).
-  // Se a linha tiver 2 CANCELADO, ela aparece 2 vezes (uma por cota cancelada), com mesmo valorPorCota.
+  // ✅ LISTA DE CANCELADOS COM RENDA + ANO DO CARRO
+  // valorPorCota = VGV / total de tokens da linha
+  // renda = coluna "Renda" (já existia no painel)
+  // anoCarro = detectado por CAR_YEAR_HEADERS
   function buildCanceladosList(rowsForProfessional) {
     const out = [];
 
@@ -854,12 +854,13 @@
       const totalCotasNaLinha = tokens.length;
       const valorPorCota = totalCotasNaLinha > 0 ? ((r._valorVgv || 0) / totalCotasNaLinha) : 0;
 
-      // pega nome do cliente
       const cliente = (r._clientName || "").trim() || "(Cliente sem nome no CSV)";
 
-      // data (se tiver)
       const dt = r._dt;
       const when = dt ? `${String(dt.getDate()).padStart(2,"0")}/${String(dt.getMonth()+1).padStart(2,"0")}/${dt.getFullYear()}` : "";
+
+      const renda = r._renda || 0;
+      const anoCarro = (r._carYear || "").trim();
 
       tokens.forEach(tok => {
         if (classifyToken(tok) !== "cancelado") return;
@@ -868,12 +869,12 @@
           valorPorCota,
           when,
           uf: (r[KEY.uf] ?? "").toString().trim(),
-          rawStatus: (r[KEY.statusContrato] ?? "").toString().trim()
+          renda,
+          anoCarro
         });
       });
     });
 
-    // ordena: maior valor por cota primeiro, depois nome
     out.sort((a,b) => (b.valorPorCota - a.valorPorCota) || a.cliente.localeCompare(b.cliente, "pt-BR", {sensitivity:"base"}));
     return out;
   }
@@ -887,9 +888,6 @@
     const summaryEl = el("cancel-summary");
     const btnCopy = el("btnCopyCancelados");
 
-    // base: respeita TODOS os filtros globais já aplicados (período, uf, statusSelect etc.)
-    // MAS: o pedido é "clientes cancelados" — então aqui a gente força buscar cancelados por token,
-    // independentemente do statusSelect global. (Se quiser que respeite statusSelect, eu ajusto.)
     let base = state.filtered.slice();
 
     if (!nome) {
@@ -904,7 +902,6 @@
 
     const cancels = buildCanceladosList(base);
 
-    // meta
     meta.textContent = `${nome} • ${cancels.length} cotas canceladas listadas`;
 
     if (!cancels.length) {
@@ -921,7 +918,12 @@
       <div class="cancel-item">
         <div class="who">
           <div class="nm" title="${c.cliente}">${idx+1}. ${c.cliente}</div>
-          <div class="sub">${c.when ? `Data: ${c.when}` : "Data: —"}${c.uf ? ` • UF: ${c.uf}` : ""}</div>
+          <div class="sub">
+            ${c.when ? `Data: ${c.when}` : "Data: —"}
+            ${c.uf ? ` • UF: ${c.uf}` : ""}
+            <br>
+            Renda: ${fmtMoney(c.renda)}${c.anoCarro ? ` • Ano carro: ${c.anoCarro}` : " • Ano carro: —"}
+          </div>
         </div>
         <div class="val">${fmtMoney(c.valorPorCota)}</div>
       </div>
@@ -930,13 +932,15 @@
     btnCopy.disabled = false;
 
     btnCopy.onclick = async () => {
-      const text = cancels.map(c => `${c.cliente}\t${fmtMoney(c.valorPorCota)}${c.when ? `\t${c.when}` : ""}${c.uf ? `\t${c.uf}` : ""}`).join("\n");
+      const text = cancels
+        .map(c =>
+          `${c.cliente}\t${fmtMoney(c.valorPorCota)}\tRenda:${fmtMoney(c.renda)}\tAno:${c.anoCarro || "-"}${c.when ? `\t${c.when}` : ""}${c.uf ? `\t${c.uf}` : ""}`
+        ).join("\n");
       try {
         await navigator.clipboard.writeText(text);
         btnCopy.textContent = "Copiado!";
         setTimeout(() => btnCopy.textContent = "Copiar lista", 1200);
       } catch (e) {
-        // fallback
         prompt("Copie a lista abaixo:", text);
       }
     };
@@ -977,6 +981,7 @@
     });
   }
 
+  // ✅ ABA PROFISSIONAIS: agora também mostra "Cotas canceladas" nos cards do profissional
   function renderSingleProfessionalStats() {
     const tipo = norm(el("profTipoSingle").value);
     const nome = el("profNomeSingle").value;
@@ -991,6 +996,7 @@
       <div class="stat-card"><div class="stat-value">${nome}</div><div class="stat-label">Profissional selecionado</div></div>
       <div class="stat-card"><div class="stat-value">${s.casais}</div><div class="stat-label">Casais</div></div>
       <div class="stat-card"><div class="stat-value">${s.vendas}</div><div class="stat-label">Cotas</div></div>
+      <div class="stat-card"><div class="stat-value">${s.cotasCanceladas}</div><div class="stat-label">Cotas canceladas</div></div>
       <div class="stat-card"><div class="stat-value">${fmtMoney(s.vgvTotal)}</div><div class="stat-label">VGV (Σ col G)</div></div>
       <div class="stat-card"><div class="stat-value">${fmtPctBR(s.eficiencia)}</div><div class="stat-label">Eficiência</div></div>
       <div class="stat-card"><div class="stat-value">${fmtPctBR(s.pctCancel)}</div><div class="stat-label">% Cancelamento</div></div>
@@ -1082,12 +1088,10 @@
       const raw = parseDelimited(text, ";");
       state.rows = buildObjects(raw);
 
-      // valida se achou coluna de cliente
+      // avisos úteis no console (caso não detecte colunas)
       const any = state.rows[0] || {};
-      const ck = any._clientNameKey;
-      if (!ck) {
-        console.warn("Não encontrei automaticamente a coluna do nome do cliente. Ajuste CLIENT_NAME_HEADERS no topo do script.");
-      }
+      if (!any._clientNameKey) console.warn("Não detectei coluna do nome do cliente. Ajuste CLIENT_NAME_HEADERS.");
+      if (!any._carYearKey) console.warn("Não detectei coluna do ano do carro. Ajuste CAR_YEAR_HEADERS.");
 
       updateProfFilters("profTipo","profNome");
       updateProfFilters("profTipoSingle","profNomeSingle");
