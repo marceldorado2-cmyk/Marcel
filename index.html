@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Painel de Atendimentos</title>
+  <title>Painel de Atendimentos (dados.csv)</title>
   <meta name="color-scheme" content="dark light" />
   <base href="./" />
   <style>
@@ -124,6 +124,7 @@
       transition:all 0.2s ease;
       position:relative;
       color:var(--muted);
+      user-select:none;
     }
     .tab:hover{
       color:var(--text);
@@ -204,36 +205,49 @@
       padding:20px 24px;
       border-bottom:1px solid rgba(255,255,255,0.05);
       transition:all 0.2s ease;
+      gap:10px;
     }
-    .ranking-item:last-child{
-      border-bottom:none;
-    }
-    .ranking-item:hover{
-      background:rgba(255,255,255,0.03);
-    }
+    .ranking-item:last-child{ border-bottom:none; }
+    .ranking-item:hover{ background:rgba(255,255,255,0.03); }
     .rank-position{
       font-size:1.5rem;
       font-weight:700;
       color:var(--accent);
-      margin-right:20px;
-      min-width:40px;
+      margin-right:10px;
+      min-width:44px;
       font-family:var(--mono);
     }
     .rank-name{
       flex:1;
       font-size:1.1rem;
       font-weight:600;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
     }
     .rank-value{
       font-size:1.2rem;
       font-weight:700;
       color:var(--accent2);
       font-family:var(--mono);
+      min-width:64px;
+      text-align:right;
     }
     .rank-percentage{
       font-size:0.9rem;
       color:var(--muted);
-      margin-left:12px;
+      margin-left:10px;
+      min-width:70px;
+      text-align:right;
+      font-family:var(--mono);
+    }
+    .rank-extra{
+      font-size:0.9rem;
+      color:var(--muted);
+      margin-left:10px;
+      min-width:160px;
+      text-align:right;
+      font-family:var(--mono);
     }
     .gold{color:#FFD700!important}
     .silver{color:#C0C0C0!important}
@@ -266,11 +280,9 @@
     .prof-details{
       font-size:0.9rem;
       color:var(--muted);
-      line-height:1.4;
+      line-height:1.45;
     }
-    .prof-details strong{
-      color:var(--text);
-    }
+    .prof-details strong{ color:var(--text); }
     .note{
       background:rgba(124,92,255,0.1);
       border:1px solid rgba(124,92,255,0.2);
@@ -298,6 +310,7 @@
       margin:20px 0;
       color:#ff6b8b;
       text-align:center;
+      white-space:pre-wrap;
     }
     .loading{
       text-align:center;
@@ -313,14 +326,16 @@
       .tabs{flex-direction:column}
       .stats{grid-template-columns:1fr}
       .prof-grid{grid-template-columns:1fr}
+      .rank-extra{display:none;}
     }
   </style>
 </head>
+
 <body>
   <div class="wrap">
     <header>
       <h1>Painel de Atendimentos</h1>
-      <p class="subtitle">Dashboard analítico com métricas em tempo real</p>
+      <p class="subtitle">Dashboard analítico a partir do <span class="pill">dados.csv</span> (GitHub Pages)</p>
     </header>
 
     <div class="controls">
@@ -336,35 +351,46 @@
           <option value="mes_anterior">Mês anterior</option>
         </select>
       </div>
+
       <div class="control-group">
-        <label>Status Contrato</label>
+        <label>Status do contrato</label>
         <select id="statusSelect">
           <option value="todos">Todos</option>
-          <option value="vendido">Vendido</option>
-          <option value="nao_vendido">Não Vendido</option>
-          <option value="pendente">Pendente</option>
+          <option value="ativo">Ativo</option>
+          <option value="cancelado">Cancelado</option>
+          <option value="sem_status">Sem status</option>
         </select>
       </div>
+
       <div class="control-group">
         <label>Profissional</label>
         <select id="profTipo">
-          <option value="pm1">PM1 (Captador)</option>
-          <option value="pm2">PM2 (Linner/Consultor)</option>
-          <option value="pm3">PM3 (Closer)</option>
+          <option value="promotor de marketing">Promotor de marketing</option>
+          <option value="liner">Liner</option>
+          <option value="closer">Closer</option>
         </select>
       </div>
+
       <div class="control-group">
         <label>Nome</label>
         <select id="profNome">
           <option value="todos">Todos</option>
         </select>
       </div>
+
+      <div class="control-group">
+        <label>UF</label>
+        <select id="ufSelect">
+          <option value="todos">Todas</option>
+        </select>
+      </div>
     </div>
 
     <div class="tabs">
       <div class="tab active" data-tab="resumo">📊 Resumo</div>
-      <div class="tab" data-tab="captador">🎯 Ranking Captador</div>
-      <div class="tab" data-tab="linner">💬 Ranking Linner</div>
+      <div class="tab" data-tab="ranking-promotor">🎯 Ranking Promotor</div>
+      <div class="tab" data-tab="ranking-liner">💬 Ranking Liner</div>
+      <div class="tab" data-tab="ranking-closer">🤝 Ranking Closer</div>
       <div class="tab" data-tab="profissionais">👥 Profissionais</div>
     </div>
 
@@ -374,20 +400,28 @@
 
       <div id="tab-resumo" class="tab-content active">
         <div class="stats" id="stats"></div>
+        <div class="note" id="dataset-note" style="display:none"></div>
       </div>
 
-      <div id="tab-captador" class="tab-content">
+      <div id="tab-ranking-promotor" class="tab-content">
         <div class="note">
-          Este ranking usa a coluna <span class="pill">PM1</span> (coluna E no CSV).
+          Ranking baseado na coluna <span class="pill">Promotor de marketing</span>.
         </div>
-        <div id="ranking-captador"></div>
+        <div id="ranking-promotor"></div>
       </div>
 
-      <div id="tab-linner" class="tab-content">
+      <div id="tab-ranking-liner" class="tab-content">
         <div class="note">
-          Este ranking usa a coluna <span class="pill">PM2</span> (coluna G no CSV).
+          Ranking baseado na coluna <span class="pill">Liner</span>.
         </div>
-        <div id="ranking-linner"></div>
+        <div id="ranking-liner"></div>
+      </div>
+
+      <div id="tab-ranking-closer" class="tab-content">
+        <div class="note">
+          Ranking baseado na coluna <span class="pill">Closer</span>.
+        </div>
+        <div id="ranking-closer"></div>
       </div>
 
       <div id="tab-profissionais" class="tab-content">
@@ -397,447 +431,468 @@
   </div>
 
 <script>
-const CSV_URL = new URL("dados.csv", document.baseURI).toString();
+  // GitHub Pages: mantenha index.html e dados.csv na mesma pasta.
+  const CSV_URL = new URL("dados.csv", document.baseURI).toString();
 
-const el = (id) => document.getElementById(id);
-const state = { rows: [], filtered: [], profStatus: {} };
+  const el = (id) => document.getElementById(id);
+  const state = { rows: [], filtered: [] };
 
-function normalizeHeader(str) {
-  return str.toLowerCase().trim().replace(/\s+/g, " ");
-}
-
-function parseCSV(csvText) {
-  const lines = csvText.trim().split('\n');
-  if (lines.length === 0) return [];
-  
-  const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-  const data = [];
-  
-  for (let i = 1; i < lines.length; i++) {
-    const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
-    if (values.length !== headers.length) continue;
-    
-    const row = {};
-    headers.forEach((header, index) => {
-      const normalizedHeader = normalizeHeader(header);
-      row[normalizedHeader] = values[index] || '';
-    });
-    data.push(row);
+  function normalizeHeader(str) {
+    return (str ?? "").toString().toLowerCase().trim().replace(/\s+/g, " ");
   }
-  return data;
-}
 
-function parseBRDate(dateStr) {
-  if (!dateStr || typeof dateStr !== 'string') return null;
-  
-  dateStr = dateStr.trim();
-  if (!dateStr) return null;
-  
-  let match = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (match) {
-    const [, day, month, year] = match;
-    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-  }
-  
-  match = dateStr.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-  if (match) {
-    const [, year, month, day] = match;
-    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-  }
-  
-  return null;
-}
+  // CSV do arquivo fornecido está com ';' como separador
+  // e possui campos com aspas e ';' dentro -> parser simples com suporte a aspas.
+  function parseDelimited(text, delimiter = ";") {
+    const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n").filter(l => l.trim().length);
+    if (!lines.length) return [];
 
-function parseMoneyBR(str) {
-  if (!str || typeof str !== 'string') return 0;
-  
-  const cleaned = str.replace(/[^\d,.-]/g, '');
-  if (!cleaned) return 0;
-  
-  if (cleaned.includes(',') && cleaned.includes('.')) {
-    const lastComma = cleaned.lastIndexOf(',');
-    const lastDot = cleaned.lastIndexOf('.');
-    
-    if (lastComma > lastDot) {
-      return parseFloat(cleaned.replace(/\./g, '').replace(',', '.')) || 0;
-    } else {
-      return parseFloat(cleaned.replace(/,/g, '')) || 0;
+    const parseLine = (line) => {
+      const out = [];
+      let cur = "";
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') {
+          if (inQuotes && line[i+1] === '"') { cur += '"'; i++; }
+          else inQuotes = !inQuotes;
+        } else if (ch === delimiter && !inQuotes) {
+          out.push(cur);
+          cur = "";
+        } else {
+          cur += ch;
+        }
+      }
+      out.push(cur);
+      return out.map(v => v.trim());
+    };
+
+    const headers = parseLine(lines[0]).map(h => h.replace(/^"|"$/g, ""));
+    const data = [];
+
+    for (let i = 1; i < lines.length; i++) {
+      const vals = parseLine(lines[i]).map(v => v.replace(/^"|"$/g, ""));
+      if (vals.length !== headers.length) continue;
+
+      const row = {};
+      headers.forEach((h, idx) => row[normalizeHeader(h)] = vals[idx] ?? "");
+      data.push(row);
     }
-  } else if (cleaned.includes(',')) {
-    return parseFloat(cleaned.replace(',', '.')) || 0;
-  } else {
+    return data;
+  }
+
+  function parseBRDate(dateStr) {
+    if (!dateStr || typeof dateStr !== "string") return null;
+    const s = dateStr.trim();
+    if (!s) return null;
+
+    let m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (m) {
+      const [, d, mo, y] = m;
+      return new Date(+y, (+mo)-1, +d);
+    }
+    m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if (m) {
+      const [, y, mo, d] = m;
+      return new Date(+y, (+mo)-1, +d);
+    }
+    return null;
+  }
+
+  function parseMoneyBR(str) {
+    if (!str || typeof str !== "string") return 0;
+    const cleaned = str.replace(/[^\d,.-]/g, "");
+    if (!cleaned) return 0;
+
+    if (cleaned.includes(",") && cleaned.includes(".")) {
+      const lastComma = cleaned.lastIndexOf(",");
+      const lastDot = cleaned.lastIndexOf(".");
+      if (lastComma > lastDot) return parseFloat(cleaned.replace(/\./g, "").replace(",", ".")) || 0;
+      return parseFloat(cleaned.replace(/,/g, "")) || 0;
+    }
+    if (cleaned.includes(",")) return parseFloat(cleaned.replace(",", ".")) || 0;
     return parseFloat(cleaned) || 0;
   }
-}
 
-function formatMoney(value) {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL'
-  }).format(value);
-}
-
-function buildObjects(csvData) {
-  if (!csvData || csvData.length === 0) {
-    throw new Error("CSV vazio ou inválido");
+  function formatMoney(v) {
+    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v || 0);
   }
 
-  const headersRaw = Object.keys(csvData[0]);
-  const idx = (key) => headersRaw.findIndex(h => normalizeHeader(h) === normalizeHeader(key));
+  function buildObjects(rows) {
+    if (!rows || !rows.length) throw new Error("CSV vazio ou inválido.");
 
-  const DATA_KEY = idx("data") !== -1 ? "data" : (idx("data de atendimento") !== -1 ? "data de atendimento" : null);
-  if (!DATA_KEY) {
-    throw new Error(`Cabeçalho "data" ou "data de atendimento" não encontrado. Cabeçalhos lidos: ${headersRaw.join(" | ")}`);
+    // chaves do seu CSV
+    const DATA_KEY = normalizeHeader("data de atendimento");
+    const VALOR_KEY = normalizeHeader("valor vendido");
+    const RENDA_KEY = normalizeHeader("renda");
+    const STATUS_CONTRATO_KEY = normalizeHeader("status do contrato");
+
+    return rows.map((r) => {
+      const out = { ...r };
+      out._date = parseBRDate(out[DATA_KEY]);
+      out._valor = parseMoneyBR(out[VALOR_KEY]);
+      out._renda = parseMoneyBR(out[RENDA_KEY]);
+      out._statusContratoNorm = normalizeHeader(out[STATUS_CONTRATO_KEY] || "");
+      return out;
+    });
   }
 
-  return csvData.map((obj, index) => {
-    try {
-      obj._date = parseBRDate(obj[DATA_KEY]);
-      obj._valor = parseMoneyBR(obj["valor vendido"]);
-      obj._renda = parseMoneyBR(obj["renda"] ?? obj["renda do casal"] ?? obj["renda familiar"]);
-      return obj;
-    } catch (err) {
-      console.warn(`Erro na linha ${index + 2}:`, err);
-      return obj;
+  function contractBucket(row) {
+    const s = row._statusContratoNorm || "";
+    if (!s) return "sem_status";
+    if (s.includes("cancelado")) return "cancelado";
+    if (s.includes("ativo")) return "ativo";
+    return "outro";
+  }
+
+  function applyFilters(rows) {
+    const periodo = el("periodoSelect").value;
+    const status = el("statusSelect").value;
+    const profTipo = normalizeHeader(el("profTipo").value);
+    const profNome = el("profNome").value;
+    const uf = el("ufSelect").value;
+
+    let filtered = rows.slice();
+
+    if (periodo !== "todos") {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+      filtered = filtered.filter(row => {
+        if (!row._date) return false;
+        const rowDate = new Date(row._date.getFullYear(), row._date.getMonth(), row._date.getDate());
+
+        switch (periodo) {
+          case "hoje":
+            return rowDate.getTime() === today.getTime();
+          case "ontem": {
+            const y = new Date(today); y.setDate(y.getDate() - 1);
+            return rowDate.getTime() === y.getTime();
+          }
+          case "ultimos7": {
+            const d = new Date(today); d.setDate(d.getDate() - 6);
+            return rowDate >= d;
+          }
+          case "ultimos30": {
+            const d = new Date(today); d.setDate(d.getDate() - 29);
+            return rowDate >= d;
+          }
+          case "mes_atual":
+            return rowDate.getMonth() === today.getMonth() && rowDate.getFullYear() === today.getFullYear();
+          case "mes_anterior": {
+            const lm = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            return rowDate.getMonth() === lm.getMonth() && rowDate.getFullYear() === lm.getFullYear();
+          }
+          default:
+            return true;
+        }
+      });
     }
-  });
-}
 
-function applyFilters(rows) {
-  const periodo = el("periodoSelect").value;
-  const status = el("statusSelect").value;
-  const profTipo = el("profTipo").value;
-  const profNome = el("profNome").value;
-
-  let filtered = rows.slice();
-
-  if (periodo !== "todos") {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
-    filtered = filtered.filter(row => {
-      if (!row._date) return false;
-      const rowDate = new Date(row._date.getFullYear(), row._date.getMonth(), row._date.getDate());
-      
-      switch (periodo) {
-        case "hoje":
-          return rowDate.getTime() === today.getTime();
-        case "ontem":
-          const yesterday = new Date(today);
-          yesterday.setDate(yesterday.getDate() - 1);
-          return rowDate.getTime() === yesterday.getTime();
-        case "ultimos7":
-          const week = new Date(today);
-          week.setDate(week.getDate() - 6);
-          return rowDate >= week;
-        case "ultimos30":
-          const month = new Date(today);
-          month.setDate(month.getDate() - 29);
-          return rowDate >= month;
-        case "mes_atual":
-          return rowDate.getMonth() === today.getMonth() && 
-                 rowDate.getFullYear() === today.getFullYear();
-        case "mes_anterior":
-          const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-          return rowDate.getMonth() === lastMonth.getMonth() && 
-                 rowDate.getFullYear() === lastMonth.getFullYear();
-        default:
-          return true;
-      }
-    });
-  }
-
-  if (status !== "todos") {
-    filtered = filtered.filter(row => {
-      const s = normalizeHeader(row["status do contrato"] || "");
-      switch (status) {
-        case "vendido": return s.includes("vendido");
-        case "nao_vendido": return s.includes("não vendido") || s.includes("nao vendido");
-        case "pendente": return s.includes("pendente");
-        default: return true;
-      }
-    });
-  }
-
-  if (profNome !== "todos") {
-    filtered = filtered.filter(row => {
-      const nome = normalizeHeader(row[profTipo] || "");
-      return nome.includes(normalizeHeader(profNome));
-    });
-  }
-
-  return filtered;
-}
-
-function updateStats(rows) {
-  const total = rows.length;
-  const vendidos = rows.filter(r => normalizeHeader(r["status do contrato"] || "").includes("vendido")).length;
-  const pendentes = rows.filter(r => normalizeHeader(r["status do contrato"] || "").includes("pendente")).length;
-  const totalValor = rows.reduce((sum, r) => sum + (r._valor || 0), 0);
-  const mediaRenda = rows.length ? rows.reduce((sum, r) => sum + (r._renda || 0), 0) / rows.length : 0;
-  
-  const conversao = total > 0 ? ((vendidos / total) * 100).toFixed(1) : "0.0";
-
-  el("stats").innerHTML = `
-    <div class="stat-card">
-      <div class="stat-value">${total}</div>
-      <div class="stat-label">Total Atendimentos</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-value">${vendidos}</div>
-      <div class="stat-label">Vendas Realizadas</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-value">${conversao}%</div>
-      <div class="stat-label">Taxa de Conversão</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-value">${formatMoney(totalValor)}</div>
-      <div class="stat-label">Volume Total</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-value">${formatMoney(mediaRenda)}</div>
-      <div class="stat-label">Renda Média</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-value">${pendentes}</div>
-      <div class="stat-label">Contratos Pendentes</div>
-    </div>
-  `;
-}
-
-function groupRankingByField(rows, field, displayName) {
-  const counts = new Map();
-  const sales = new Map();
-  const values = new Map();
-  
-  rows.forEach(row => {
-    const name = (row[field] || "").trim();
-    if (!name || name.toLowerCase() === "n/a") return;
-    
-    counts.set(name, (counts.get(name) || 0) + 1);
-    
-    const isVendido = normalizeHeader(row["status do contrato"] || "").includes("vendido");
-    if (isVendido) {
-      sales.set(name, (sales.get(name) || 0) + 1);
-      values.set(name, (values.get(name) || 0) + (row._valor || 0));
+    if (status !== "todos") {
+      filtered = filtered.filter(r => contractBucket(r) === status);
     }
-  });
-  
-  return Array.from(counts.entries())
-    .map(([name, total]) => ({
-      name,
-      total,
-      vendas: sales.get(name) || 0,
-      valor: values.get(name) || 0,
-      conversao: total > 0 ? ((sales.get(name) || 0) / total * 100) : 0
-    }))
-    .sort((a, b) => b.vendas - a.vendas || b.valor - a.valor);
-}
 
-function renderRanking(data, containerId) {
-  const container = el(containerId);
-  if (data.length === 0) {
-    container.innerHTML = '<div class="note">Nenhum dado encontrado para o período selecionado.</div>';
-    return;
+    if (uf !== "todos") {
+      filtered = filtered.filter(r => (r[normalizeHeader("uf")] || "").trim() === uf);
+    }
+
+    if (profNome !== "todos") {
+      filtered = filtered.filter(r => normalizeHeader(r[profTipo] || "") === normalizeHeader(profNome));
+    }
+
+    return filtered;
   }
 
-  let html = '<div class="ranking-list">';
-  
-  data.forEach((item, index) => {
-    const position = index + 1;
-    let positionClass = '';
-    if (position === 1) positionClass = 'gold';
-    else if (position === 2) positionClass = 'silver';  
-    else if (position === 3) positionClass = 'bronze';
+  function updateStats(rows) {
+    const total = rows.length;
 
-    html += `
-      <div class="ranking-item">
-        <div class="rank-position ${positionClass}">${position}°</div>
-        <div class="rank-name">${item.name}</div>
-        <div class="rank-value">${item.vendas}</div>
-        <div class="rank-percentage">${item.conversao.toFixed(1)}%</div>
+    const ativos = rows.filter(r => contractBucket(r) === "ativo").length;
+    const cancelados = rows.filter(r => contractBucket(r) === "cancelado").length;
+    const semStatus = rows.filter(r => contractBucket(r) === "sem_status").length;
+
+    const volumeTotal = rows.reduce((s, r) => s + (r._valor || 0), 0);
+    const rendaMedia = total ? rows.reduce((s, r) => s + (r._renda || 0), 0) / total : 0;
+
+    const taxaAtivo = total ? ((ativos / total) * 100).toFixed(1) : "0.0";
+
+    el("stats").innerHTML = `
+      <div class="stat-card">
+        <div class="stat-value">${total}</div>
+        <div class="stat-label">Total de atendimentos</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${ativos}</div>
+        <div class="stat-label">Contratos Ativos</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${taxaAtivo}%</div>
+        <div class="stat-label">Taxa de Ativo</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${cancelados}</div>
+        <div class="stat-label">Contratos Cancelados</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${formatMoney(volumeTotal)}</div>
+        <div class="stat-label">Valor vendido (total)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${formatMoney(rendaMedia)}</div>
+        <div class="stat-label">Renda média</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">${semStatus}</div>
+        <div class="stat-label">Sem status do contrato</div>
       </div>
     `;
-  });
-  
-  html += '</div>';
-  container.innerHTML = html;
-}
-
-function renderRankingCaptador() {
-  const list = groupRankingByField(state.filtered, "pm1", "pm1");
-  renderRanking(list, "ranking-captador");
-}
-
-function renderRankingLinner() {
-  const list = groupRankingByField(state.filtered, "pm2", "pm2");
-  renderRanking(list, "ranking-linner");
-}
-
-function normName(str) {
-  if (!str || typeof str !== 'string') return "";
-  return str.trim();
-}
-
-function makeProfKey(tipo, nome, equipe) {
-  return `${tipo}|${nome}|${equipe}`;
-}
-
-function listProfessionals(rows) {
-  const set = new Map();
-  
-  rows.forEach(r => {
-    const pm = normName(r["pm1"]);
-    if (pm) {
-      const eq = normName(r["equipe"] || "");
-      const k = makeProfKey("pm1", pm, eq);
-      if (!set.has(k)) set.set(k, { nome: pm, tipo: "pm1", equipe: eq });
-    }
-
-    const li = normName(r["pm2"]);
-    if (li) {
-      const k = makeProfKey("pm2", li, "");
-      if (!set.has(k)) set.set(k, { nome: li, tipo: "pm2", equipe: "" });
-    }
-
-    const co = normName(r["pm3"]);
-    if (co) {
-      const k = makeProfKey("pm3", co, "");
-      if (!set.has(k)) set.set(k, { nome: co, tipo: "pm3", equipe: "" });
-    }
-  });
-  
-  return Array.from(set.values()).sort((a, b) => {
-    const order = { "pm1": 1, "pm2": 2, "pm3": 3 };
-    const diff = (order[a.tipo] || 9) - (order[b.tipo] || 9);
-    return diff !== 0 ? diff : a.nome.localeCompare(b.nome);
-  });
-}
-
-function countByProfessional(rows, prof) {
-  const field = prof.tipo;
-  const nome = prof.nome;
-  
-  const filtered = rows.filter(r => normName(r[field]) === nome);
-  const vendidos = filtered.filter(r => normalizeHeader(r["status do contrato"] || "").includes("vendido"));
-  const totalValor = vendidos.reduce((sum, r) => sum + (r._valor || 0), 0);
-  
-  return {
-    total: filtered.length,
-    vendidos: vendidos.length,
-    valor: totalValor,
-    conversao: filtered.length > 0 ? (vendidos.length / filtered.length * 100) : 0
-  };
-}
-
-function renderProfessionals() {
-  const professionals = listProfessionals(state.rows);
-  const container = el("prof-grid");
-  
-  if (professionals.length === 0) {
-    container.innerHTML = '<div class="note">Nenhum profissional encontrado.</div>';
-    return;
   }
-  
-  let html = '';
-  professionals.forEach(prof => {
-    const stats = countByProfessional(state.filtered, prof);
-    const tipoLabel = prof.tipo === "pm1" ? "Captador" : prof.tipo === "pm2" ? "Linner/Consultor" : "Closer";
-    
-    html += `
-      <div class="prof-card">
-        <div class="prof-name">${prof.nome}</div>
-        <div class="prof-details">
-          <strong>Tipo:</strong> ${tipoLabel}<br>
-          ${prof.equipe ? `<strong>Equipe:</strong> ${prof.equipe}<br>` : ''}
-          <strong>Atendimentos:</strong> ${stats.total}<br>
-          <strong>Vendas:</strong> ${stats.vendidos}<br>
-          <strong>Conversão:</strong> ${stats.conversao.toFixed(1)}%<br>
-          <strong>Volume:</strong> ${formatMoney(stats.valor)}
+
+  function groupRankingByField(rows, fieldKeyNorm) {
+    const counts = new Map();
+    const ativos = new Map();
+    const cancelados = new Map();
+    const values = new Map();
+
+    rows.forEach(r => {
+      const name = (r[fieldKeyNorm] || "").trim();
+      if (!name) return;
+
+      counts.set(name, (counts.get(name) || 0) + 1);
+
+      const bucket = contractBucket(r);
+      if (bucket === "ativo") ativos.set(name, (ativos.get(name) || 0) + 1);
+      if (bucket === "cancelado") cancelados.set(name, (cancelados.get(name) || 0) + 1);
+
+      values.set(name, (values.get(name) || 0) + (r._valor || 0));
+    });
+
+    return Array.from(counts.entries()).map(([name, total]) => {
+      const a = ativos.get(name) || 0;
+      return {
+        name,
+        total,
+        ativos: a,
+        cancelados: cancelados.get(name) || 0,
+        valor: values.get(name) || 0,
+        taxaAtivo: total ? (a / total * 100) : 0
+      };
+    }).sort((x, y) => (y.ativos - x.ativos) || (y.valor - x.valor) || (y.total - x.total) || x.name.localeCompare(y.name));
+  }
+
+  function renderRanking(data, containerId) {
+    const container = el(containerId);
+    if (!data.length) {
+      container.innerHTML = '<div class="note">Nenhum dado para os filtros selecionados.</div>';
+      return;
+    }
+
+    let html = '<div class="ranking-list">';
+    data.forEach((item, idx) => {
+      const pos = idx + 1;
+      let cls = "";
+      if (pos === 1) cls = "gold";
+      else if (pos === 2) cls = "silver";
+      else if (pos === 3) cls = "bronze";
+
+      html += `
+        <div class="ranking-item">
+          <div class="rank-position ${cls}">${pos}°</div>
+          <div class="rank-name" title="${item.name}">${item.name}</div>
+          <div class="rank-value">${item.ativos}</div>
+          <div class="rank-percentage">${item.taxaAtivo.toFixed(1)}%</div>
+          <div class="rank-extra">${formatMoney(item.valor)}</div>
         </div>
-      </div>
-    `;
-  });
-  
-  container.innerHTML = html;
-}
-
-function updateProfessionalFilter() {
-  const tipo = el("profTipo").value;
-  const nomeSelect = el("profNome");
-  
-  nomeSelect.innerHTML = '<option value="todos">Todos</option>';
-  
-  const professionals = listProfessionals(state.rows)
-    .filter(p => p.tipo === tipo)
-    .map(p => p.nome)
-    .filter((name, index, arr) => arr.indexOf(name) === index)
-    .sort();
-  
-  professionals.forEach(nome => {
-    const option = document.createElement("option");
-    option.value = nome;
-    option.textContent = nome;
-    nomeSelect.appendChild(option);
-  });
-}
-
-function updateAll() {
-  state.filtered = applyFilters(state.rows);
-  updateStats(state.filtered);
-  renderRankingCaptador();
-  renderRankingLinner();
-  renderProfessionals();
-}
-
-function setupEventListeners() {
-  ["periodoSelect", "statusSelect", "profTipo", "profNome"].forEach(id => {
-    el(id).addEventListener("change", updateAll);
-  });
-
-  el("profTipo").addEventListener("change", updateProfessionalFilter);
-
-  document.querySelectorAll(".tab").forEach(tab => {
-    tab.addEventListener("click", () => {
-      const targetTab = tab.dataset.tab;
-      
-      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-      document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
-      
-      tab.classList.add("active");
-      el(`tab-${targetTab}`).classList.add("active");
+      `;
     });
-  });
-}
-
-async function init() {
-  try {
-    el("loading").style.display = "block";
-    el("error").style.display = "none";
-    
-    const response = await fetch(CSV_URL);
-    if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
-    
-    const csvText = await response.text();
-    const csvData = parseCSV(csvText);
-    
-    state.rows = buildObjects(csvData);
-    
-    updateProfessionalFilter();
-    updateAll();
-    
-    el("loading").style.display = "none";
-  } catch (error) {
-    console.error("Erro:", error);
-    el("loading").style.display = "none";
-    el("error").style.display = "block";
-    el("error").textContent = `Erro ao carregar dados: ${error.message}`;
+    html += "</div>";
+    container.innerHTML = html;
   }
-}
 
-setupEventListeners();
-init();
+  function listProfessionals(rows) {
+    const fields = [
+      normalizeHeader("promotor de marketing"),
+      normalizeHeader("liner"),
+      normalizeHeader("closer")
+    ];
+
+    const set = new Map(); // key -> {tipo, nome}
+    rows.forEach(r => {
+      fields.forEach(f => {
+        const nome = (r[f] || "").trim();
+        if (!nome) return;
+        const k = `${f}|${nome}`;
+        if (!set.has(k)) set.set(k, { tipo: f, nome });
+      });
+    });
+
+    const order = {
+      [normalizeHeader("promotor de marketing")]: 1,
+      [normalizeHeader("liner")]: 2,
+      [normalizeHeader("closer")]: 3
+    };
+
+    return Array.from(set.values()).sort((a,b) => (order[a.tipo]-order[b.tipo]) || a.nome.localeCompare(b.nome));
+  }
+
+  function countByProfessional(rows, prof) {
+    const filtered = rows.filter(r => normalizeHeader(r[prof.tipo] || "") === normalizeHeader(prof.nome));
+    const ativos = filtered.filter(r => contractBucket(r) === "ativo");
+    const valor = ativos.reduce((s, r) => s + (r._valor || 0), 0);
+
+    return {
+      total: filtered.length,
+      ativos: ativos.length,
+      taxaAtivo: filtered.length ? (ativos.length / filtered.length * 100) : 0,
+      valor
+    };
+  }
+
+  function tipoLabel(tipoNorm) {
+    if (tipoNorm === normalizeHeader("promotor de marketing")) return "Promotor de marketing";
+    if (tipoNorm === normalizeHeader("liner")) return "Liner";
+    if (tipoNorm === normalizeHeader("closer")) return "Closer";
+    return tipoNorm;
+  }
+
+  function renderProfessionals() {
+    const professionals = listProfessionals(state.rows);
+    const container = el("prof-grid");
+
+    if (!professionals.length) {
+      container.innerHTML = '<div class="note">Nenhum profissional encontrado.</div>';
+      return;
+    }
+
+    let html = "";
+    professionals.forEach(p => {
+      const s = countByProfessional(state.filtered, p);
+      html += `
+        <div class="prof-card">
+          <div class="prof-name">${p.nome}</div>
+          <div class="prof-details">
+            <strong>Tipo:</strong> ${tipoLabel(p.tipo)}<br>
+            <strong>Atendimentos:</strong> ${s.total}<br>
+            <strong>Ativos:</strong> ${s.ativos}<br>
+            <strong>Taxa de ativo:</strong> ${s.taxaAtivo.toFixed(1)}%<br>
+            <strong>Valor (ativos):</strong> ${formatMoney(s.valor)}
+          </div>
+        </div>
+      `;
+    });
+
+    container.innerHTML = html;
+  }
+
+  function uniq(arr) {
+    return Array.from(new Set(arr));
+  }
+
+  function updateProfessionalFilter() {
+    const tipo = normalizeHeader(el("profTipo").value);
+    const nomeSelect = el("profNome");
+    nomeSelect.innerHTML = '<option value="todos">Todos</option>';
+
+    const names = uniq(
+      state.rows
+        .map(r => (r[tipo] || "").trim())
+        .filter(Boolean)
+    ).sort((a,b) => a.localeCompare(b));
+
+    names.forEach(n => {
+      const opt = document.createElement("option");
+      opt.value = n;
+      opt.textContent = n;
+      nomeSelect.appendChild(opt);
+    });
+  }
+
+  function updateUfFilter() {
+    const ufKey = normalizeHeader("uf");
+    const ufSelect = el("ufSelect");
+    ufSelect.innerHTML = '<option value="todos">Todas</option>';
+
+    const ufs = uniq(state.rows.map(r => (r[ufKey] || "").trim()).filter(Boolean))
+      .sort((a,b) => a.localeCompare(b));
+
+    ufs.forEach(uf => {
+      const opt = document.createElement("option");
+      opt.value = uf;
+      opt.textContent = uf;
+      ufSelect.appendChild(opt);
+    });
+  }
+
+  function updateAll() {
+    state.filtered = applyFilters(state.rows);
+    updateStats(state.filtered);
+
+    renderRanking(groupRankingByField(state.filtered, normalizeHeader("promotor de marketing")), "ranking-promotor");
+    renderRanking(groupRankingByField(state.filtered, normalizeHeader("liner")), "ranking-liner");
+    renderRanking(groupRankingByField(state.filtered, normalizeHeader("closer")), "ranking-closer");
+
+    renderProfessionals();
+  }
+
+  function setupEventListeners() {
+    ["periodoSelect", "statusSelect", "profTipo", "profNome", "ufSelect"].forEach(id => {
+      el(id).addEventListener("change", updateAll);
+    });
+
+    el("profTipo").addEventListener("change", () => {
+      updateProfessionalFilter();
+      updateAll();
+    });
+
+    document.querySelectorAll(".tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        const target = tab.dataset.tab;
+
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+
+        tab.classList.add("active");
+        el(`tab-${target}`).classList.add("active");
+      });
+    });
+  }
+
+  async function init() {
+    try {
+      el("loading").style.display = "block";
+      el("error").style.display = "none";
+
+      const resp = await fetch(CSV_URL, { cache: "no-store" });
+      if (!resp.ok) throw new Error(`Erro HTTP: ${resp.status}`);
+
+      const text = await resp.text();
+      const raw = parseDelimited(text, ";");
+      state.rows = buildObjects(raw);
+
+      updateUfFilter();
+      updateProfessionalFilter();
+      updateAll();
+
+      // nota do dataset (intervalo de datas)
+      const dates = state.rows.map(r => r._date).filter(Boolean).sort((a,b) => a-b);
+      if (dates.length) {
+        const fmt = (d) => new Intl.DateTimeFormat("pt-BR").format(d);
+        const note = el("dataset-note");
+        note.style.display = "block";
+        note.textContent = `Período detectado no CSV: ${fmt(dates[0])} a ${fmt(dates[dates.length-1])}.`;
+      }
+
+      el("loading").style.display = "none";
+    } catch (err) {
+      console.error(err);
+      el("loading").style.display = "none";
+      el("error").style.display = "block";
+      el("error").textContent = `Erro ao carregar/ler dados.csv.\n\nDetalhes: ${err.message}\n\nDica: confirme se o arquivo "dados.csv" está na mesma pasta do "index.html" no GitHub Pages.`;
+    }
+  }
+
+  setupEventListeners();
+  init();
 </script>
 </body>
 </html>
