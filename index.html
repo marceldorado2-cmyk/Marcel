@@ -10,7 +10,8 @@
     :root{
       --bg0:#070A12; --bg1:#0B1222; --card: rgba(255,255,255,.06);
       --stroke: rgba(255,255,255,.12); --text:#EAF0FF; --muted: rgba(234,240,255,.72);
-      --good:#5CFFB0; --med:#FFB020; --bad:#FF6B8B; --accent:#7C5CFF; --accent2:#22D3EE;
+      --good:#5CFFB0; --med:#FFB020; --bad:#FF2D55; /* vermelho mais vibrante */
+      --accent:#7C5CFF; --accent2:#22D3EE;
       --shadow: 0 20px 60px rgba(0,0,0,.55); --radius: 18px; --radius2: 12px;
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
       --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
@@ -49,6 +50,18 @@
     }
     input::placeholder{color:rgba(234,240,255,.35)}
     select:focus, input:focus{border-color:var(--accent); box-shadow:0 0 0 3px rgba(124,92,255,0.12);}
+
+    /* ====== MELHORA DE LEGIBILIDADE DO DROPDOWN (o seu print) ====== */
+    select option{
+      color:#0B1222;              /* texto escuro */
+      background:#EAF0FF;         /* fundo claro */
+      font-weight:700;
+    }
+    /* Alguns navegadores ignoram option; então reforça o próprio select */
+    select{
+      color: var(--text);
+    }
+
     .range-row{display:flex; gap:10px; align-items:center;}
     .range-row .sep{color:var(--muted); font-weight:700; padding:0 2px; white-space:nowrap;}
     .btn{
@@ -96,13 +109,14 @@
       color:var(--muted); line-height:1.5;
     }
     .note.warn{border-color:rgba(255,176,32,.35); background:rgba(255,176,32,.10);}
-    .note.bad{border-color:rgba(255,107,139,.35); background:rgba(255,107,139,.10); color:#ffd0db;}
+    .note.bad{border-color:rgba(255,45,85,.35); background:rgba(255,45,85,.10); color:#ffd0db;}
 
     .table-wrap{
       background:var(--card); border:1px solid var(--stroke); border-radius:var(--radius);
-      overflow:hidden; backdrop-filter:blur(10px); margin:16px 0 26px;
+      overflow:auto; backdrop-filter:blur(10px); margin:16px 0 26px;
+      max-height: 70vh;
     }
-    table{width:100%; border-collapse:separate; border-spacing:0;}
+    table{width:100%; border-collapse:separate; border-spacing:0; min-width: 980px;}
     thead th{
       text-align:left; padding:12px 14px; font-size:0.8rem; color:var(--muted);
       text-transform:uppercase; letter-spacing:.6px; background:rgba(255,255,255,0.03);
@@ -118,21 +132,21 @@
       display:inline-block; padding:2px 8px; border:1px solid rgba(255,255,255,.14);
       border-radius:999px; font-size:.78rem; color:var(--muted); font-family:var(--mono); margin-left:8px;
     }
-    .eff-badge{
+    .pill{
       display:inline-flex; align-items:center; justify-content:center;
       min-width:86px;
       padding:4px 10px; border-radius:999px; font-family:var(--mono);
       font-weight:900; border:1px solid rgba(255,255,255,.14);
     }
-    .eff-bad{ background:rgba(255,107,139,.12); color:var(--bad); border-color:rgba(255,107,139,.28); }
-    .eff-med{ background:rgba(255,176,32,.12); color:var(--med); border-color:rgba(255,176,32,.28); }
-    .eff-good{ background:rgba(92,255,176,.12); color:var(--good); border-color:rgba(92,255,176,.28); }
+    .p-bad{ background:rgba(255,45,85,.12); color:var(--bad); border-color:rgba(255,45,85,.28); }
+    .p-med{ background:rgba(255,176,32,.12); color:var(--med); border-color:rgba(255,176,32,.28); }
+    .p-good{ background:rgba(92,255,176,.12); color:var(--good); border-color:rgba(92,255,176,.28); }
 
     .heat-wrap{
       background:var(--card); border:1px solid var(--stroke); border-radius:var(--radius);
       padding:18px; margin:16px 0 26px; backdrop-filter:blur(10px);
     }
-    .heat-grid{display:grid; grid-template-columns:repeat(7, minmax(0, 1fr)); gap:8px;}
+    .heat-grid{display:grid; grid-template-columns:repeat(7, minmax(0, 1fr)); gap:8px; margin-top:10px;}
     .heat-cell{
       border:1px solid rgba(255,255,255,.12);
       border-radius:12px;
@@ -142,15 +156,30 @@
     }
     .heat-cell .h{font-family:var(--mono); font-weight:900; color:var(--text); font-size:0.95rem;}
     .heat-cell .c{font-family:var(--mono); color:var(--muted); font-size:0.92rem; margin-top:2px;}
-    .heat-legend{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:14px; color:var(--muted); font-size:.92rem;}
-    .sw{width:18px;height:12px;border-radius:4px;border:1px solid rgba(255,255,255,.16); display:inline-block;}
+
+    .bar-chart{
+      display:flex; align-items:flex-end; gap:10px;
+      height:180px; padding:14px; border:1px solid rgba(255,255,255,.12);
+      border-radius:14px; background:rgba(255,255,255,.03);
+      overflow-x:auto;
+    }
+    .bar{
+      width:42px; min-width:42px;
+      display:flex; flex-direction:column; align-items:center; gap:8px;
+    }
+    .bar .col{
+      width:100%;
+      border-radius:12px;
+      background:linear-gradient(180deg, rgba(34,211,238,.9), rgba(124,92,255,.75));
+      box-shadow: 0 10px 28px rgba(0,0,0,.35);
+      border:1px solid rgba(255,255,255,.14);
+      transition: transform .15s ease;
+    }
+    .bar:hover .col{transform: translateY(-2px);}
+    .bar .lbl{font-family:var(--mono); color:var(--muted); font-size:.85rem;}
+    .bar .val{font-family:var(--mono); color:var(--text); font-size:.9rem; font-weight:900;}
 
     .prof-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:18px; margin:16px 0;}
-    .prof-card{background:var(--card); border:1px solid var(--stroke); border-radius:var(--radius); padding:18px; backdrop-filter:blur(10px); transition:all 0.25s ease;}
-    .prof-card:hover{transform:translateY(-2px); border-color:rgba(255,255,255,0.18); box-shadow:var(--shadow);}
-    .prof-name{font-size:1.1rem; font-weight:850; margin:0 0 8px; color:var(--accent2);}
-    .prof-details{font-size:0.92rem; color:var(--muted); line-height:1.5;}
-    .prof-details strong{color:var(--text);}
 
     @media(max-width: 980px){
       .wrap{padding:0 16px}
@@ -160,6 +189,7 @@
       .range-row .sep{display:none;}
       .heat-grid{grid-template-columns:repeat(2, minmax(0,1fr));}
       .hide-sm{display:none;}
+      table{min-width: 820px;}
     }
   </style>
 </head>
@@ -171,6 +201,7 @@
       <p class="subtitle">Fonte: <strong>dados.csv</strong> (VGV = soma simples da coluna G)</p>
     </header>
 
+    <!-- CONTROLES (mantidos, mas a aba Resumo não vai exibir cards "profissional/status/nome/UF" pois não existem mais) -->
     <div class="controls">
       <div class="control-group" style="min-width:420px">
         <label>Período (dd/mm/aaaa a dd/mm/aaaa)</label>
@@ -224,7 +255,7 @@
       <div class="tab" data-tab="ranking-promotor">🎯 Ranking Promotor</div>
       <div class="tab" data-tab="ranking-liner">💬 Ranking Liner</div>
       <div class="tab" data-tab="ranking-closer">🤝 Ranking Closer</div>
-      <div class="tab" data-tab="mapa-calor">🔥 Mapa de calor</div>
+      <div class="tab" data-tab="mapa-calor">📈 Mapa de calor</div>
       <div class="tab" data-tab="perfil-renda">💸 Perfil de renda</div>
       <div class="tab" data-tab="profissionais">👥 Profissionais</div>
     </div>
@@ -235,38 +266,39 @@
 
       <div id="tab-resumo" class="tab-content active">
         <div class="stats" id="stats"></div>
-        <div class="note" id="dataset-note" style="display:none"></div>
+
         <div class="note">
-          <strong>Regras</strong><br>
+          <strong>Critérios (ajustados)</strong><br>
           • Casais = linhas.<br>
-          • Vendas = contagem de tokens em “Status do contrato” (separador #): ATIVO=1, ATIVO#ATIVO=2 etc.<br>
-          • <strong>VGV total = $$\sum(\text{coluna G})$$</strong> (soma simples da 7ª coluna, sem multiplicar por vendas).<br>
-          • Eficiência = vendas ÷ casais (mostrada em %).
+          • Cotas ativas/canceladas = contagem de tokens na coluna “Status do contrato” (ex.: <span class="badge">CANCELADO # CANCELADO # ATIVO</span>).<br>
+          • <strong>VGV total = $$\sum(\text{coluna G})$$</strong> (soma simples).<br>
+          • VGV ativo/cancelado: rateio proporcional pela quantidade de tokens ATIVO/CANCELADO na linha (quando houver mistura).<br>
+          • Eficiência = vendas (cotas totais) ÷ casais (em %).
         </div>
       </div>
 
       <div id="tab-ranking-promotor" class="tab-content">
-        <div class="note">Ranking por <span class="badge">Promotor de marketing</span>. Troféus no Top 3 e cor da eficiência.</div>
+        <div class="note">Ranking por <span class="badge">Promotor de marketing</span>. Troféus no Top 3 e badges de eficiência / % cancelamento.</div>
         <div id="ranking-promotor"></div>
       </div>
 
       <div id="tab-ranking-liner" class="tab-content">
-        <div class="note">Ranking por <span class="badge">Liner</span>. Troféus no Top 3 e cor da eficiência.</div>
+        <div class="note">Ranking por <span class="badge">Liner</span>. Troféus no Top 3 e badges de eficiência / % cancelamento.</div>
         <div id="ranking-liner"></div>
       </div>
 
       <div id="tab-ranking-closer" class="tab-content">
-        <div class="note">Ranking por <span class="badge">Closer</span>. Troféus no Top 3 e cor da eficiência.</div>
+        <div class="note">Ranking por <span class="badge">Closer</span>. Troféus no Top 3 e badges de eficiência / % cancelamento.</div>
         <div id="ranking-closer"></div>
       </div>
 
       <div id="tab-mapa-calor" class="tab-content">
         <div class="note">
-          Mapa de calor por hora (somente <strong>10:00 até 22:00</strong>) usando a <strong>1ª coluna</strong> do CSV (precisa ter data e hora).<br>
-          <strong>Por que pode não associar horário?</strong> Porque a 1ª coluna pode estar sem hora (só data), em formato diferente (ex.: "10h", "10:0"), ou o CSV pode estar convertendo tudo para 00:00.
-          O painel mostra abaixo um diagnóstico com exemplos lidos da 1ª coluna.
+          Horários considerados: <strong>10:00 até 22:00</strong>, a partir da <strong>1ª coluna</strong> (precisa ter data e hora).<br>
+          Abaixo: gráfico por hora + heatmap de contagem.
         </div>
         <div class="heat-wrap">
+          <div id="heat-chart"></div>
           <div id="heat"></div>
           <div id="heat-diagnose" class="note warn" style="display:none"></div>
         </div>
@@ -279,7 +311,7 @@
 
       <div id="tab-profissionais" class="tab-content">
         <div class="note">
-          Selecione uma área e um nome para ver <strong>individual</strong> + o perfil de renda que ele mais performa.
+          Lista no <strong>mesmo formato do Ranking</strong> + seletor individual para ver o perfil de renda do profissional.
         </div>
 
         <div class="controls" style="margin-top:10px">
@@ -302,13 +334,12 @@
         <div class="stats" id="stats-single" style="margin-top:10px"></div>
 
         <div class="note" style="margin-top:8px">
-          <strong>Perfil de renda do profissional (individual)</strong> — mesma tabela da aba Perfil de renda, porém só com os casais atendidos por ele.
-          Abaixo também mostramos automaticamente qual faixa teve melhor eficiência (critério principal) e, em empate, maior VGV.
+          <strong>Perfil de renda do profissional (individual)</strong> — mesma tabela da aba Perfil de renda, porém apenas com os casais dele.
         </div>
         <div id="perfil-renda-single"></div>
 
-        <div class="note">Cards (lista) calculados com os filtros atuais:</div>
-        <div class="prof-grid" id="prof-grid"></div>
+        <div class="note" style="margin-top:8px">Tabela “Profissionais” (mesmo padrão do ranking) com os filtros atuais:</div>
+        <div id="profissionais-table"></div>
       </div>
     </div>
   </div>
@@ -356,7 +387,6 @@
       headers.forEach((h, idx) => row[norm(h)] = vals[idx] ?? "");
       data.push(row);
     }
-    // define colunas reais pelo 1º row
     const keys = Object.keys(data[0] || {});
     state.meta.firstColKey = keys[0] || null;
     state.meta.vgvColKey = keys[6] || null; // 7ª coluna (G)
@@ -412,26 +442,37 @@
     return new Date(d.getFullYear(), d.getMonth(), d.getDate());
   }
 
+  // ======= NOVO: tokens robustos (ATIVO/CANCELADO) =======
   function splitStatusTokens(statusStr) {
     const raw = (statusStr ?? "").toString().trim();
     if (!raw) return [];
     return raw.split("#").map(s => s.trim()).filter(Boolean);
   }
 
-  function countSalesFromStatus(statusStr) {
-    const toks = splitStatusTokens(statusStr).map(norm);
-    let ativo=0, cancelado=0;
-    toks.forEach(t => {
-      if (t.includes("ativo")) ativo++;
-      if (t.includes("cancelado")) cancelado++;
+  function classifyToken(tok) {
+    const t = norm(tok).replace(/\s+/g," ");
+    // aceita variações: "CANCELADO", "CANCELADA", etc.
+    if (t.includes("cancel")) return "cancelado";
+    if (t.includes("ativo")) return "ativo";
+    return "outro";
+  }
+
+  function countQuotasFromStatus(statusStr) {
+    const toks = splitStatusTokens(statusStr);
+    let ativo=0, cancelado=0, outro=0;
+    toks.forEach(tok => {
+      const k = classifyToken(tok);
+      if (k === "ativo") ativo++;
+      else if (k === "cancelado") cancelado++;
+      else outro++;
     });
-    return { ativo, cancelado, total: ativo+cancelado };
+    return { ativo, cancelado, outro, total: ativo+cancelado+outro };
   }
 
   function contractBucket(statusStr) {
     const s = norm(statusStr);
     if (!s) return "sem_status";
-    if (s.includes("cancelado")) return "cancelado";
+    if (s.includes("cancel")) return "cancelado";
     if (s.includes("ativo")) return "ativo";
     return "outro";
   }
@@ -443,7 +484,7 @@
       out._dt = parseBRDateTime(out[KEY.dataAtendimento]) || parseBRDateTime(out[state.meta.firstColKey]);
       out._valorVgv = parseMoneyBR(out[state.meta.vgvColKey]); // coluna G
       out._renda = parseMoneyBR(out[KEY.renda]);
-      out._sales = countSalesFromStatus(out[KEY.statusContrato]);
+      out._quotas = countQuotasFromStatus(out[KEY.statusContrato]); // NOVO CRITÉRIO
       out._bucket = contractBucket(out[KEY.statusContrato]);
       return out;
     });
@@ -476,30 +517,30 @@
     return filtered;
   }
 
-  function sumSales(rows) {
+  function sumQuotas(rows) {
     return rows.reduce((acc, r) => {
-      acc.ativo += r._sales?.ativo ?? 0;
-      acc.cancelado += r._sales?.cancelado ?? 0;
-      acc.total += r._sales?.total ?? 0;
+      acc.ativo += r._quotas?.ativo ?? 0;
+      acc.cancelado += r._quotas?.cancelado ?? 0;
+      acc.outro += r._quotas?.outro ?? 0;
+      acc.total += r._quotas?.total ?? 0;
       return acc;
-    }, { ativo:0, cancelado:0, total:0 });
+    }, { ativo:0, cancelado:0, outro:0, total:0 });
   }
 
-  // VGV agora é soma simples da coluna G, com split ativo/cancelado pela proporção de vendas na linha
+  // VGV total = soma simples da coluna G
+  // VGV ativo/cancelado: rateio proporcional pela quantidade de tokens ATIVO/CANCELADO na linha
   function sumVGVSimpleWithSplit(rows) {
     return rows.reduce((acc, r) => {
       const v = r._valorVgv ?? 0;
-      const a = r._sales?.ativo ?? 0;
-      const c = r._sales?.cancelado ?? 0;
-      const t = a + c;
+      const a = r._quotas?.ativo ?? 0;
+      const c = r._quotas?.cancelado ?? 0;
+      const t = a + c; // rateia apenas entre ativo/cancelado (se não houver, fica só no total)
 
       acc.total += v;
 
       if (t > 0) {
         acc.ativo += v * (a / t);
         acc.cancelado += v * (c / t);
-      } else {
-        // sem status: entra só no total
       }
       return acc;
     }, { ativo:0, cancelado:0, total:0 });
@@ -513,17 +554,17 @@
 
   function statsFor(rows) {
     const casais = rows.length;
-    const sales = sumSales(rows);
+    const q = sumQuotas(rows);
     const vgv = sumVGVSimpleWithSplit(rows);
 
-    const eficiencia = casais ? (sales.total / casais) : 0;
-    const pctCancel = sales.total ? (sales.cancelado / sales.total) : 0;
-    const ticketMedio = sales.total ? (vgv.total / sales.total) : 0;
+    const eficiencia = casais ? (q.total / casais) : 0;
+    const pctCancel = q.total ? (q.cancelado / q.total) : 0;
+    const ticketMedio = q.total ? (vgv.total / q.total) : 0;
 
     return {
       casais,
-      vendas: sales.total,
-      cancelamentos: sales.cancelado,
+      vendas: q.total,            // "vendas" = cotas totais (tokens)
+      cancelamentos: q.cancelado, // cotas canceladas
       vgvTotal: vgv.total,
       vgvAtivo: vgv.ativo,
       vgvCancelado: vgv.cancelado,
@@ -536,24 +577,35 @@
 
   function updateStats(rows) {
     const s = statsFor(rows);
+    // Resumo: só métricas (removeu os cards de filtros)
     el("stats").innerHTML = `
       <div class="stat-card"><div class="stat-value">${s.casais}</div><div class="stat-label">Casais</div></div>
-      <div class="stat-card"><div class="stat-value">${s.vendas}</div><div class="stat-label">Vendas</div></div>
+      <div class="stat-card"><div class="stat-value">${s.vendas}</div><div class="stat-label">Cotas (vendas totais)</div></div>
+      <div class="stat-card"><div class="stat-value">${s.cancelamentos}</div><div class="stat-label">Cotas canceladas</div></div>
       <div class="stat-card"><div class="stat-value">${fmtMoney(s.vgvTotal)}</div><div class="stat-label">VGV total (Σ col G)</div></div>
-      <div class="stat-card"><div class="stat-value">${fmtPctBR(s.eficiencia)}</div><div class="stat-label">Eficiência</div></div>
-      <div class="stat-card"><div class="stat-value">${s.cancelamentos}</div><div class="stat-label">Canceladas</div></div>
       <div class="stat-card"><div class="stat-value">${fmtMoney(s.vgvCancelado)}</div><div class="stat-label">VGV cancelado (rateado)</div></div>
-      <div class="stat-card"><div class="stat-value">${fmtPctBR(s.pctCancel)}</div><div class="stat-label">% Cancelamentos</div></div>
+      <div class="stat-card"><div class="stat-value">${fmtPctBR(s.eficiencia)}</div><div class="stat-label">Eficiência</div></div>
+      <div class="stat-card"><div class="stat-value">${fmtPctBR(s.pctCancel)}</div><div class="stat-label">% Cancelamento</div></div>
+      <div class="stat-card"><div class="stat-value">${fmtMoney(s.ticketMedio)}</div><div class="stat-label">Ticket médio (per cota)</div></div>
       <div class="stat-card"><div class="stat-value">${fmtMoney(s.rendaMed)}</div><div class="stat-label">Renda média</div></div>
     `;
   }
 
-  function effClass(effFrac) {
+  function effPillClass(effFrac) {
     const pct = (effFrac || 0) * 100;
-    if (pct < 19.9) return "eff-bad";
-    if (pct < 25) return "eff-med";
-    return "eff-good";
+    if (pct < 19.9) return "p-bad";
+    if (pct < 25) return "p-med";
+    return "p-good";
   }
+
+  // NOVO: badge de cancelamento com suas faixas
+  function cancelPillClass(cancelFrac) {
+    const pct = (cancelFrac || 0) * 100;
+    if (pct < 20) return "p-good";
+    if (pct <= 30) return "p-med"; // 20,1 a 30 (na prática arredondamento fica ok)
+    return "p-bad";
+  }
+
   function trophyFor(pos) { return pos===1?"🥇":pos===2?"🥈":pos===3?"🥉":""; }
 
   function groupRanking(rows, fieldKeyNorm) {
@@ -561,7 +613,6 @@
     rows.forEach(r => {
       const name = (r[fieldKeyNorm] ?? "").toString().trim();
       if (!name) return;
-
       if (!map.has(name)) map.set(name, []);
       map.get(name).push(r);
     });
@@ -586,7 +637,7 @@
             <th style="width:84px">#</th>
             <th>Profissional ${titleBadge ? `<span class="badge">${titleBadge}</span>` : ""}</th>
             <th class="num">Casais</th>
-            <th class="num">Vendas</th>
+            <th class="num">Cotas</th>
             <th class="num">VGV</th>
             <th class="num">Eficiência</th>
             <th class="num">Cancel</th>
@@ -598,7 +649,6 @@
         <tbody>
           ${list.map((it, idx) => {
             const pos = idx + 1;
-            const effCls = effClass(it.eficiencia);
             return `
               <tr>
                 <td class="rank-col">${trophyFor(pos)} ${pos}°</td>
@@ -606,9 +656,9 @@
                 <td class="num">${it.casais}</td>
                 <td class="num">${it.vendas}</td>
                 <td class="num">${fmtMoney(it.vgvTotal)}</td>
-                <td class="num"><span class="eff-badge ${effCls}">${fmtPctBR(it.eficiencia)}</span></td>
+                <td class="num"><span class="pill ${effPillClass(it.eficiencia)}">${fmtPctBR(it.eficiencia)}</span></td>
                 <td class="num">${it.cancelamentos}</td>
-                <td class="num">${fmtPctBR(it.pctCancel)}</td>
+                <td class="num"><span class="pill ${cancelPillClass(it.pctCancel)}">${fmtPctBR(it.pctCancel)}</span></td>
                 <td class="num">${fmtMoney(it.ticketMedio)}</td>
                 <td class="num hide-sm">${fmtMoney(it.rendaMed)}</td>
               </tr>
@@ -655,7 +705,7 @@
           <tr>
             <th>Faixa de renda</th>
             <th class="num">Casais</th>
-            <th class="num">Vendas</th>
+            <th class="num">Cotas</th>
             <th class="num">VGV</th>
             <th class="num">Eficiência</th>
             <th class="num">Cancel</th>
@@ -665,22 +715,19 @@
           </tr>
         </thead>
         <tbody>
-          ${list.map(it => {
-            const effCls = effClass(it.eficiencia);
-            return `
+          ${list.map(it => `
               <tr>
                 <td class="name" title="${it.faixa}">${it.faixa}</td>
                 <td class="num">${it.casais}</td>
                 <td class="num">${it.vendas}</td>
                 <td class="num">${fmtMoney(it.vgvTotal)}</td>
-                <td class="num"><span class="eff-badge ${effCls}">${fmtPctBR(it.eficiencia)}</span></td>
+                <td class="num"><span class="pill ${effPillClass(it.eficiencia)}">${fmtPctBR(it.eficiencia)}</span></td>
                 <td class="num">${it.cancelamentos}</td>
-                <td class="num">${fmtPctBR(it.pctCancel)}</td>
+                <td class="num"><span class="pill ${cancelPillClass(it.pctCancel)}">${fmtPctBR(it.pctCancel)}</span></td>
                 <td class="num">${fmtMoney(it.ticketMedio)}</td>
                 <td class="num hide-sm">${fmtMoney(it.rendaMed)}</td>
               </tr>
-            `;
-          }).join("")}
+          `).join("")}
         </tbody>
       </table></div>
     `;
@@ -693,7 +740,9 @@
     return eligible[0];
   }
 
+  // ===== MAPA DE CALOR + GRÁFICO =====
   function renderHeatmap(rows) {
+    const chartEl = el("heat-chart");
     const heatEl = el("heat");
     const diagEl = el("heat-diagnose");
 
@@ -717,11 +766,28 @@
     const arr = hours.map(h => ({ h, c: counts.get(h) || 0 }));
     const max = Math.max(...arr.map(x=>x.c), 0);
 
+    // gráfico de barras
+    chartEl.innerHTML = `
+      <div class="bar-chart" aria-label="Gráfico por hora">
+        ${arr.map(x => {
+          const pct = max ? (x.c / max) : 0;
+          const height = Math.max(6, Math.round(150 * pct));
+          return `
+            <div class="bar">
+              <div class="val">${x.c}</div>
+              <div class="col" style="height:${height}px"></div>
+              <div class="lbl">${String(x.h).padStart(2,"0")}h</div>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    `;
+
+    // heat blocks
     const bg = (c) => {
       if (max <= 0) return "rgba(255,255,255,.03)";
       const t = c / max;
       const a = 0.10 + 0.40 * t;
-      // roxo->ciano
       return t < 0.5 ? `rgba(124,92,255,${a})` : `rgba(34,211,238,${a})`;
     };
 
@@ -734,26 +800,18 @@
           </div>
         `).join("")}
       </div>
-      <div class="heat-legend">
-        <span>Maior: <strong>${max}</strong></span>
-        <span class="sw" style="background:rgba(255,255,255,.03)"></span><span>baixo</span>
-        <span class="sw" style="background:rgba(124,92,255,.28)"></span><span>médio</span>
-        <span class="sw" style="background:rgba(34,211,238,.42)"></span><span>alto</span>
-      </div>
     `;
 
-    // Diagnóstico: por que não associa horário?
+    // diagnóstico
     const samples = state.rows.slice(0, 8).map(r => (r[state.meta.firstColKey] ?? "").toString()).filter(Boolean);
-    const msg =
-      `Diagnóstico (1ª coluna):\n` +
-      `• Nome da 1ª coluna (normalizada): "${state.meta.firstColKey}"\n` +
-      `• Linhas filtradas analisadas: ${rows.length}\n` +
-      `• Datas/horas parseadas com sucesso: ${parsedOk} de ${parsedTotal}\n` +
-      `• Exemplos lidos na 1ª coluna:\n  - ${samples.join("\n  - ") || "(sem exemplos)"}\n\n` +
-      `Se o número de parseadas é baixo, normalmente é por: formato diferente do esperado (ex.: "10h"), separador diferente, ou ausência de hora (fica 00:00).`;
-
     diagEl.style.display = "block";
-    diagEl.textContent = msg;
+    diagEl.textContent =
+      `Diagnóstico (1ª coluna):\n` +
+      `• Chave (normalizada): "${state.meta.firstColKey}"\n` +
+      `• Linhas filtradas: ${rows.length}\n` +
+      `• Datas/horas parseadas: ${parsedOk} de ${parsedTotal}\n` +
+      `• Exemplos:\n  - ${samples.join("\n  - ") || "(sem exemplos)"}\n\n` +
+      `Se parseadas ficar baixo: provavelmente falta hora (vira 00:00), ou formato diferente (ex.: "10h").`;
   }
 
   function updateProfFilters(mainTipoElId, mainNomeElId) {
@@ -791,47 +849,6 @@
     });
   }
 
-  function listProfessionals(rows) {
-    const fields = [KEY.promotor, KEY.liner, KEY.closer];
-    const set = new Map();
-    rows.forEach(r => {
-      fields.forEach(f => {
-        const n = (r[f] ?? "").toString().trim();
-        if (!n) return;
-        const k = `${f}|${n}`;
-        if (!set.has(k)) set.set(k, { tipo: f, nome: n });
-      });
-    });
-    return Array.from(set.values()).sort((a,b) => a.nome.localeCompare(b.nome));
-  }
-
-  function renderProfessionalsGrid() {
-    const pros = listProfessionals(state.rows);
-    const grid = el("prof-grid");
-    if (!pros.length) { grid.innerHTML = '<div class="note">Nenhum profissional encontrado.</div>'; return; }
-
-    grid.innerHTML = pros.map(p => {
-      const mine = state.filtered.filter(r => norm(r[p.tipo] ?? "") === norm(p.nome));
-      const s = statsFor(mine);
-      const effCls = effClass(s.eficiencia);
-      return `
-        <div class="prof-card">
-          <div class="prof-name">${p.nome}</div>
-          <div class="prof-details">
-            <strong>Área:</strong> ${p.tipo}<br>
-            <strong>Casais:</strong> ${s.casais}<br>
-            <strong>Vendas:</strong> ${s.vendas}<br>
-            <strong>VGV (Σ col G):</strong> ${fmtMoney(s.vgvTotal)}<br>
-            <strong>Eficiência:</strong> <span class="eff-badge ${effCls}">${fmtPctBR(s.eficiencia)}</span><br>
-            <strong>Cancelamentos:</strong> ${s.cancelamentos} (${fmtPctBR(s.pctCancel)})<br>
-            <strong>Ticket médio:</strong> ${fmtMoney(s.ticketMedio)}<br>
-            <strong>Renda média:</strong> ${fmtMoney(s.rendaMed)}
-          </div>
-        </div>
-      `;
-    }).join("");
-  }
-
   function renderSingleProfessional() {
     const tipo = norm(el("profTipoSingle").value);
     const nome = el("profNomeSingle").value;
@@ -846,17 +863,15 @@
 
     const mine = state.filtered.filter(r => norm(r[tipo] ?? "") === norm(nome));
     const s = statsFor(mine);
-    const effCls = effClass(s.eficiencia);
 
     box.innerHTML = `
       <div class="stat-card"><div class="stat-value">${nome}</div><div class="stat-label">Profissional selecionado</div></div>
       <div class="stat-card"><div class="stat-value">${s.casais}</div><div class="stat-label">Casais</div></div>
-      <div class="stat-card"><div class="stat-value">${s.vendas}</div><div class="stat-label">Vendas</div></div>
+      <div class="stat-card"><div class="stat-value">${s.vendas}</div><div class="stat-label">Cotas</div></div>
       <div class="stat-card"><div class="stat-value">${fmtMoney(s.vgvTotal)}</div><div class="stat-label">VGV (Σ col G)</div></div>
       <div class="stat-card"><div class="stat-value">${fmtPctBR(s.eficiencia)}</div><div class="stat-label">Eficiência</div></div>
-      <div class="stat-card"><div class="stat-value">${s.cancelamentos}</div><div class="stat-label">Cancelamentos</div></div>
+      <div class="stat-card"><div class="stat-value">${fmtPctBR(s.pctCancel)}</div><div class="stat-label">% Cancelamento</div></div>
       <div class="stat-card"><div class="stat-value">${fmtMoney(s.ticketMedio)}</div><div class="stat-label">Ticket médio</div></div>
-      <div class="stat-card"><div class="stat-value">${fmtMoney(s.rendaMed)}</div><div class="stat-label">Renda média</div></div>
     `;
 
     renderPerfilRenda(mine, "perfil-renda-single");
@@ -867,10 +882,9 @@
       tbl.insertAdjacentHTML("afterbegin", `
         <div class="note">
           <strong>Perfil que mais performa:</strong> ${best.faixa}<br>
-          <strong>Eficiência:</strong> <span class="eff-badge ${effClass(best.eficiencia)}">${fmtPctBR(best.eficiencia)}</span>
+          <strong>Eficiência:</strong> <span class="pill ${effPillClass(best.eficiencia)}">${fmtPctBR(best.eficiencia)}</span>
+          • <strong>%Cancel:</strong> <span class="pill ${cancelPillClass(best.pctCancel)}">${fmtPctBR(best.pctCancel)}</span>
           • <strong>VGV:</strong> ${fmtMoney(best.vgvTotal)}
-          • <strong>Vendas:</strong> ${best.vendas}
-          • <strong>Casais:</strong> ${best.casais}
         </div>
       `);
     }
@@ -888,7 +902,10 @@
     renderHeatmap(state.filtered);
     renderPerfilRenda(state.filtered, "perfil-renda");
 
-    renderProfessionalsGrid();
+    // Profissionais = mesma tabela do ranking conforme área selecionada no filtro principal (profTipo)
+    const tipo = norm(el("profTipo").value);
+    renderRankingTable(groupRanking(state.filtered, tipo), "profissionais-table", "Profissionais");
+
     renderSingleProfessional();
   }
 
@@ -898,7 +915,10 @@
       el(id).addEventListener("keyup", (e) => { if (e.key === "Enter") updateAll(); });
     });
 
-    el("profTipo").addEventListener("change", () => { updateProfFilters("profTipo","profNome"); updateAll(); });
+    el("profTipo").addEventListener("change", () => {
+      updateProfFilters("profTipo","profNome");
+      updateAll();
+    });
 
     el("btnLimparPeriodo").addEventListener("click", () => {
       el("dateStart").value = ""; el("dateEnd").value = ""; updateAll();
@@ -942,7 +962,7 @@
       el("loading").style.display = "block";
       el("error").style.display = "none";
 
-      const resp = await fetch(CSV_URL, { cache:"no-store" });
+      const resp = await fetch("dados.csv", { cache:"no-store" });
       if(!resp.ok) throw new Error(`Erro HTTP ${resp.status}`);
 
       const text = await resp.text();
@@ -953,19 +973,6 @@
       updateProfFilters("profTipoSingle","profNomeSingle");
       updateUfFilters();
       updateAll();
-
-      // nota do dataset
-      const dates = state.rows.map(r => r._dt).filter(Boolean).sort((a,b)=>a-b);
-      if (dates.length) {
-        const fmt = (d) => new Intl.DateTimeFormat("pt-BR").format(d);
-        el("dataset-note").style.display = "block";
-        el("dataset-note").textContent =
-          `Período detectado no CSV: ${fmt(dates[0])} a ${fmt(dates[dates.length-1])}. VGV = Σ(7ª coluna / G).`;
-      }
-
-      // validação VGV geral (soma simples col G)
-      const vgvGeral = state.rows.reduce((s, r) => s + (r._valorVgv || 0), 0);
-      console.log("VGV geral (Σ coluna G):", vgvGeral);
 
       el("loading").style.display = "none";
     }catch(e){
