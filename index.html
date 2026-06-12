@@ -66,7 +66,7 @@
     .btn:active{transform:translateY(0px); box-shadow:none;}
     .btn.primary{ background:rgba(124,92,255,.18); border-color:rgba(124,92,255,.35); }
 
-    /* ===== Tabs (grid) ===== */
+    /* ===== Tabs ===== */
     .tabs-wrap{
       margin:16px 0 12px;
       background:rgba(255,255,255,0.03);
@@ -81,22 +81,35 @@
       gap:10px;
     }
     .tab{
-      display:flex; align-items:center; justify-content:center; gap:10px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+
       padding:12px 12px;
       text-align:center;
       cursor:pointer;
       border-radius:16px;
       border:1px solid rgba(255,255,255,0.10);
       background:rgba(255,255,255,0.04);
+
       font-weight:800;
       color:rgba(234,240,255,.86);
+
       transition:all 0.2s ease;
       user-select:none;
+
       white-space:normal;
       overflow:visible;
       text-overflow:clip;
       min-height:48px;
       line-height:1.15;
+    }
+    .tab small{
+      display:block;
+      font-weight:700;
+      opacity:.78;
+      margin-top:2px;
     }
     .tab:hover{
       transform:translateY(-1px);
@@ -152,6 +165,7 @@
     thead th.sortable{ cursor:pointer; user-select:none; transition:all 0.2s ease; }
     thead th.sortable:hover{ color: var(--text); background:rgba(255,255,255,0.08); }
     thead th .sort-ind{ margin-left:6px; opacity:.9; font-size:.95em; color:var(--accent2); }
+
     tbody td{padding:12px 14px; border-bottom:1px solid rgba(255,255,255,0.05); vertical-align:middle; white-space:nowrap;}
     tbody tr:hover{ background:rgba(255,255,255,0.03); }
     tbody tr:last-child td{ border-bottom:none; }
@@ -191,79 +205,6 @@
     .chart-wrap{ height: 360px; position:relative; }
     .chart-wrap.small{ height: 320px; }
     canvas{ width:100% !important; height:100% !important; display:block; }
-
-    /* ===== Heatmap (CSS grid) ===== */
-    .heatmap-card{
-      background:var(--card);
-      border:1px solid var(--stroke);
-      border-radius:var(--radius);
-      backdrop-filter:blur(10px);
-      padding:14px;
-      margin:14px 0 22px;
-    }
-    .heatmap-head{
-      display:flex; flex-wrap:wrap; gap:10px;
-      align-items:baseline; justify-content:space-between;
-      margin:2px 2px 12px;
-    }
-    .heatmap-title{ font-weight:950; }
-    .heatmap-sub{ color:var(--muted); font-size:.92rem; }
-    .heatmap-grid{
-      display:grid;
-      grid-template-columns: 86px repeat(24, minmax(40px, 1fr));
-      gap:8px;
-      overflow:auto;
-      padding-bottom:6px;
-    }
-    .hm-cell{
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:12px;
-      min-height:56px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      flex-direction:column;
-      padding:8px 6px;
-      text-align:center;
-      user-select:none;
-    }
-    .hm-cell.header{
-      min-height:44px;
-      background:rgba(255,255,255,.04);
-      color:rgba(234,240,255,.85);
-      font-weight:900;
-      font-family:var(--mono);
-    }
-    .hm-cell.side{
-      min-height:56px;
-      background:rgba(255,255,255,.04);
-      color:rgba(234,240,255,.85);
-      font-weight:900;
-      justify-content:center;
-    }
-    .hm-val{
-      font-family:var(--mono);
-      font-weight:950;
-      font-size:1.05rem;
-      color:rgba(234,240,255,.95);
-    }
-    .hm-lbl{
-      margin-top:2px;
-      font-size:.78rem;
-      color:rgba(234,240,255,.75);
-      font-family:var(--mono);
-    }
-    .hm-legend{
-      display:flex; flex-wrap:wrap; gap:10px; align-items:center;
-      margin-top:12px;
-      color:var(--muted);
-      font-size:.9rem;
-    }
-    .hm-swatch{
-      width:44px; height:12px; border-radius:999px;
-      border:1px solid rgba(255,255,255,.14);
-      background: linear-gradient(90deg, rgba(124,92,255,.12), rgba(124,92,255,.85));
-    }
 
     /* ===== Equipes ===== */
     .team-grid{
@@ -311,7 +252,6 @@
       .chart-wrap{ height: 320px; }
       .tabs{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
       .tab{ justify-content:flex-start; text-align:left; padding:12px 12px; }
-      .heatmap-grid{ grid-template-columns: 78px repeat(24, minmax(44px, 1fr)); }
     }
   </style>
 
@@ -379,7 +319,6 @@
       <div class="tabs">
         <div class="tab active" data-tab="resumo">📊 Resumo</div>
         <div class="tab" data-tab="curva">📈 Curva de casais e vendas</div>
-        <div class="tab" data-tab="mapa-calor">🔥 Mapa de Calor (Horários)</div>
         <div class="tab" data-tab="cancelamento">❌ Análise de cancelamento</div>
         <div class="tab" data-tab="equipes">🧲 Equipes de captação</div>
         <div class="tab" data-tab="ranking-promotor">🎯 Ranking Promotor</div>
@@ -402,7 +341,9 @@
           • Casais = linhas.<br>
           • Cotas ativas/canceladas = contagem de tokens na coluna "Status do contrato".<br>
           • <strong>VGV total = $$\sum(\text{coluna G})$$</strong> (soma simples).<br>
-          • Eficiência = vendas (cotas totais) ÷ casais (em %).
+          • VGV ativo/cancelado: rateio proporcional pela quantidade de tokens ATIVO/CANCELADO na linha (quando houver mistura).<br>
+          • Eficiência = vendas (cotas totais) ÷ casais (em %).<br>
+          • <strong>Média de casais (período)</strong> = total de casais ÷ quantidade de dias do período (inclusivo).
         </div>
       </div>
 
@@ -411,6 +352,7 @@
         <div class="stats" id="stats-curva"></div>
 
         <div class="note">
+          Esta aba respeita os mesmos filtros (período, status, profissional, UF).<br>
           • <strong>Casais por dia</strong> = quantidade de linhas no dia.<br>
           • <strong>Vendas por dia</strong> = soma de cotas (tokens) no dia.
         </div>
@@ -428,34 +370,10 @@
         <div class="chart-card">
           <div class="chart-head">
             <div class="chart-title">Performance por dia da semana</div>
-            <div class="chart-sub">Ordem: Segunda → Domingo</div>
+            <div class="chart-sub">Vendas, VGV, Casais e Aproveitamento (Eficiência) + Média de casais (período)</div>
           </div>
           <div class="chart-wrap small">
             <canvas id="chartSemana"></canvas>
-          </div>
-        </div>
-      </div>
-
-      <!-- mapa de calor -->
-      <div id="tab-mapa-calor" class="tab-content">
-        <div class="note">
-          <strong>Mapa de Calor (volume de casais por horário)</strong><br>
-          • Lê o horário no CSV no formato <span class="badge">HH:MM</span> (ex.: 11:34, 13:43).<br>
-          • Faz o arredondamento para a faixa de hora: 11:34 → <span class="badge">11:00</span>, 13:43 → <span class="badge">13:00</span>.<br>
-          • Mostra <strong>números</strong> em uma grade (não é imagem).
-        </div>
-
-        <div class="heatmap-card">
-          <div class="heatmap-head">
-            <div class="heatmap-title">Casais por hora (00:00–23:00) x Dia da semana</div>
-            <div class="heatmap-sub" id="heatmap-meta">—</div>
-          </div>
-
-          <div id="heatmap-grid" class="heatmap-grid"></div>
-
-          <div class="hm-legend">
-            <span class="hm-swatch" aria-hidden="true"></span>
-            <span>Cor indica intensidade (0 → máximo do período filtrado). Número dentro da célula = casais.</span>
           </div>
         </div>
       </div>
@@ -464,7 +382,8 @@
       <div id="tab-cancelamento" class="tab-content">
         <div class="note">
           <strong>Análise de cancelamento por quantidade de cotas vendidas</strong><br>
-          • % Cancelamento = (cotas canceladas ÷ cotas totais) × 100.
+          • % Cancelamento = (cotas canceladas ÷ cotas totais) × 100.<br>
+          • Mostra também renda média por grupo.
         </div>
 
         <div class="chart-card">
@@ -485,7 +404,7 @@
         <div class="note">
           <strong>Equipes de captação</strong><br>
           • Marque a equipe de cada <span class="badge">Promotor de marketing</span>.<br>
-          • Salva no navegador (localStorage).
+          • A associação fica salva no seu navegador (localStorage).
         </div>
 
         <h3 style="margin: 10px 0 6px;">Equipe Parque</h3>
@@ -502,7 +421,7 @@
 
         <div class="note" style="margin-top:18px">
           <strong>Configurar promotores</strong><br>
-          Se o nome do promotor mudar no CSV, ele aparece como novo para marcação.
+          Se o nome do promotor mudar no CSV (abreviação), ele será visto como um novo promotor para marcação.
         </div>
 
         <div class="team-grid">
@@ -511,7 +430,9 @@
             <div class="controls" style="margin:0; justify-content:flex-start">
               <div class="control-group" style="min-width:260px">
                 <label>Promotor</label>
-                <select id="teamPromotorSelect"><option value="">Carregando...</option></select>
+                <select id="teamPromotorSelect">
+                  <option value="">Carregando...</option>
+                </select>
               </div>
               <div class="control-group" style="min-width:220px">
                 <label>Equipe</label>
@@ -560,7 +481,9 @@
       </div>
 
       <div id="tab-profissionais" class="tab-content">
-        <div class="note">Tabela por profissional (respeita filtros). E detalhe individual abaixo.</div>
+        <div class="note">
+          Selecione um profissional (abaixo) para ver o detalhe individual e a lista de clientes no período.
+        </div>
 
         <div class="controls" style="margin-top:10px">
           <div class="control-group">
@@ -573,13 +496,17 @@
           </div>
           <div class="control-group">
             <label>Nome (individual)</label>
-            <select id="profNomeSingle"><option value="">Selecione...</option></select>
+            <select id="profNomeSingle">
+              <option value="">Selecione...</option>
+            </select>
           </div>
         </div>
 
         <div class="stats" id="stats-single" style="margin-top:10px"></div>
 
-        <div class="note" style="margin-top:8px">Tabela por profissional:</div>
+        <div class="note" style="margin-top:8px">
+          Tabela por profissional (respeita os filtros):
+        </div>
         <div id="profissionais-table"></div>
       </div>
     </div>
@@ -602,10 +529,7 @@
     uf: norm("uf"),
     promotor: norm("promotor de marketing"),
     liner: norm("liner"),
-    closer: norm("closer"),
-    horario: norm("horário"),   // (tentativa 1)
-    horario2: norm("horario"),  // (tentativa 2 sem acento)
-    hora: norm("hora")          // (fallback)
+    closer: norm("closer")
   };
 
   const sortState = {
@@ -743,8 +667,8 @@
     m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
     if (m) {
       const y=+m[1], mo=+m[2], d=+m[3];
-      const hh=m[4]?+m[4]:0, mm=m[5]?+m[5]:0, ss=m[6]?+m[6]:0;
-      return new Date(y, mo-1, d, hh, mm, ss);
+      const hh=m[4]?+m[4]:0;
+      return new Date(y, mo-1, d, hh, m[5]?+m[5]:0, m[6]?+m[6]:0);
     }
     return null;
   }
@@ -797,32 +721,9 @@
     return null;
   }
 
-  // ===== Horário: pega "HH:MM" e converte em hora cheia (ex.: 13:43 -> 13) =====
-  function parseHourFromHHMM(str) {
-    if (!str) return null;
-    const s = String(str).trim();
-    if (!s) return null;
-    const m = s.match(/^(\d{1,2}):(\d{2})$/);
-    if (!m) return null;
-    const hh = +m[1];
-    const mm = +m[2];
-    if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
-    if (hh < 0 || hh > 23 || mm < 0 || mm > 59) return null;
-    return hh; // faixa: HH:00
-  }
-
-  function pickTimeField(row){
-    // tenta achar uma coluna de horário comum
-    const keys = Object.keys(row || {});
-    const candidates = [KEY.horario, KEY.horario2, KEY.hora, norm("horario atendimento"), norm("hora atendimento")];
-    for (const c of candidates) if (keys.includes(c)) return c;
-    return null;
-  }
-
   function buildObjects(rows) {
     if (!rows.length) throw new Error("CSV vazio.");
     const clientNameKey = findKeyByCandidates(rows[0], CLIENT_NAME_HEADERS);
-    const timeKey = pickTimeField(rows[0]);
 
     return rows.map(r => {
       const out = { ...r };
@@ -831,13 +732,8 @@
       out._renda = parseMoneyBR(out[KEY.renda]);
       out._quotas = countQuotasFromStatus(out[KEY.statusContrato]);
       out._bucket = contractBucket(out[KEY.statusContrato]);
-
       out._clientNameKey = clientNameKey;
       out._clientName = clientNameKey ? (out[clientNameKey] ?? "").toString().trim() : "";
-
-      out._timeKey = timeKey;
-      out._hour = timeKey ? parseHourFromHHMM(out[timeKey]) : null; // 0..23 ou null
-
       return out;
     });
   }
@@ -900,6 +796,43 @@
     return sum / rows.length;
   }
 
+  // ====== NOVO: média de casais por dia no período (dias inclusivos) ======
+  function daysInSelectedPeriodInclusive(){
+    const d1 = parseDateOnlyInput(el("dateStart").value);
+    const d2 = parseDateOnlyInput(el("dateEnd").value);
+
+    // Se o usuário não estipular período completo, usamos a quantidade de dias presentes nos dados filtrados (datas distintas)
+    if (!d1 || !d2) return null;
+
+    const start = new Date(d1.getFullYear(), d1.getMonth(), d1.getDate());
+    const end = new Date(d2.getFullYear(), d2.getMonth(), d2.getDate());
+    const diff = end.getTime() - start.getTime();
+    if (diff < 0) return 0;
+    return Math.floor(diff / (24*60*60*1000)) + 1;
+  }
+
+  function distinctDaysCountFromRows(rows){
+    const set = new Set();
+    rows.forEach(r => {
+      if (!r._dt) return;
+      set.add(`${r._dt.getFullYear()}-${r._dt.getMonth()}-${r._dt.getDate()}`);
+    });
+    return set.size;
+  }
+
+  function avgCasaisPeriodo(rows){
+    const casaisTotal = rows.length;
+    const days = daysInSelectedPeriodInclusive();
+    const denom = (days !== null) ? days : distinctDaysCountFromRows(rows);
+    if (!denom) return 0;
+    return casaisTotal / denom;
+  }
+
+  function fmtNumberBR(v, min=1, max=1){
+    return new Intl.NumberFormat("pt-BR", { minimumFractionDigits:min, maximumFractionDigits:max }).format(v || 0);
+  }
+  // ====== fim NOVO ======
+
   function statsFor(rows) {
     const casais = rows.length;
     const q = sumQuotas(rows);
@@ -913,23 +846,36 @@
       vendas: q.total,
       cotasCanceladas: q.cancelado,
       vgvTotal: vgv.total,
+      vgvAtivo: vgv.ativo,
+      vgvCancelado: vgv.cancelado,
       eficiencia,
       pctCancel,
       ticketMedio,
-      rendaMed: avgRenda(rows)
+      rendaMed: avgRenda(rows),
+      mediaCasaisPeriodo: avgCasaisPeriodo(rows) // NOVO
     };
   }
 
   function renderStatsCards(containerId, rows){
     const s = statsFor(rows);
+
+    // NOVO CARD: média de casais no período
+    const mediaCard = `
+      <div class="stat-card">
+        <div class="stat-value">${fmtNumberBR(s.mediaCasaisPeriodo, 1, 1)}</div>
+        <div class="stat-label">Média de casais (por dia no período)</div>
+      </div>
+    `;
+
     el(containerId).innerHTML = `
       <div class="stat-card"><div class="stat-value">${s.casais}</div><div class="stat-label">Casais</div></div>
-      <div class="stat-card"><div class="stat-value">${s.vendas}</div><div class="stat-label">Cotas</div></div>
-      <div class="stat-card"><div class="stat-value">${s.cotasCanceladas}</div><div class="stat-label">Canceladas</div></div>
-      <div class="stat-card"><div class="stat-value">${fmtMoney(s.vgvTotal)}</div><div class="stat-label">VGV total</div></div>
+      ${mediaCard}
+      <div class="stat-card"><div class="stat-value">${s.vendas}</div><div class="stat-label">Cotas (vendas totais)</div></div>
+      <div class="stat-card"><div class="stat-value">${s.cotasCanceladas}</div><div class="stat-label">Cotas canceladas</div></div>
+      <div class="stat-card"><div class="stat-value">${fmtMoney(s.vgvTotal)}</div><div class="stat-label">VGV total (Σ col G)</div></div>
       <div class="stat-card"><div class="stat-value">${fmtPctBR(s.eficiencia)}</div><div class="stat-label">Eficiência</div></div>
       <div class="stat-card"><div class="stat-value">${fmtMoney(s.rendaMed)}</div><div class="stat-label">Renda média</div></div>
-      <div class="stat-card"><div class="stat-value">${fmtMoney(s.ticketMedio)}</div><div class="stat-label">Ticket médio</div></div>
+      <div class="stat-card"><div class="stat-value">${fmtMoney(s.ticketMedio)}</div><div class="stat-label">Ticket médio (por cota)</div></div>
     `;
   }
 
@@ -1020,6 +966,78 @@
     });
   }
 
+  function rendaBucket(v) {
+    const x = v || 0;
+    if (x < 8900) return "Acima de R$ 50,1 mil";
+    if (x < 10000) return "R$ 9 mil a R$ 9,9 mil";
+    if (x <= 11900) return "R$ 10 mil a R$ 11,9 mil";
+    if (x <= 14900) return "R$ 12 mil a R$ 14,9 mil";
+    if (x <= 19900) return "R$ 15 mil a R$ 19,9 mil";
+    if (x <= 50000) return "R$ 20 mil a R$ 50 mil";
+    return "Acima de R$ 50,1 mil";
+  }
+  function groupByRenda(rows) {
+    const order = [
+      "R$ 9 mil a R$ 9,9 mil",
+      "R$ 10 mil a R$ 11,9 mil",
+      "R$ 12 mil a R$ 14,9 mil",
+      "R$ 15 mil a R$ 19,9 mil",
+      "R$ 20 mil a R$ 50 mil",
+      "Acima de R$ 50,1 mil"
+    ];
+    const map = new Map(order.map(k => [k, []]));
+    rows.forEach(r => map.get(rendaBucket(r._renda)).push(r));
+    return order.map(k => ({ faixa: k, ...statsFor(map.get(k) || []) }));
+  }
+  function renderPerfilRenda(rows, containerId) {
+    const container = el(containerId);
+    const list = groupByRenda(rows);
+    const ordered = sortedList(list, containerId, "vgvTotal");
+
+    container.innerHTML = `
+      <div class="table-wrap">
+        <table data-table-id="${containerId}">
+          <thead>
+            <tr>
+              <th class="sortable" data-sort="faixa">Faixa ${sortIndicator(containerId, "faixa")}</th>
+              <th class="num sortable" data-sort="casais">Casais ${sortIndicator(containerId, "casais")}</th>
+              <th class="num sortable" data-sort="vendas">Cotas ${sortIndicator(containerId, "vendas")}</th>
+              <th class="num sortable" data-sort="cotasCanceladas">Canceladas ${sortIndicator(containerId, "cotasCanceladas")}</th>
+              <th class="num sortable" data-sort="vgvTotal">VGV ${sortIndicator(containerId, "vgvTotal")}</th>
+              <th class="num sortable" data-sort="eficiencia">Eficiência ${sortIndicator(containerId, "eficiencia")}</th>
+              <th class="num sortable" data-sort="pctCancel">%Cancel ${sortIndicator(containerId, "pctCancel")}</th>
+              <th class="num sortable" data-sort="ticketMedio">Ticket ${sortIndicator(containerId, "ticketMedio")}</th>
+              <th class="num sortable" data-sort="rendaMed">Renda ${sortIndicator(containerId, "rendaMed")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${ordered.map(it => `
+              <tr>
+                <td class="name" title="${it.faixa}">${it.faixa}</td>
+                <td class="num">${it.casais}</td>
+                <td class="num">${it.vendas}</td>
+                <td class="num">${it.cotasCanceladas}</td>
+                <td class="num">${fmtMoney(it.vgvTotal)}</td>
+                <td class="num"><span class="pill ${effPillClass(it.eficiencia)}">${fmtPctBR(it.eficiencia)}</span></td>
+                <td class="num"><span class="pill ${cancelPillClass(it.pctCancel)}">${fmtPctBR(it.pctCancel)}</span></td>
+                <td class="num">${fmtMoney(it.ticketMedio)}</td>
+                <td class="num">${fmtMoney(it.rendaMed)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    const table = container.querySelector("table");
+    table.querySelectorAll("thead th.sortable").forEach(th => {
+      th.addEventListener("click", () => {
+        setSort(containerId, th.dataset.sort);
+        renderPerfilRenda(rows, containerId);
+      });
+    });
+  }
+
   // ===== Curva helpers =====
   function toISODateLocal(dt){
     return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}-${String(dt.getDate()).padStart(2,"0")}`;
@@ -1061,6 +1079,7 @@
       raw[i].vendas += (r._quotas?.total ?? 0);
       raw[i].vgv += (r._valorVgv ?? 0);
     });
+
     const agg = WEEK_INDEX_ORDER_MON_FIRST.map(i => raw[i]);
     const eff = agg.map(x => x.casais ? (x.vendas / x.casais) : 0);
 
@@ -1115,6 +1134,11 @@
     });
 
     const w = weekdayAggMonFirst(rows);
+
+    // NOVO: média de casais no período (para linha no gráfico)
+    const media = avgCasaisPeriodo(rows);
+    const mediaArr = w.labels.map(() => media);
+
     destroyChartSafely(charts.semana);
     charts.semana = new Chart(el("chartSemana").getContext("2d"), {
       data: {
@@ -1123,7 +1147,20 @@
           { type:"bar", label:"Casais", data:w.casais, backgroundColor:"rgba(124,92,255,.25)", borderColor:"rgba(124,92,255,.65)", borderWidth:1, yAxisID:"yCount" },
           { type:"bar", label:"Vendas (cotas)", data:w.vendas, backgroundColor:"rgba(92,255,176,.18)", borderColor:"rgba(92,255,176,.65)", borderWidth:1, yAxisID:"yCount" },
           { type:"line", label:"VGV", data:w.vgv, borderColor:"rgba(34,211,238,1)", backgroundColor:"rgba(34,211,238,.10)", tension:0.25, pointRadius:2.2, yAxisID:"yMoney" },
-          { type:"line", label:"Aproveitamento (Eficiência)", data:w.eficiencia.map(x => x * 100), borderColor:"rgba(255,176,32,1)", backgroundColor:"rgba(255,176,32,.10)", tension:0.25, pointRadius:2.2, yAxisID:"yPct" }
+          { type:"line", label:"Aproveitamento (Eficiência)", data:w.eficiencia.map(x => x * 100), borderColor:"rgba(255,176,32,1)", backgroundColor:"rgba(255,176,32,.10)", tension:0.25, pointRadius:2.2, yAxisID:"yPct" },
+
+          // NOVO dataset (linha): média de casais no período
+          {
+            type:"line",
+            label:"Média de casais (período)",
+            data: mediaArr,
+            borderColor:"rgba(234,240,255,.75)",
+            backgroundColor:"rgba(234,240,255,.08)",
+            borderDash:[6,6],
+            tension:0,
+            pointRadius:0,
+            yAxisID:"yCount"
+          }
         ]
       },
       options: {
@@ -1137,6 +1174,7 @@
               const v = ctx.parsed.y ?? 0;
               if (ds.includes("VGV")) return `${ds}: ${fmtMoney(v)}`;
               if (ds.includes("Aproveitamento")) return `${ds}: ${new Intl.NumberFormat("pt-BR",{maximumFractionDigits:1}).format(v)}%`;
+              if (ds.includes("Média de casais")) return `${ds}: ${fmtNumberBR(v, 1, 1)}`;
               return `${ds}: ${v}`;
             }
           } }
@@ -1161,104 +1199,6 @@
         }
       }
     });
-  }
-
-  // ===== Heatmap (NÚMEROS, NÃO IMAGEM) =====
-  const HM_DAYS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
-  const HM_DAY_INDEX_ORDER = [1,2,3,4,5,6,0]; // segunda..domingo em getDay()
-
-  function weekDayMonFirstIndexFromDate(dt){
-    // converte getDay (0..6) para índice seg..dom (0..6)
-    const d = dt.getDay();
-    const idx = HM_DAY_INDEX_ORDER.indexOf(d);
-    return idx >= 0 ? idx : null;
-  }
-
-  function heatmapAgg(rows){
-    // matriz [7 dias][24 horas]
-    const mat = Array.from({length:7}, () => Array.from({length:24}, () => 0));
-    let missingHour = 0;
-    let missingDate = 0;
-
-    rows.forEach(r => {
-      if (!r._dt) { missingDate++; return; }
-      const dayIdx = weekDayMonFirstIndexFromDate(r._dt);
-      if (dayIdx === null) { missingDate++; return; }
-      const hh = r._hour;
-      if (hh === null || hh === undefined) { missingHour++; return; }
-      if (hh < 0 || hh > 23) { missingHour++; return; }
-      mat[dayIdx][hh] += 1; // casais = linhas
-    });
-
-    let max = 0;
-    for (let d=0; d<7; d++){
-      for (let h=0; h<24; h++){
-        if (mat[d][h] > max) max = mat[d][h];
-      }
-    }
-    return { mat, max, missingHour, missingDate };
-  }
-
-  function heatColor(v, max){
-    if (!max) return "rgba(124,92,255,.08)";
-    const t = Math.max(0, Math.min(1, v / max));
-    // roxo -> mais forte conforme t
-    const a = 0.10 + t * 0.75;
-    const borderA = 0.10 + t * 0.45;
-    return { bg: `rgba(124,92,255,${a.toFixed(3)})`, bd: `rgba(124,92,255,${borderA.toFixed(3)})` };
-  }
-
-  function renderHeatmap(rows){
-    const grid = el("heatmap-grid");
-    const d1 = el("dateStart").value;
-    const d2 = el("dateEnd").value;
-    const status = el("statusSelect").value;
-    const profNome = el("profNome").value;
-    const ufSel = el("ufSelect").value;
-
-    const agg = heatmapAgg(rows);
-
-    el("heatmap-meta").textContent = [
-      (d1 || d2) ? `Período: ${d1 ? fmtISOToBR(d1) : "—"} a ${d2 ? fmtISOToBR(d2) : "—"}` : "Período: (sem filtro)",
-      `Status: ${status}`,
-      `Nome: ${profNome}`,
-      `UF: ${ufSel}`,
-      `Máx: ${agg.max} casal(is)`,
-      `Sem horário: ${agg.missingHour}`
-    ].join(" • ");
-
-    // cabeçalho: canto vazio + horas
-    let html = `<div class="hm-cell header">Dia\\Hora</div>`;
-    for (let h=0; h<24; h++){
-      html += `<div class="hm-cell header">${String(h).padStart(2,"0")}:00</div>`;
-    }
-
-    // linhas por dia
-    for (let d=0; d<7; d++){
-      html += `<div class="hm-cell side">${HM_DAYS[d]}</div>`;
-      for (let h=0; h<24; h++){
-        const v = agg.mat[d][h];
-        const c = heatColor(v, agg.max);
-        const style = `background:${c.bg}; border-color:${c.bd};`;
-        html += `
-          <div class="hm-cell" style="${style}" title="${HM_DAYS[d]} • ${String(h).padStart(2,"0")}:00 = ${v}">
-            <div class="hm-val">${v}</div>
-            <div class="hm-lbl">casais</div>
-          </div>
-        `;
-      }
-    }
-
-    // aviso se não achou a coluna de horário
-    const anyHasHourKey = state.rows.some(r => r._timeKey);
-    const warn = (!anyHasHourKey)
-      ? `<div class="note warn" style="margin-top:12px">
-           Não encontrei uma coluna de horário. Tente renomear a coluna no CSV para <strong>Horário</strong> (ou <strong>Horario</strong>) com valores no formato <strong>HH:MM</strong>.
-         </div>`
-      : "";
-
-    grid.innerHTML = html + (warn ? "" : "");
-    if (warn) grid.insertAdjacentHTML("afterend", warn);
   }
 
   // ===== Cancelamento =====
@@ -1487,86 +1427,21 @@
     const nome = el("profNomeSingle").value;
     const box = el("stats-single");
     if (!nome) { box.innerHTML = ""; return; }
+
     const mine = state.filtered.filter(r => norm(r[tipo] ?? "") === norm(nome));
     const s = statsFor(mine);
+
     box.innerHTML = `
-      <div class="stat-card"><div class="stat-value">${nome}</div><div class="stat-label">Profissional</div></div>
+      <div class="stat-card"><div class="stat-value">${nome}</div><div class="stat-label">Profissional selecionado</div></div>
       <div class="stat-card"><div class="stat-value">${s.casais}</div><div class="stat-label">Casais</div></div>
+      <div class="stat-card"><div class="stat-value">${fmtNumberBR(s.mediaCasaisPeriodo, 1, 1)}</div><div class="stat-label">Média de casais (período)</div></div>
       <div class="stat-card"><div class="stat-value">${s.vendas}</div><div class="stat-label">Cotas</div></div>
-      <div class="stat-card"><div class="stat-value">${s.cotasCanceladas}</div><div class="stat-label">Canceladas</div></div>
-      <div class="stat-card"><div class="stat-value">${fmtMoney(s.vgvTotal)}</div><div class="stat-label">VGV</div></div>
+      <div class="stat-card"><div class="stat-value">${s.cotasCanceladas}</div><div class="stat-label">Cotas canceladas</div></div>
+      <div class="stat-card"><div class="stat-value">${fmtMoney(s.vgvTotal)}</div><div class="stat-label">VGV (Σ col G)</div></div>
       <div class="stat-card"><div class="stat-value">${fmtPctBR(s.eficiencia)}</div><div class="stat-label">Eficiência</div></div>
       <div class="stat-card"><div class="stat-value">${fmtPctBR(s.pctCancel)}</div><div class="stat-label">% Cancelamento</div></div>
       <div class="stat-card"><div class="stat-value">${fmtMoney(s.ticketMedio)}</div><div class="stat-label">Ticket médio</div></div>
     `;
-  }
-
-  // ===== Perfil renda (mantive simples: tabela) =====
-  function rendaBucket(v) {
-    const x = v || 0;
-    if (x < 9000) return "R$ 9 mil a R$ 9,9 mil";
-    if (x <= 11900) return "R$ 10 mil a R$ 11,9 mil";
-    if (x <= 14900) return "R$ 12 mil a R$ 14,9 mil";
-    if (x <= 19900) return "R$ 15 mil a R$ 19,9 mil";
-    if (x <= 50000) return "R$ 20 mil a R$ 50 mil";
-    return "Acima de R$ 50,1 mil";
-  }
-  function groupByRenda(rows) {
-    const order = [
-      "R$ 9 mil a R$ 9,9 mil",
-      "R$ 10 mil a R$ 11,9 mil",
-      "R$ 12 mil a R$ 14,9 mil",
-      "R$ 15 mil a R$ 19,9 mil",
-      "R$ 20 mil a R$ 50 mil",
-      "Acima de R$ 50,1 mil"
-    ];
-    const map = new Map(order.map(k => [k, []]));
-    rows.forEach(r => map.get(rendaBucket(r._renda)).push(r));
-    return order.map(k => ({ faixa: k, ...statsFor(map.get(k) || []) }));
-  }
-  function renderPerfilRenda(rows, containerId) {
-    const container = el(containerId);
-    const list = groupByRenda(rows);
-    const ordered = sortedList(list, containerId, "vgvTotal");
-
-    container.innerHTML = `
-      <div class="table-wrap">
-        <table data-table-id="${containerId}">
-          <thead>
-            <tr>
-              <th class="sortable" data-sort="faixa">Faixa ${sortIndicator(containerId, "faixa")}</th>
-              <th class="num sortable" data-sort="casais">Casais ${sortIndicator(containerId, "casais")}</th>
-              <th class="num sortable" data-sort="vendas">Cotas ${sortIndicator(containerId, "vendas")}</th>
-              <th class="num sortable" data-sort="cotasCanceladas">Canceladas ${sortIndicator(containerId, "cotasCanceladas")}</th>
-              <th class="num sortable" data-sort="vgvTotal">VGV ${sortIndicator(containerId, "vgvTotal")}</th>
-              <th class="num sortable" data-sort="eficiencia">Eficiência ${sortIndicator(containerId, "eficiencia")}</th>
-              <th class="num sortable" data-sort="pctCancel">%Cancel ${sortIndicator(containerId, "pctCancel")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${ordered.map(it => `
-              <tr>
-                <td class="name" title="${it.faixa}">${it.faixa}</td>
-                <td class="num">${it.casais}</td>
-                <td class="num">${it.vendas}</td>
-                <td class="num">${it.cotasCanceladas}</td>
-                <td class="num">${fmtMoney(it.vgvTotal)}</td>
-                <td class="num"><span class="pill ${effPillClass(it.eficiencia)}">${fmtPctBR(it.eficiencia)}</span></td>
-                <td class="num"><span class="pill ${cancelPillClass(it.pctCancel)}">${fmtPctBR(it.pctCancel)}</span></td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>
-      </div>
-    `;
-
-    const table = container.querySelector("table");
-    table.querySelectorAll("thead th.sortable").forEach(th => {
-      th.addEventListener("click", () => {
-        setSort(containerId, th.dataset.sort);
-        renderPerfilRenda(rows, containerId);
-      });
-    });
   }
 
   function updateAll() {
@@ -1574,10 +1449,6 @@
 
     updateStats(state.filtered);
     renderStatsCards("stats-curva", state.filtered);
-
-    renderCurvaCharts(state.filtered);
-    renderHeatmap(state.filtered);       // <<< NOVO: mapa de calor
-    renderCancelamentoAnalysis(state.filtered);
 
     renderRankingTable(groupRanking(state.filtered, KEY.promotor), "ranking-promotor", "Promotor");
     renderRankingTable(groupRanking(state.filtered, KEY.liner), "ranking-liner", "Liner");
@@ -1589,6 +1460,10 @@
     renderRankingTable(groupRanking(state.filtered, tipo), "profissionais-table", "Profissionais");
 
     renderSingleProfessionalStats();
+
+    renderCurvaCharts(state.filtered);
+    renderCancelamentoAnalysis(state.filtered);
+
     renderEquipesStats();
   }
 
@@ -1642,7 +1517,6 @@
       renderEquipesStats();
     });
 
-    // Tabs
     document.querySelectorAll(".tab").forEach(t => {
       t.addEventListener("click", () => {
         document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
@@ -1650,7 +1524,7 @@
         t.classList.add("active");
         el(`tab-${t.dataset.tab}`).classList.add("active");
 
-        if (["curva","cancelamento"].includes(t.dataset.tab)) {
+        if (["curva", "cancelamento"].includes(t.dataset.tab)) {
           setTimeout(() => {
             try { charts.curva?.resize?.(); charts.semana?.resize?.(); charts.cancelamento?.resize?.(); } catch(e) {}
           }, 80);
