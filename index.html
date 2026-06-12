@@ -48,6 +48,17 @@
       background:var(--card); color:var(--text); font-size:1rem; outline:none;
       transition:all 0.2s ease; backdrop-filter:blur(10px);
     }
+    
+    /* Melhorias específicas para input[type="date"] */
+    input[type="date"] {
+      color-scheme: dark;
+      cursor: pointer;
+    }
+    input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(1);
+      cursor: pointer;
+    }
+    
     input::placeholder{color:rgba(234,240,255,.35)}
     select:focus, input:focus{border-color:var(--accent); box-shadow:0 0 0 3px rgba(124,92,255,0.12);}
 
@@ -336,11 +347,11 @@
 
     <div class="controls">
       <div class="control-group" style="min-width:420px">
-        <label>Período (dd/mm/aaaa a dd/mm/aaaa)</label>
+        <label>Período</label>
         <div class="range-row">
-          <input id="dateStart" placeholder="01/01/2026" inputmode="numeric" />
+          <input id="dateStart" type="date" />
           <span class="sep">a</span>
-          <input id="dateEnd" placeholder="30/04/2026" inputmode="numeric" />
+          <input id="dateEnd" type="date" />
           <button class="btn" id="btnHoje" type="button">Hoje</button>
           <button class="btn" id="btn30" type="button">30 dias</button>
           <button class="btn" id="btnLimparPeriodo" type="button">Limpar</button>
@@ -735,9 +746,19 @@
   }
 
   function parseDateOnlyInput(s) {
-    const d = parseBRDateTime(s);
-    if (!d) return null;
-    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    if (!s) return null;
+
+    // input type="date" -> "YYYY-MM-DD"
+    const m = String(s).trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (m) {
+      const y = +m[1], mo = +m[2], d = +m[3];
+      return new Date(y, mo - 1, d);
+    }
+
+    // fallback (se alguém colar dd/mm/aaaa manualmente)
+    const d2 = parseBRDateTime(s);
+    if (!d2) return null;
+    return new Date(d2.getFullYear(), d2.getMonth(), d2.getDate());
   }
 
   function splitStatusTokens(statusStr) {
@@ -1433,20 +1454,34 @@
     el("btnLimparPeriodo").addEventListener("click", () => {
       el("dateStart").value = ""; el("dateEnd").value = ""; updateAll();
     });
+
     el("btnHoje").addEventListener("click", () => {
       const now = new Date();
-      const dd = String(now.getDate()).padStart(2,"0");
-      const mm = String(now.getMonth()+1).padStart(2,"0");
-      const yy = now.getFullYear();
-      const s = `${dd}/${mm}/${yy}`;
-      el("dateStart").value = s; el("dateEnd").value = s; updateAll();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, "0");
+      const d = String(now.getDate()).padStart(2, "0");
+      const iso = `${y}-${m}-${d}`;
+      el("dateStart").value = iso;
+      el("dateEnd").value = iso;
+      updateAll();
     });
+
     el("btn30").addEventListener("click", () => {
       const now = new Date();
       const end = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const start = new Date(end); start.setDate(start.getDate() - 29);
-      const fmt = (d) => `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`;
-      el("dateStart").value = fmt(start); el("dateEnd").value = fmt(end); updateAll();
+      const start = new Date(end);
+      start.setDate(start.getDate() - 29);
+
+      const toISODate = (dt) => {
+        const y = dt.getFullYear();
+        const m = String(dt.getMonth() + 1).padStart(2, "0");
+        const d = String(dt.getDate()).padStart(2, "0");
+        return `${y}-${m}-${d}`;
+      };
+
+      el("dateStart").value = toISODate(start);
+      el("dateEnd").value = toISODate(end);
+      updateAll();
     });
 
     el("profTipoSingle").addEventListener("change", () => {
