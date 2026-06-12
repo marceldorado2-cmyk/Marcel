@@ -11,7 +11,7 @@
       --bg0:#070A12; --bg1:#0B1222; --card: rgba(255,255,255,.06);
       --stroke: rgba(255,255,255,.12); --text:#EAF0FF; --muted: rgba(234,240,255,.72);
       --good:#5CFFB0; --med:#FFB020; --bad:#FF2D55;
-      --accent:#7C5CFF; --accent2:#22D3EE;
+      --accent:#7C5CFF; --accent2:#22D3EE; --accent3:#5CFFB0;
       --shadow: 0 20px 60px rgba(0,0,0,.55); --radius: 18px; --radius2: 12px;
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
       --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
@@ -50,11 +50,10 @@
     }
     input[type="date"] { color-scheme: dark; cursor: pointer; }
     input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
-
     input::placeholder{color:rgba(234,240,255,.35)}
     select:focus, input:focus{border-color:var(--accent); box-shadow:0 0 0 3px rgba(124,92,255,0.12);}
-
     select option{ color:#0B1222; background:#EAF0FF; font-weight:700; }
+
     .range-row{display:flex; gap:10px; align-items:center;}
     .range-row .sep{color:var(--muted); font-weight:700; padding:0 2px; white-space:nowrap;}
     .btn{
@@ -70,7 +69,7 @@
       background:rgba(255,255,255,0.03); padding:6px; border-radius:var(--radius); backdrop-filter:blur(10px);
     }
     .tab{
-      flex:1; min-width:160px;
+      flex:1; min-width:170px;
       padding:12px 14px; text-align:center; cursor:pointer; border-radius:var(--radius2);
       font-weight:650; transition:all 0.2s ease; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
       user-select:none;
@@ -104,8 +103,7 @@
 
     .table-wrap{
       background:var(--card); border:1px solid var(--stroke); border-radius:var(--radius);
-      overflow:auto; backdrop-filter:blur(10px); margin:16px 0 26px;
-      max-height: 70vh;
+      overflow:auto; backdrop-filter:blur(10px); margin:16px 0 26px; max-height: 70vh;
     }
     table{width:100%; border-collapse:separate; border-spacing:0; min-width: 980px;}
     thead th{
@@ -170,6 +168,45 @@
     .cancel-actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; align-items:center; justify-content:space-between;}
     .small{font-size:.85rem; color:var(--muted);}
 
+    /* Charts */
+    .chart-grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:18px;
+      margin: 14px 0 26px;
+    }
+    .chart-card{
+      background:var(--card);
+      border:1px solid var(--stroke);
+      border-radius:var(--radius);
+      padding:14px 14px 10px;
+      backdrop-filter:blur(10px);
+      box-shadow:none;
+    }
+    .chart-head{
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap:10px;
+      padding:6px 6px 10px;
+    }
+    .chart-title{
+      font-weight:850;
+      letter-spacing:.2px;
+    }
+    .chart-sub{
+      color:var(--muted);
+      font-size:.9rem;
+      font-family:var(--mono);
+    }
+    .canvas-wrap{
+      position:relative;
+      height: 360px;
+    }
+    .canvas-wrap.small{
+      height: 320px;
+    }
+
     @media(max-width: 980px){
       .wrap{padding:0 16px}
       h1{font-size:2.3rem}
@@ -177,8 +214,12 @@
       .range-row{flex-direction:column; align-items:stretch}
       .range-row .sep{display:none;}
       table{min-width: 820px;}
+      .canvas-wrap{height: 320px;}
     }
   </style>
+
+  <!-- Chart.js via CDN (GitHub Pages ok) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 </head>
 
 <body>
@@ -238,6 +279,7 @@
 
     <div class="tabs">
       <div class="tab active" data-tab="resumo">📊 Resumo</div>
+      <div class="tab" data-tab="curva">📈 Curva de casais e vendas</div>
       <div class="tab" data-tab="ranking-promotor">🎯 Ranking Promotor</div>
       <div class="tab" data-tab="ranking-liner">💬 Ranking Liner</div>
       <div class="tab" data-tab="ranking-closer">🤝 Ranking Closer</div>
@@ -254,10 +296,39 @@
         <div class="note">
           <strong>Critérios</strong><br>
           • Casais = linhas.<br>
-          • Cotas ativas/canceladas = tokens na coluna "Status atendimento".<br>
+          • Cotas ativas/canceladas = tokens na coluna "Status atendimento" (separado por <span class="badge">#</span>).<br>
           • <strong>VGV total = $$\sum(\text{coluna G})$$</strong> (soma simples).<br>
           • VGV ativo/cancelado: rateio proporcional pela quantidade de tokens ATIVO/CANCELADO na linha (quando houver mistura).<br>
           • Eficiência = cotas ÷ casais (%).
+        </div>
+      </div>
+
+      <!-- Nova aba: Curva -->
+      <div id="tab-curva" class="tab-content">
+        <div class="note">
+          Nesta aba: (1) curva diária de <strong>Casais</strong> e <strong>Vendas (cotas)</strong> no período selecionado; (2) performance por <strong>dia da semana</strong> (Casais, Vendas, VGV e Eficiência).
+        </div>
+
+        <div class="chart-grid">
+          <div class="chart-card">
+            <div class="chart-head">
+              <div class="chart-title">Curva por dia (Casais x Vendas)</div>
+              <div class="chart-sub" id="curve-meta">—</div>
+            </div>
+            <div class="canvas-wrap">
+              <canvas id="chartCurve"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-head">
+              <div class="chart-title">Performance por dia da semana</div>
+              <div class="chart-sub">Casais, Vendas, VGV e Eficiência</div>
+            </div>
+            <div class="canvas-wrap small">
+              <canvas id="chartWeek"></canvas>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -329,28 +400,32 @@
 
   const state = { rows: [], filtered: [], meta: { vgvColKey: null, firstColKey: null } };
 
-  // Cabeçalhos do seu CSV (pela imagem):
-  // A Hora agendamento | B Data de atendimento | C Status atendimento | D Nome 1 | E Nome 2
-  // F Promotor... | G Valor vendido | H Liner | I Closer | J Carro 1 | K Ano carro 1 | L Ano carro 2 | M Qualificação | N Renda | ...
+  // Cabeçalhos do seu CSV (confirmado): Carro 1 está na coluna J => cabeçalho "Carro 1"
   const KEY = {
     dataAtendimento: norm("data de atendimento"),
     statusAtendimento: norm("status atendimento"),
     renda: norm("renda"),
     uf: norm("uf"),
-    promotor: norm("promotor de marketing"), // se no seu CSV estiver truncado, veja abaixo "ALIASES"
+    promotor: norm("promotor de marketing"),
     liner: norm("liner"),
     closer: norm("closer"),
     carro1: norm("carro 1"),
-    anoCarro1: norm("ano carro 1")
+    anoCarro1: norm("ano carro 1"),
   };
 
-  // Se os nomes de "Promotor de marketing" no CSV não forem exatamente isso,
-  // adicione aqui possíveis variantes.
+  // Caso seu CSV tenha variações no cabeçalho do promotor
   const ALIASES = {
     [KEY.promotor]: [norm("promotor"), norm("promotor de mkt"), norm("promotor d"), norm("promotor de")],
   };
 
-  const CLIENT_NAME_HEADERS = [norm("nome 1"), norm("nome do cliente"), norm("cliente"), norm("nome"), norm("casal"), norm("nome completo")];
+  const CLIENT_NAME_HEADERS = [
+    norm("nome 1"),
+    norm("nome do cliente"),
+    norm("cliente"),
+    norm("nome"),
+    norm("casal"),
+    norm("nome completo"),
+  ];
 
   const sortState = {
     "ranking-promotor": { key: "vendas", dir: "desc" },
@@ -360,6 +435,10 @@
     "perfil-renda": { key: "vgvTotal", dir: "desc" },
   };
 
+  // ===== Charts (instâncias) =====
+  const charts = { curve: null, week: null };
+
+  // ===== Utils =====
   function compareValues(a, b, key, dir = "desc") {
     const va = a?.[key], vb = b?.[key];
     const aNull = va === null || va === undefined;
@@ -429,7 +508,7 @@
     }
     const keys = Object.keys(data[0] || {});
     state.meta.firstColKey = keys[0] || null;
-    state.meta.vgvColKey = keys[6] || null; // coluna G
+    state.meta.vgvColKey = keys[6] || null; // coluna G (Valor vendido)
     if (!state.meta.vgvColKey) throw new Error("CSV precisa ter pelo menos 7 colunas (para VGV na coluna G).");
     return data;
   }
@@ -532,9 +611,7 @@
     if (!rows.length) throw new Error("CSV vazio.");
     const any = rows[0];
 
-    // resolve chave real do promotor caso cabeçalho esteja diferente
     const promotorKeyResolved = findExistingKey(any, KEY.promotor) || KEY.promotor;
-
     const clientKey = findClientNameKey(any);
 
     return rows.map(r => {
@@ -542,6 +619,7 @@
       out._dt = parseBRDateTime(out[KEY.dataAtendimento]) || parseBRDateTime(out[state.meta.firstColKey]);
       out._valorVgv = parseMoneyBR(out[state.meta.vgvColKey]);
       out._renda = parseMoneyBR(out[KEY.renda]);
+
       out._quotas = countQuotasFromStatus(out[KEY.statusAtendimento]);
       out._bucket = contractBucket(out[KEY.statusAtendimento]);
 
@@ -551,7 +629,6 @@
       out._carro = (out[KEY.carro1] ?? "").toString().trim();
       out._anoCarro = (out[KEY.anoCarro1] ?? "").toString().trim();
 
-      // guarda chave resolvida
       out._promotorKey = promotorKeyResolved;
       return out;
     });
@@ -570,7 +647,7 @@
 
     if (d1 || d2) {
       const start = d1 ? d1.getTime() : -Infinity;
-      const end = d2 ? (new Date(d2.getFullYear(), d2.getMonth(), d2.getDate(), 23, 59, 59, 999)).getTime() : Infinity;
+      const end = d2 ? (new Date(d2.getFullYear(), d2.getMonth(), d2.getDate(), 23,59,59,999)).getTime() : Infinity;
       filtered = filtered.filter(r => r._dt && r._dt.getTime() >= start && r._dt.getTime() <= end);
     }
 
@@ -802,6 +879,259 @@
     });
   }
 
+  // ===== Curva: agregações =====
+  function isoDayLocal(dt){
+    // yyyy-mm-dd em horário local
+    const y = dt.getFullYear();
+    const m = String(dt.getMonth()+1).padStart(2,"0");
+    const d = String(dt.getDate()).padStart(2,"0");
+    return `${y}-${m}-${d}`;
+  }
+  function fmtDayPtBR(iso){
+    const [y,m,d]=iso.split("-").map(Number);
+    const dt = new Date(y, m-1, d);
+    return new Intl.DateTimeFormat("pt-BR", { day:"2-digit", month:"2-digit" }).format(dt);
+  }
+  function aggregateByDay(rows){
+    const map = new Map(); // isoDate -> {casais, vendas, vgv}
+    rows.forEach(r=>{
+      if(!r._dt) return;
+      const k = isoDayLocal(r._dt);
+      if(!map.has(k)) map.set(k, { casais:0, vendas:0, vgv:0 });
+      const o = map.get(k);
+      o.casais += 1;
+      o.vendas += (r._quotas?.total ?? 0);
+      o.vgv += (r._valorVgv ?? 0);
+    });
+
+    // garantir dias "vazios" dentro do range selecionado (se houver)
+    const d1 = parseDateOnlyInput(el("dateStart").value);
+    const d2 = parseDateOnlyInput(el("dateEnd").value);
+    if (d1 && d2) {
+      const start = new Date(d1.getFullYear(), d1.getMonth(), d1.getDate());
+      const end = new Date(d2.getFullYear(), d2.getMonth(), d2.getDate());
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate()+1)){
+        const k = isoDayLocal(d);
+        if(!map.has(k)) map.set(k, { casais:0, vendas:0, vgv:0 });
+      }
+    }
+
+    const keys = Array.from(map.keys()).sort();
+    return keys.map(k=>({ day:k, ...map.get(k) }));
+  }
+
+  function aggregateByWeekday(rows){
+    // 0=Dom,1=Seg,...6=Sáb
+    const base = Array.from({length:7}, (_,i)=>({ idx:i, casais:0, vendas:0, vgv:0 }));
+    rows.forEach(r=>{
+      if(!r._dt) return;
+      const w = r._dt.getDay();
+      base[w].casais += 1;
+      base[w].vendas += (r._quotas?.total ?? 0);
+      base[w].vgv += (r._valorVgv ?? 0);
+    });
+    // reorder para Seg..Dom
+    const order = [1,2,3,4,5,6,0];
+    const labels = ["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"];
+    return order.map((idx, i)=>({
+      label: labels[i],
+      casais: base[idx].casais,
+      vendas: base[idx].vendas,
+      vgv: base[idx].vgv,
+      eficiencia: base[idx].casais ? (base[idx].vendas / base[idx].casais) : 0
+    }));
+  }
+
+  function chartDefaults(){
+    Chart.defaults.color = "rgba(234,240,255,.85)";
+    Chart.defaults.borderColor = "rgba(255,255,255,.10)";
+    Chart.defaults.font.family = getComputedStyle(document.documentElement).getPropertyValue("--sans").trim() || "system-ui";
+  }
+
+  function renderCurveTab(rows){
+    if (typeof Chart === "undefined") return;
+
+    const daily = aggregateByDay(rows);
+    const labels = daily.map(d => fmtDayPtBR(d.day));
+    const casais = daily.map(d => d.casais);
+    const vendas = daily.map(d => d.vendas);
+
+    const meta = el("curve-meta");
+    const d1 = el("dateStart").value;
+    const d2 = el("dateEnd").value;
+    meta.textContent = (d1 || d2) ? `Período: ${d1 || "…"} → ${d2 || "…"} • ${daily.length} dias` : `Sem período fixo • ${daily.length} dias (conforme dados filtrados)`;
+
+    // Curva (2 eixos)
+    const ctx1 = el("chartCurve").getContext("2d");
+    if (charts.curve) charts.curve.destroy();
+    charts.curve = new Chart(ctx1, {
+      type: "line",
+      data: {
+        labels,
+        datasets: [
+          {
+            label: "Casais (linhas)",
+            data: casais,
+            yAxisID: "y",
+            borderColor: "rgba(34, 211, 238, 1)",
+            backgroundColor: "rgba(34, 211, 238, .12)",
+            pointRadius: 2,
+            tension: 0.25
+          },
+          {
+            label: "Vendas (cotas)",
+            data: vendas,
+            yAxisID: "y1",
+            borderColor: "rgba(124, 92, 255, 1)",
+            backgroundColor: "rgba(124, 92, 255, .12)",
+            pointRadius: 2,
+            tension: 0.25
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: { labels: { boxWidth: 14 } },
+          tooltip: {
+            callbacks: {
+              afterBody: (items) => {
+                const i = items?.[0]?.dataIndex ?? null;
+                if (i === null) return "";
+                const vgv = daily[i]?.vgv ?? 0;
+                return `VGV do dia: ${fmtMoney(vgv)}`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 16 },
+            grid: { color: "rgba(255,255,255,.06)" }
+          },
+          y: {
+            position: "left",
+            title: { display: true, text: "Casais" },
+            beginAtZero: true,
+            grid: { color: "rgba(255,255,255,.06)" }
+          },
+          y1: {
+            position: "right",
+            title: { display: true, text: "Vendas (cotas)" },
+            beginAtZero: true,
+            grid: { drawOnChartArea: false }
+          }
+        }
+      }
+    });
+
+    // Semana (múltiplas métricas: barras + linha)
+    const week = aggregateByWeekday(rows);
+    const wLabels = week.map(x => x.label);
+    const wCasais = week.map(x => x.casais);
+    const wVendas = week.map(x => x.vendas);
+    const wVgv = week.map(x => x.vgv);
+    const wEff = week.map(x => (x.eficiencia || 0) * 100);
+
+    const ctx2 = el("chartWeek").getContext("2d");
+    if (charts.week) charts.week.destroy();
+    charts.week = new Chart(ctx2, {
+      data: {
+        labels: wLabels,
+        datasets: [
+          {
+            type: "bar",
+            label: "Casais",
+            data: wCasais,
+            yAxisID: "y",
+            backgroundColor: "rgba(34, 211, 238, .22)",
+            borderColor: "rgba(34, 211, 238, .70)",
+            borderWidth: 1
+          },
+          {
+            type: "bar",
+            label: "Vendas (cotas)",
+            data: wVendas,
+            yAxisID: "y",
+            backgroundColor: "rgba(124, 92, 255, .22)",
+            borderColor: "rgba(124, 92, 255, .70)",
+            borderWidth: 1
+          },
+          {
+            type: "bar",
+            label: "VGV (R$)",
+            data: wVgv,
+            yAxisID: "yVgv",
+            backgroundColor: "rgba(92, 255, 176, .14)",
+            borderColor: "rgba(92, 255, 176, .55)",
+            borderWidth: 1
+          },
+          {
+            type: "line",
+            label: "Eficiência (vendas/casal)",
+            data: wEff,
+            yAxisID: "yEff",
+            borderColor: "rgba(255, 176, 32, 1)",
+            backgroundColor: "rgba(255, 176, 32, .10)",
+            pointRadius: 2,
+            tension: 0.25
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: { labels: { boxWidth: 14 } },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => {
+                const label = ctx.dataset.label || "";
+                const v = ctx.parsed.y;
+                if (label.includes("VGV")) return `${label}: ${fmtMoney(v)}`;
+                if (label.includes("Eficiência")) return `${label}: ${new Intl.NumberFormat("pt-BR",{maximumFractionDigits:1}).format(v)}%`;
+                return `${label}: ${v}`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: { stacked: false, grid: { color: "rgba(255,255,255,.06)" } },
+          y: {
+            position: "left",
+            beginAtZero: true,
+            title: { display: true, text: "Casais / Vendas" },
+            grid: { color: "rgba(255,255,255,.06)" }
+          },
+          yVgv: {
+            position: "right",
+            beginAtZero: true,
+            title: { display: true, text: "VGV (R$)" },
+            grid: { drawOnChartArea: false },
+            ticks: {
+              callback: (v) => {
+                try { return new Intl.NumberFormat("pt-BR",{notation:"compact", maximumFractionDigits:1}).format(v); }
+                catch { return v; }
+              }
+            }
+          },
+          yEff: {
+            position: "right",
+            beginAtZero: true,
+            min: 0,
+            title: { display: true, text: "Eficiência (%)" },
+            grid: { drawOnChartArea: false },
+            ticks: { callback: (v)=> `${v}%` }
+          }
+        }
+      }
+    });
+  }
+
+  // ===== Profissionais / cancelados =====
   function updateProfFilters(tipoId, nomeId){
     const tg = norm(el(tipoId).value);
     const elNome = el(nomeId);
@@ -924,9 +1254,7 @@
             ${c.when ? `Data: ${c.when}` : `Data: —`}
             ${c.uf ? ` • UF: ${c.uf}` : ``}
             <br>
-            Renda: ${fmtMoney(c.renda)}
-            • Carro: ${c.carro || "—"}
-            • Ano: ${c.anoCarro || "—"}
+            Renda: ${fmtMoney(c.renda)} • Carro: ${c.carro || "—"} • Ano: ${c.anoCarro || "—"}
           </div>
         </div>
         <div class="val">${fmtMoney(c.valorPorCota)}</div>
@@ -948,23 +1276,27 @@
     };
   }
 
+  // ===== Update All =====
   function updateAll(){
     state.filtered = applyFilters(state.rows);
+
     updateStats(state.filtered);
+
+    // charts (aba curva)
+    renderCurveTab(state.filtered);
 
     renderRankingTable(groupRanking(state.filtered, KEY.promotor), "ranking-promotor", "Promotor");
     renderRankingTable(groupRanking(state.filtered, KEY.liner), "ranking-liner", "Liner");
     renderRankingTable(groupRanking(state.filtered, KEY.closer), "ranking-closer", "Closer");
-
     renderPerfilRenda(state.filtered, "perfil-renda");
 
-    // tabela "Profissionais" segue o filtro superior (área selecionada)
     renderRankingTable(groupRanking(state.filtered, norm(el("profTipo").value)), "profissionais-table", "Profissionais");
 
     renderSingleProfessionalStats();
     renderCanceladosBox();
   }
 
+  // ===== Tabs / Events =====
   function setup(){
     ["statusSelect","profTipo","profNome","ufSelect","dateStart","dateEnd"].forEach(id=>{
       el(id).addEventListener("change", updateAll);
@@ -1017,8 +1349,11 @@
     });
   }
 
+  // ===== Init =====
   async function init(){
     try{
+      chartDefaults();
+
       el("loading").style.display="block";
       el("error").style.display="none";
 
