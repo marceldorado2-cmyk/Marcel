@@ -52,7 +52,6 @@
     input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
     input::placeholder{color:rgba(234,240,255,.35)}
     select:focus, input:focus{border-color:var(--accent); box-shadow:0 0 0 3px rgba(124,92,255,0.12);}
-
     select option{ color:#0B1222; background:#EAF0FF; font-weight:700; }
     .range-row{display:flex; gap:10px; align-items:center;}
     .range-row .sep{color:var(--muted); font-weight:700; padding:0 2px; white-space:nowrap;}
@@ -76,7 +75,6 @@
     }
     .tab:hover{color:var(--text); background:rgba(255,255,255,0.05);}
     .tab.active{background:var(--accent); color:white; box-shadow:var(--shadow);}
-
     .tab-content{display:none; animation:fadeIn 0.25s ease;}
     .tab-content.active{display:block;}
     @keyframes fadeIn{from{opacity:0; transform:translateY(8px)}to{opacity:1; transform:translateY(0)}}
@@ -94,13 +92,11 @@
     .stat-card::before{content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg, var(--accent), var(--accent2));}
     .stat-value{font-size:2.25rem; font-weight:800; margin:0 0 8px; font-family:var(--mono); color:var(--accent2);}
     .stat-label{font-size:.95rem; color:var(--muted); font-weight:600; letter-spacing:0.3px;}
-
     .note{
       background:rgba(124,92,255,0.1); border:1px solid rgba(124,92,255,0.22);
       border-radius:var(--radius2); padding:14px 16px; margin:14px 0; font-size:0.92rem;
       color:var(--muted); line-height:1.5;
     }
-    .note.warn{border-color:rgba(255,176,32,.35); background:rgba(255,176,32,.10);}
     .note.bad{border-color:rgba(255,45,85,.35); background:rgba(255,45,85,.10); color:#ffd0db;}
 
     .table-wrap{
@@ -117,83 +113,25 @@
     thead th.sortable{ cursor:pointer; user-select:none; transition:all 0.2s ease; }
     thead th.sortable:hover{ color: var(--text); background:rgba(255,255,255,0.08); }
     thead th .sort-ind{ margin-left:6px; opacity:.85; font-size:.9em; color:var(--accent2); }
-
     tbody td{padding:12px 14px; border-bottom:1px solid rgba(255,255,255,0.05); vertical-align:middle; white-space:nowrap;}
     tbody tr:hover{ background:rgba(255,255,255,0.03); }
     tbody tr:last-child td{ border-bottom:none; }
     .rank-col{ font-family:var(--mono); font-weight:900; width:76px; }
     .num{font-family:var(--mono); text-align:right;}
     .name{font-weight:800; max-width:420px; overflow:hidden; text-overflow:ellipsis;}
-
     .badge{
       display:inline-block; padding:2px 8px; border:1px solid rgba(255,255,255,.14);
       border-radius:999px; font-size:.78rem; color:var(--muted); font-family:var(--mono); margin-left:8px;
     }
     .pill{
       display:inline-flex; align-items:center; justify-content:center;
-      min-width:86px;
-      padding:4px 10px; border-radius:999px; font-family:var(--mono);
+      min-width:86px; padding:4px 10px; border-radius:999px; font-family:var(--mono);
       font-weight:900; border:1px solid rgba(255,255,255,.14);
     }
     .p-bad{ background:rgba(255,45,85,.12); color:var(--bad); border-color:rgba(255,45,85,.28); }
     .p-med{ background:rgba(255,176,32,.12); color:var(--med); border-color:rgba(255,176,32,.28); }
     .p-good{ background:rgba(92,255,176,.12); color:var(--good); border-color:rgba(92,255,176,.28); }
 
-    /* ===== quadro de cancelados ===== */
-    .cancel-box{
-      background:rgba(255,45,85,.06);
-      border:1px solid rgba(255,45,85,.22);
-      border-radius:var(--radius);
-      padding:16px;
-      margin:14px 0 22px;
-      backdrop-filter:blur(10px);
-    }
-    .cancel-head{
-      display:flex; flex-wrap:wrap; gap:10px; align-items:baseline; justify-content:space-between;
-      margin-bottom:10px;
-    }
-    .cancel-title{
-      font-size:1.05rem; font-weight:850; color:#ffd0db;
-      display:flex; align-items:center; gap:10px;
-    }
-    .cancel-meta{color:var(--muted); font-size:.9rem;}
-    .cancel-grid{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:10px;
-      max-height: 380px;
-      overflow:auto;
-      padding-right:6px;
-    }
-    .cancel-item{
-      display:flex; gap:12px; align-items:flex-start; justify-content:space-between;
-      padding:10px 12px;
-      border-radius:14px;
-      background:rgba(255,255,255,.03);
-      border:1px solid rgba(255,255,255,.10);
-    }
-    .cancel-item .who{
-      display:flex; flex-direction:column; gap:4px;
-      min-width: 260px;
-    }
-    .cancel-item .who .nm{font-weight:850; color:var(--text); max-width: 680px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-    .cancel-item .who .sub{font-family:var(--mono); font-size:.82rem; color:var(--muted); line-height:1.35;}
-    .cancel-item .val{
-      font-family:var(--mono);
-      font-weight:900;
-      color:var(--bad);
-      white-space:nowrap;
-      padding-top: 2px;
-    }
-    .cancel-actions{
-      display:flex; gap:10px; flex-wrap:wrap;
-      margin-top: 10px;
-      align-items:center;
-      justify-content:space-between;
-    }
-    .small{ font-size:.85rem; color:var(--muted); }
-
-    /* ===== charts ===== */
     .chart-card{
       background:var(--card);
       border:1px solid var(--stroke);
@@ -207,14 +145,66 @@
       align-items:baseline; justify-content:space-between;
       margin: 2px 2px 10px;
     }
-    .chart-title{
-      font-weight:900;
-      letter-spacing:.2px;
-    }
+    .chart-title{ font-weight:900; letter-spacing:.2px; }
     .chart-sub{ color:var(--muted); font-size:.92rem; }
     .chart-wrap{ height: 360px; position:relative; }
     .chart-wrap.small{ height: 320px; }
     canvas{ width:100% !important; height:100% !important; display:block; }
+
+    /* Heatmap */
+    .heatmap{
+      display:grid;
+      grid-template-columns: 140px repeat(7, minmax(86px, 1fr));
+      gap:8px;
+      margin:14px 0 22px;
+    }
+    .hm-head, .hm-cell{
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:12px;
+      padding:10px 10px;
+      background:rgba(255,255,255,.03);
+      backdrop-filter: blur(10px);
+    }
+    .hm-head{
+      font-size:.78rem;
+      text-transform:uppercase;
+      letter-spacing:.6px;
+      color:var(--muted);
+      font-weight:800;
+      text-align:center;
+    }
+    .hm-rowlabel{
+      font-family:var(--mono);
+      font-weight:900;
+      color:rgba(234,240,255,.85);
+      text-align:left;
+      white-space:nowrap;
+    }
+    .hm-cell{
+      text-align:center;
+      font-family:var(--mono);
+      font-weight:900;
+      color: rgba(234,240,255,.92);
+      position:relative;
+      overflow:hidden;
+    }
+    .hm-cell .mini{
+      display:block;
+      font-size:.76rem;
+      font-weight:800;
+      color:rgba(234,240,255,.70);
+      margin-top:4px;
+    }
+    .hm-legend{
+      display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+      color:var(--muted);
+      font-size:.92rem;
+      margin: 10px 0 4px;
+    }
+    .swatch{
+      width:14px;height:14px;border-radius:4px;border:1px solid rgba(255,255,255,.18);
+      display:inline-block; vertical-align:middle;
+    }
 
     @media(max-width: 980px){
       .wrap{padding:0 16px}
@@ -224,10 +214,10 @@
       .range-row .sep{display:none;}
       table{min-width: 820px;}
       .chart-wrap{ height: 320px; }
+      .heatmap{ grid-template-columns: 120px repeat(7, minmax(70px, 1fr)); }
     }
   </style>
 
-  <!-- Chart.js (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 </head>
 
@@ -289,11 +279,11 @@
     <div class="tabs">
       <div class="tab active" data-tab="resumo">📊 Resumo</div>
       <div class="tab" data-tab="curva">📈 Curva de casais e vendas</div>
+      <div class="tab" data-tab="mapa">🔥 Mapa de calor (horários)</div>
       <div class="tab" data-tab="ranking-promotor">🎯 Ranking Promotor</div>
       <div class="tab" data-tab="ranking-liner">💬 Ranking Liner</div>
       <div class="tab" data-tab="ranking-closer">🤝 Ranking Closer</div>
       <div class="tab" data-tab="perfil-renda">💸 Perfil de renda</div>
-      <div class="tab" data-tab="profissionais">👥 Profissionais</div>
     </div>
 
     <div id="content">
@@ -305,15 +295,17 @@
         <div class="note">
           <strong>Critérios</strong><br>
           • Casais = linhas.<br>
-          • Cotas ativas/canceladas = contagem de tokens na coluna "Status do contrato" (ex.: <span class="badge">CANCELADO # CANCELADO # ATIVO</span>).<br>
+          • Cotas ativas/canceladas = contagem de tokens na coluna "Status do contrato".<br>
           • <strong>VGV total = $$\sum(\text{coluna G})$$</strong> (soma simples).<br>
-          • VGV ativo/cancelado: rateio proporcional pela quantidade de tokens ATIVO/CANCELADO na linha (quando houver mistura).<br>
+          • VGV ativo/cancelado: rateio proporcional pelos tokens ATIVO/CANCELADO (quando houver mistura).<br>
           • Eficiência = vendas (cotas totais) ÷ casais (em %).
         </div>
       </div>
 
-      <!-- NOVA ABA -->
       <div id="tab-curva" class="tab-content">
+        <!-- NOVO: cards no início da aba -->
+        <div class="stats" id="stats-curva"></div>
+
         <div class="note">
           Esta aba respeita os mesmos filtros (período, status, profissional, UF).<br>
           • <strong>Casais por dia</strong> = quantidade de linhas no dia.<br>
@@ -339,8 +331,22 @@
             <canvas id="chartSemana"></canvas>
           </div>
         </div>
+      </div>
 
-        <div id="semana-table" class="note" style="display:none"></div>
+      <!-- NOVA ABA: MAPA DE CALOR POR HORÁRIO -->
+      <div id="tab-mapa" class="tab-content">
+        <div class="note">
+          <strong>Mapa de calor por horário</strong><br>
+          Mostra em quais horários entram mais casais, agrupando por hora cheia.<br>
+          Ex.: <span class="badge">10:00–10:59</span>, <span class="badge">11:00–11:59</span>...<br>
+          Eixo horizontal: dia da semana. Eixo vertical: faixa de horário.<br>
+          O número no quadrado é a quantidade de <strong>casais (linhas)</strong> naquele dia/horário.
+        </div>
+
+        <div class="hm-legend" id="hm-legend"></div>
+        <div id="heatmap" class="heatmap"></div>
+
+        <div id="hm-top" class="note" style="display:none"></div>
       </div>
 
       <div id="tab-ranking-promotor" class="tab-content">
@@ -362,50 +368,6 @@
         <div class="note">Performance por faixa de renda. Clique nos cabeçalhos para ordenar.</div>
         <div id="perfil-renda"></div>
       </div>
-
-      <div id="tab-profissionais" class="tab-content">
-        <div class="note">
-          Selecione um profissional (abaixo) para ver o detalhe individual e a lista de <strong>clientes cancelados</strong> no período.
-        </div>
-
-        <div class="controls" style="margin-top:10px">
-          <div class="control-group">
-            <label>Área (individual)</label>
-            <select id="profTipoSingle">
-              <option value="promotor de marketing">Promotor de marketing</option>
-              <option value="liner">Liner</option>
-              <option value="closer">Closer</option>
-            </select>
-          </div>
-          <div class="control-group">
-            <label>Nome (individual)</label>
-            <select id="profNomeSingle">
-              <option value="">Selecione...</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="stats" id="stats-single" style="margin-top:10px"></div>
-
-        <div class="cancel-box" id="cancel-box">
-          <div class="cancel-head">
-            <div class="cancel-title">Clientes cancelados (no período)</div>
-            <div class="cancel-meta" id="cancel-meta">Selecione um profissional para listar.</div>
-          </div>
-
-          <div class="cancel-grid" id="cancel-list"></div>
-
-          <div class="cancel-actions">
-            <div class="small" id="cancel-summary"></div>
-            <button class="btn" id="btnCopyCancelados" type="button">Copiar lista</button>
-          </div>
-        </div>
-
-        <div class="note" style="margin-top:8px">
-          Tabela "Profissionais" (mesmo padrão do ranking) com os filtros atuais:
-        </div>
-        <div id="profissionais-table"></div>
-      </div>
     </div>
   </div>
 
@@ -414,26 +376,6 @@
   const norm = (s) => (s ?? "").toString().toLowerCase().trim().replace(/\s+/g, " ");
 
   const state = { rows: [], filtered: [], meta: { vgvColKey: null, firstColKey: null } };
-
-  // ====== AJUSTE IMPORTANTE (VOCÊ PODE PRECISAR ALTERAR) ======
-  const CLIENT_NAME_HEADERS = [
-    norm("nome do cliente"),
-    norm("cliente"),
-    norm("nome"),
-    norm("casal"),
-    norm("nome completo"),
-    norm("nome do casal"),
-  ];
-
-  const CAR_YEAR_HEADERS = [
-    norm("ano do carro"),
-    norm("ano carro"),
-    norm("ano"),
-    norm("ano veiculo"),
-    norm("ano veículo"),
-    norm("ano do veículo"),
-  ];
-  // ===========================================================
 
   const KEY = {
     dataAtendimento: norm("data de atendimento"),
@@ -449,11 +391,9 @@
     "ranking-promotor": { key: "vendas", dir: "desc" },
     "ranking-liner": { key: "vendas", dir: "desc" },
     "ranking-closer": { key: "vendas", dir: "desc" },
-    "profissionais-table": { key: "vendas", dir: "desc" },
     "perfil-renda": { key: "vgvTotal", dir: "desc" },
   };
 
-  // ===== charts state =====
   const charts = { curva: null, semana: null };
 
   function compareValues(a, b, key, dir = "desc") {
@@ -468,7 +408,6 @@
     const cmp = sa.localeCompare(sb, "pt-BR", { sensitivity: "base" });
     return dir === "asc" ? cmp : -cmp;
   }
-
   function sortedList(list, tableId, defaultKey = "vendas") {
     const s = sortState[tableId] || { key: defaultKey, dir: "desc" };
     const arr = list.slice();
@@ -485,14 +424,12 @@
     });
     return arr;
   }
-
   function setSort(tableId, key) {
     const cur = sortState[tableId] || { key, dir: "desc" };
     if (cur.key === key) cur.dir = (cur.dir === "desc") ? "asc" : "desc";
     else { cur.key = key; cur.dir = "desc"; }
     sortState[tableId] = cur;
   }
-
   function sortIndicator(tableId, key) {
     const cur = sortState[tableId];
     if (!cur || cur.key !== key) return "";
@@ -528,7 +465,7 @@
     }
     const keys = Object.keys(data[0] || {});
     state.meta.firstColKey = keys[0] || null;
-    state.meta.vgvColKey = keys[6] || null; // 7ª coluna (G)
+    state.meta.vgvColKey = keys[6] || null; // coluna G
     if (!state.meta.vgvColKey) throw new Error("CSV precisa ter pelo menos 7 colunas (para VGV na coluna G).");
     return data;
   }
@@ -545,7 +482,6 @@
     if (c.includes(",")) return parseFloat(c.replace(",", ".")) || 0;
     return parseFloat(c) || 0;
   }
-
   function fmtMoney(v) {
     return new Intl.NumberFormat("pt-BR", { style:"currency", currency:"BRL" }).format(v || 0);
   }
@@ -568,12 +504,11 @@
     m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
     if (m) {
       const y=+m[1], mo=+m[2], d=+m[3];
-      const hh=m[4]?+m[[4]]:0, mm=m[5]?+m[5]:0, ss=m[6]?+m[6]:0;
+      const hh=m[4]?+m[4]:0, mm=m[5]?+m[5]:0, ss=m[6]?+m[6]:0;
       return new Date(y, mo-1, d, hh, mm, ss);
     }
     return null;
   }
-
   function parseDateOnlyInput(s) {
     if (!s) return null;
     const m = String(s).trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -588,14 +523,12 @@
     if (!raw) return [];
     return raw.split("#").map(s => s.trim()).filter(Boolean);
   }
-
   function classifyToken(tok) {
     const t = norm(tok).replace(/\s+/g," ");
     if (t.includes("cancel")) return "cancelado";
     if (t.includes("ativo")) return "ativo";
     return "outro";
   }
-
   function countQuotasFromStatus(statusStr) {
     const toks = splitStatusTokens(statusStr);
     let ativo=0, cancelado=0, outro=0;
@@ -616,17 +549,8 @@
     return "outro";
   }
 
-  function findKeyByCandidates(rowObj, candidates) {
-    const keys = Object.keys(rowObj || {});
-    for (const cand of candidates) if (keys.includes(cand)) return cand;
-    return null;
-  }
-
   function buildObjects(rows) {
     if (!rows.length) throw new Error("CSV vazio.");
-    const clientNameKey = findKeyByCandidates(rows[0], CLIENT_NAME_HEADERS);
-    const carYearKey = findKeyByCandidates(rows[0], CAR_YEAR_HEADERS);
-
     return rows.map(r => {
       const out = { ...r };
       out._dt = parseBRDateTime(out[KEY.dataAtendimento]) || parseBRDateTime(out[state.meta.firstColKey]);
@@ -634,13 +558,6 @@
       out._renda = parseMoneyBR(out[KEY.renda]);
       out._quotas = countQuotasFromStatus(out[KEY.statusContrato]);
       out._bucket = contractBucket(out[KEY.statusContrato]);
-
-      out._clientNameKey = clientNameKey;
-      out._clientName = clientNameKey ? (out[clientNameKey] ?? "").toString().trim() : "";
-
-      out._carYearKey = carYearKey;
-      out._carYear = carYearKey ? (out[carYearKey] ?? "").toString().trim() : "";
-
       return out;
     });
   }
@@ -650,7 +567,6 @@
     const profTipo = norm(el("profTipo").value);
     const profNome = el("profNome").value;
     const ufSel = el("ufSelect").value;
-
     const d1 = parseDateOnlyInput(el("dateStart").value);
     const d2 = parseDateOnlyInput(el("dateEnd").value);
 
@@ -661,40 +577,23 @@
       const end = d2 ? (new Date(d2.getFullYear(), d2.getMonth(), d2.getDate(), 23, 59, 59, 999)).getTime() : Infinity;
       filtered = filtered.filter(r => r._dt && r._dt.getTime() >= start && r._dt.getTime() <= end);
     }
-
     if (status !== "todos") filtered = filtered.filter(r => r._bucket === status);
     if (ufSel !== "todos") filtered = filtered.filter(r => (r[KEY.uf] ?? "").toString().trim() === ufSel);
-
-    if (profNome !== "todos") {
-      filtered = filtered.filter(r => norm(r[profTipo] ?? "") === norm(profNome));
-    }
+    if (profNome !== "todos") filtered = filtered.filter(r => norm(r[profTipo] ?? "") === norm(profNome));
 
     return filtered;
   }
 
   function sumQuotas(rows) {
     return rows.reduce((acc, r) => {
-      acc.ativo += r._quotas?.ativo ?? 0;
       acc.cancelado += r._quotas?.cancelado ?? 0;
-      acc.outro += r._quotas?.outro ?? 0;
       acc.total += r._quotas?.total ?? 0;
       return acc;
-    }, { ativo:0, cancelado:0, outro:0, total:0 });
+    }, { cancelado:0, total:0 });
   }
 
-  function sumVGVSimpleWithSplit(rows) {
-    return rows.reduce((acc, r) => {
-      const v = r._valorVgv ?? 0;
-      const a = r._quotas?.ativo ?? 0;
-      const c = r._quotas?.cancelado ?? 0;
-      const t = a + c;
-      acc.total += v;
-      if (t > 0) {
-        acc.ativo += v * (a / t);
-        acc.cancelado += v * (c / t);
-      }
-      return acc;
-    }, { ativo:0, cancelado:0, total:0 });
+  function sumVGVSimple(rows) {
+    return rows.reduce((s, r) => s + (r._valorVgv ?? 0), 0);
   }
 
   function avgRenda(rows) {
@@ -706,20 +605,17 @@
   function statsFor(rows) {
     const casais = rows.length;
     const q = sumQuotas(rows);
-    const vgv = sumVGVSimpleWithSplit(rows);
+    const vgvTotal = sumVGVSimple(rows);
 
     const eficiencia = casais ? (q.total / casais) : 0;
     const pctCancel = q.total ? (q.cancelado / q.total) : 0;
-    const ticketMedio = q.total ? (vgv.total / q.total) : 0;
+    const ticketMedio = q.total ? (vgvTotal / q.total) : 0;
 
     return {
       casais,
-      vendas: q.total,
-      cotasCanceladas: q.cancelado,
-      cancelamentos: q.cancelado,
-      vgvTotal: vgv.total,
-      vgvAtivo: vgv.ativo,
-      vgvCancelado: vgv.cancelado,
+      cotas: q.total,
+      canceladas: q.cancelado,
+      vgvTotal,
       eficiencia,
       pctCancel,
       ticketMedio,
@@ -727,18 +623,29 @@
     };
   }
 
-  function updateStats(rows) {
+  function updateStatsResumo(rows) {
     const s = statsFor(rows);
     el("stats").innerHTML = `
       <div class="stat-card"><div class="stat-value">${s.casais}</div><div class="stat-label">Casais</div></div>
-      <div class="stat-card"><div class="stat-value">${s.vendas}</div><div class="stat-label">Cotas (vendas totais)</div></div>
-      <div class="stat-card"><div class="stat-value">${s.cotasCanceladas}</div><div class="stat-label">Cotas canceladas</div></div>
+      <div class="stat-card"><div class="stat-value">${s.cotas}</div><div class="stat-label">Cotas (total)</div></div>
+      <div class="stat-card"><div class="stat-value">${s.canceladas}</div><div class="stat-label">Cotas canceladas</div></div>
       <div class="stat-card"><div class="stat-value">${fmtMoney(s.vgvTotal)}</div><div class="stat-label">VGV total (Σ col G)</div></div>
-      <div class="stat-card"><div class="stat-value">${fmtMoney(s.vgvCancelado)}</div><div class="stat-label">VGV cancelado (rateado)</div></div>
       <div class="stat-card"><div class="stat-value">${fmtPctBR(s.eficiencia)}</div><div class="stat-label">Eficiência</div></div>
       <div class="stat-card"><div class="stat-value">${fmtPctBR(s.pctCancel)}</div><div class="stat-label">% Cancelamento</div></div>
       <div class="stat-card"><div class="stat-value">${fmtMoney(s.ticketMedio)}</div><div class="stat-label">Ticket médio (por cota)</div></div>
       <div class="stat-card"><div class="stat-value">${fmtMoney(s.rendaMed)}</div><div class="stat-label">Renda média</div></div>
+    `;
+  }
+
+  function updateStatsCurva(rows) {
+    const s = statsFor(rows);
+    el("stats-curva").innerHTML = `
+      <div class="stat-card"><div class="stat-value">${fmtMoney(s.vgvTotal)}</div><div class="stat-label">VGV (período)</div></div>
+      <div class="stat-card"><div class="stat-value">${s.cotas}</div><div class="stat-label">Cotas (período)</div></div>
+      <div class="stat-card"><div class="stat-value">${s.casais}</div><div class="stat-label">Casais (período)</div></div>
+      <div class="stat-card"><div class="stat-value">${fmtPctBR(s.eficiencia)}</div><div class="stat-label">Eficiência</div></div>
+      <div class="stat-card"><div class="stat-value">${fmtMoney(s.rendaMed)}</div><div class="stat-label">Renda média</div></div>
+      <div class="stat-card"><div class="stat-value">${fmtMoney(s.ticketMedio)}</div><div class="stat-label">Ticket médio</div></div>
     `;
   }
 
@@ -764,7 +671,10 @@
       if (!map.has(name)) map.set(name, []);
       map.get(name).push(r);
     });
-    const out = Array.from(map.entries()).map(([name, list]) => ({ name, ...statsFor(list) }));
+    const out = Array.from(map.entries()).map(([name, list]) => {
+      const s = statsFor(list);
+      return { name, casais: s.casais, vendas: s.cotas, cotasCanceladas: s.canceladas, vgvTotal: s.vgvTotal, eficiencia: s.eficiencia, pctCancel: s.pctCancel, ticketMedio: s.ticketMedio, rendaMed: s.rendaMed };
+    });
     out.sort((a,b) => (b.vendas - a.vendas) || (b.vgvTotal - a.vgvTotal) || (b.eficiencia - a.eficiencia) || a.name.localeCompare(b.name));
     return out;
   }
@@ -772,9 +682,7 @@
   function renderRankingTable(list, containerId, titleBadge) {
     const container = el(containerId);
     if (!list.length) { container.innerHTML = '<div class="note">Nenhum dado para o filtro selecionado.</div>'; return; }
-
     const ordered = sortedList(list, containerId, "vendas");
-
     container.innerHTML = `
       <div class="table-wrap">
         <table data-table-id="${containerId}">
@@ -791,13 +699,13 @@
               <th class="num sortable" data-sort="vgvTotal">VGV ${sortIndicator(containerId, "vgvTotal")}</th>
               <th class="num sortable" data-sort="eficiencia">Eficiência ${sortIndicator(containerId, "eficiencia")}</th>
               <th class="num sortable" data-sort="pctCancel">%Cancel ${sortIndicator(containerId, "pctCancel")}</th>
-              <th class="num sortable" data-sort="ticketMedio">Ticket Médio ${sortIndicator(containerId, "ticketMedio")}</th>
-              <th class="num sortable" data-sort="rendaMed">Renda Média ${sortIndicator(containerId, "rendaMed")}</th>
+              <th class="num sortable" data-sort="ticketMedio">Ticket ${sortIndicator(containerId, "ticketMedio")}</th>
+              <th class="num sortable" data-sort="rendaMed">Renda Méd ${sortIndicator(containerId, "rendaMed")}</th>
             </tr>
           </thead>
           <tbody>
             ${ordered.map((it, idx) => {
-              const pos = idx + 1;
+              const pos = idx+1;
               return `
                 <tr>
                   <td class="rank-col">${trophyFor(pos)} ${pos}°</td>
@@ -817,7 +725,6 @@
         </table>
       </div>
     `;
-
     const table = container.querySelector("table");
     table.querySelectorAll("thead th.sortable").forEach(th => {
       th.addEventListener("click", () => {
@@ -848,13 +755,15 @@
     ];
     const map = new Map(order.map(k => [k, []]));
     rows.forEach(r => map.get(rendaBucket(r._renda)).push(r));
-    return order.map(k => ({ faixa: k, ...statsFor(map.get(k) || []) }));
+    return order.map(k => {
+      const s = statsFor(map.get(k) || []);
+      return { faixa: k, casais: s.casais, vendas: s.cotas, cotasCanceladas: s.canceladas, vgvTotal: s.vgvTotal, eficiencia: s.eficiencia, pctCancel: s.pctCancel, ticketMedio: s.ticketMedio, rendaMed: s.rendaMed };
+    });
   }
   function renderPerfilRenda(rows, containerId) {
     const container = el(containerId);
     const list = groupByRenda(rows);
     const ordered = sortedList(list, containerId, "vgvTotal");
-
     container.innerHTML = `
       <div class="table-wrap">
         <table data-table-id="${containerId}">
@@ -889,7 +798,6 @@
         </table>
       </div>
     `;
-
     const table = container.querySelector("table");
     table.querySelectorAll("thead th.sortable").forEach(th => {
       th.addEventListener("click", () => {
@@ -899,44 +807,34 @@
     });
   }
 
-  // ===== NOVO: agregações para os gráficos =====
-  function toISODateLocal(dt){
-    return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}-${String(dt.getDate()).padStart(2,"0")}`;
+  function destroyChartSafely(ch){
+    try { ch?.destroy?.(); } catch(e) {}
   }
-  function fmtISOToBR(iso){
-    const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (!m) return iso;
-    return `${m[3]}/${m[2]}/${m[1]}`;
-  }
-  function weekdayIndexPtBR(dt){
-    // JS: 0=Dom..6=Sáb
-    return dt.getDay();
-  }
-  const WEEK_LABELS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
   function dailySeries(rows){
     const map = new Map(); // iso -> {casais, vendas}
     rows.forEach(r => {
       if (!r._dt) return;
-      const iso = toISODateLocal(r._dt);
+      const iso = `${r._dt.getFullYear()}-${String(r._dt.getMonth()+1).padStart(2,"0")}-${String(r._dt.getDate()).padStart(2,"0")}`;
       if (!map.has(iso)) map.set(iso, { casais:0, vendas:0 });
       const it = map.get(iso);
       it.casais += 1;
       it.vendas += (r._quotas?.total ?? 0);
     });
     const keys = Array.from(map.keys()).sort();
-    return {
-      labels: keys,
-      casais: keys.map(k => map.get(k).casais),
-      vendas: keys.map(k => map.get(k).vendas),
-    };
+    return { labels: keys, casais: keys.map(k => map.get(k).casais), vendas: keys.map(k => map.get(k).vendas) };
   }
-
+  function fmtISOToBR(iso){
+    const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return iso;
+    return `${m[3]}/${m[2]}/${m[1]}`;
+  }
+  const WEEK_LABELS = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
   function weekdayAgg(rows){
     const agg = Array.from({length:7}, () => ({ casais:0, vendas:0, vgv:0 }));
     rows.forEach(r => {
       if (!r._dt) return;
-      const i = weekdayIndexPtBR(r._dt);
+      const i = r._dt.getDay();
       agg[i].casais += 1;
       agg[i].vendas += (r._quotas?.total ?? 0);
       agg[i].vgv += (r._valorVgv ?? 0);
@@ -945,18 +843,9 @@
     return { labels: WEEK_LABELS, casais: agg.map(x=>x.casais), vendas: agg.map(x=>x.vendas), vgv: agg.map(x=>x.vgv), eficiencia: eff };
   }
 
-  function destroyChartSafely(ch){
-    try { ch?.destroy?.(); } catch(e) {}
-  }
-
   function renderCurvaCharts(rows){
-    // meta período para subtitle
-    const d1 = el("dateStart").value;
-    const d2 = el("dateEnd").value;
-    const status = el("statusSelect").value;
-    const profNome = el("profNome").value;
-    const ufSel = el("ufSelect").value;
-
+    const d1 = el("dateStart").value, d2 = el("dateEnd").value;
+    const status = el("statusSelect").value, profNome = el("profNome").value, ufSel = el("ufSelect").value;
     const metaTxt = [
       (d1 || d2) ? `Período: ${d1 ? fmtISOToBR(d1) : "—"} a ${d2 ? fmtISOToBR(d2) : "—"}` : "Período: (sem filtro)",
       `Status: ${status}`,
@@ -965,130 +854,51 @@
     ].join(" • ");
     el("curva-meta").textContent = metaTxt;
 
-    // --- Curva diária
     const s = dailySeries(rows);
     const labelsBR = s.labels.map(fmtISOToBR);
 
     destroyChartSafely(charts.curva);
-    const ctx1 = el("chartCurva").getContext("2d");
-    charts.curva = new Chart(ctx1, {
+    charts.curva = new Chart(el("chartCurva").getContext("2d"), {
       type: "line",
       data: {
         labels: labelsBR,
         datasets: [
-          {
-            label: "Casais (linhas)",
-            data: s.casais,
-            borderColor: "rgba(34,211,238,1)",
-            backgroundColor: "rgba(34,211,238,.15)",
-            tension: 0.25,
-            pointRadius: 2.5,
-            yAxisID: "yCasais",
-          },
-          {
-            label: "Vendas (cotas)",
-            data: s.vendas,
-            borderColor: "rgba(92,255,176,1)",
-            backgroundColor: "rgba(92,255,176,.12)",
-            tension: 0.25,
-            pointRadius: 2.5,
-            yAxisID: "yVendas",
-          }
+          { label:"Casais (linhas)", data:s.casais, borderColor:"rgba(34,211,238,1)", backgroundColor:"rgba(34,211,238,.15)", tension:0.25, pointRadius:2.5, yAxisID:"yCasais" },
+          { label:"Vendas (cotas)", data:s.vendas, borderColor:"rgba(92,255,176,1)", backgroundColor:"rgba(92,255,176,.12)", tension:0.25, pointRadius:2.5, yAxisID:"yVendas" }
         ]
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: { mode: "index", intersect: false },
-        plugins: {
-          legend: { labels: { color: "rgba(234,240,255,.85)" } },
-          tooltip: {
-            callbacks: {
-              label: (ctx) => {
-                const v = ctx.parsed.y ?? 0;
-                return `${ctx.dataset.label}: ${v}`;
-              }
-            }
-          }
-        },
-        scales: {
-          x: {
-            ticks: { color: "rgba(234,240,255,.7)", maxRotation: 0, autoSkip: true },
-            grid: { color: "rgba(255,255,255,.05)" }
-          },
-          yCasais: {
-            position: "left",
-            ticks: { color: "rgba(234,240,255,.7)" },
-            grid: { color: "rgba(255,255,255,.05)" },
-            title: { display: true, text: "Casais", color: "rgba(234,240,255,.7)" }
-          },
-          yVendas: {
-            position: "right",
-            ticks: { color: "rgba(234,240,255,.7)" },
-            grid: { drawOnChartArea: false },
-            title: { display: true, text: "Vendas (cotas)", color: "rgba(234,240,255,.7)" }
-          }
+        responsive:true, maintainAspectRatio:false,
+        interaction:{ mode:"index", intersect:false },
+        plugins:{ legend:{ labels:{ color:"rgba(234,240,255,.85)" } } },
+        scales:{
+          x:{ ticks:{ color:"rgba(234,240,255,.7)", maxRotation:0, autoSkip:true }, grid:{ color:"rgba(255,255,255,.05)" } },
+          yCasais:{ position:"left", ticks:{ color:"rgba(234,240,255,.7)" }, grid:{ color:"rgba(255,255,255,.05)" }, title:{ display:true, text:"Casais", color:"rgba(234,240,255,.7)" } },
+          yVendas:{ position:"right", ticks:{ color:"rgba(234,240,255,.7)" }, grid:{ drawOnChartArea:false }, title:{ display:true, text:"Vendas (cotas)", color:"rgba(234,240,255,.7)" } }
         }
       }
     });
 
-    // --- Semana
     const w = weekdayAgg(rows);
     destroyChartSafely(charts.semana);
-    const ctx2 = el("chartSemana").getContext("2d");
-    charts.semana = new Chart(ctx2, {
+    charts.semana = new Chart(el("chartSemana").getContext("2d"), {
       data: {
         labels: w.labels,
         datasets: [
-          {
-            type: "bar",
-            label: "Casais",
-            data: w.casais,
-            backgroundColor: "rgba(124,92,255,.25)",
-            borderColor: "rgba(124,92,255,.65)",
-            borderWidth: 1,
-            yAxisID: "yCount"
-          },
-          {
-            type: "bar",
-            label: "Vendas (cotas)",
-            data: w.vendas,
-            backgroundColor: "rgba(92,255,176,.18)",
-            borderColor: "rgba(92,255,176,.65)",
-            borderWidth: 1,
-            yAxisID: "yCount"
-          },
-          {
-            type: "line",
-            label: "VGV",
-            data: w.vgv,
-            borderColor: "rgba(34,211,238,1)",
-            backgroundColor: "rgba(34,211,238,.10)",
-            tension: 0.25,
-            pointRadius: 2.2,
-            yAxisID: "yMoney"
-          },
-          {
-            type: "line",
-            label: "Aproveitamento (Eficiência)",
-            data: w.eficiencia.map(x => x * 100),
-            borderColor: "rgba(255,176,32,1)",
-            backgroundColor: "rgba(255,176,32,.10)",
-            tension: 0.25,
-            pointRadius: 2.2,
-            yAxisID: "yPct"
-          }
+          { type:"bar", label:"Casais", data:w.casais, backgroundColor:"rgba(124,92,255,.25)", borderColor:"rgba(124,92,255,.65)", borderWidth:1, yAxisID:"yCount" },
+          { type:"bar", label:"Vendas (cotas)", data:w.vendas, backgroundColor:"rgba(92,255,176,.18)", borderColor:"rgba(92,255,176,.65)", borderWidth:1, yAxisID:"yCount" },
+          { type:"line", label:"VGV", data:w.vgv, borderColor:"rgba(34,211,238,1)", backgroundColor:"rgba(34,211,238,.10)", tension:0.25, pointRadius:2.2, yAxisID:"yMoney" },
+          { type:"line", label:"Aproveitamento (Eficiência)", data:w.eficiencia.map(x=>x*100), borderColor:"rgba(255,176,32,1)", backgroundColor:"rgba(255,176,32,.10)", tension:0.25, pointRadius:2.2, yAxisID:"yPct" }
         ]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: { mode: "index", intersect: false },
-        plugins: {
-          legend: { labels: { color: "rgba(234,240,255,.85)" } },
-          tooltip: {
-            callbacks: {
-              label: (ctx) => {
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        interaction:{ mode:"index", intersect:false },
+        plugins:{
+          legend:{ labels:{ color:"rgba(234,240,255,.85)" } },
+          tooltip:{
+            callbacks:{
+              label:(ctx)=>{
                 const ds = ctx.dataset.label || "";
                 const v = ctx.parsed.y ?? 0;
                 if (ds.includes("VGV")) return `${ds}: ${fmtMoney(v)}`;
@@ -1098,160 +908,141 @@
             }
           }
         },
-        scales: {
-          x: {
-            ticks: { color: "rgba(234,240,255,.7)" },
-            grid: { color: "rgba(255,255,255,.05)" }
-          },
-          yCount: {
-            position: "left",
-            ticks: { color: "rgba(234,240,255,.7)" },
-            grid: { color: "rgba(255,255,255,.05)" },
-            title: { display: true, text: "Volume (casais/vendas)", color: "rgba(234,240,255,.7)" }
-          },
-          yMoney: {
-            position: "right",
-            ticks: {
-              color: "rgba(234,240,255,.7)",
-              callback: (val) => {
-                // abreviação simples
-                const n = Number(val) || 0;
-                if (Math.abs(n) >= 1000000) return `R$ ${(n/1000000).toFixed(1)}M`;
-                if (Math.abs(n) >= 1000) return `R$ ${(n/1000).toFixed(0)}k`;
-                return `R$ ${n.toFixed(0)}`;
-              }
-            },
-            grid: { drawOnChartArea: false },
-            title: { display: true, text: "VGV", color: "rgba(234,240,255,.7)" }
-          },
-          yPct: {
-            position: "right",
-            min: 0,
-            ticks: {
-              color: "rgba(234,240,255,.7)",
-              callback: (val) => `${val}%`
-            },
-            grid: { drawOnChartArea: false },
-            title: { display: true, text: "Eficiência (%)", color: "rgba(234,240,255,.7)" }
-          }
+        scales:{
+          x:{ ticks:{ color:"rgba(234,240,255,.7)" }, grid:{ color:"rgba(255,255,255,.05)" } },
+          yCount:{ position:"left", ticks:{ color:"rgba(234,240,255,.7)" }, grid:{ color:"rgba(255,255,255,.05)" }, title:{ display:true, text:"Volume (casais/vendas)", color:"rgba(234,240,255,.7)" } },
+          yMoney:{ position:"right", ticks:{ color:"rgba(234,240,255,.7)" }, grid:{ drawOnChartArea:false }, title:{ display:true, text:"VGV", color:"rgba(234,240,255,.7)" } },
+          yPct:{ position:"right", min:0, ticks:{ color:"rgba(234,240,255,.7)", callback:(val)=>`${val}%` }, grid:{ drawOnChartArea:false }, title:{ display:true, text:"Eficiência (%)", color:"rgba(234,240,255,.7)" } }
         }
       }
     });
   }
 
-  // ✅ LISTA DE CANCELADOS COM RENDA + ANO DO CARRO
-  function buildCanceladosList(rowsForProfessional) {
-    const out = [];
+  // ===== MAPA DE CALOR POR HORÁRIO =====
+  const DOW = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
 
-    rowsForProfessional.forEach(r => {
-      const tokens = splitStatusTokens(r[KEY.statusContrato]);
-      if (!tokens.length) return;
+  function hourBucketLabel(h){
+    const hh = String(h).padStart(2,"0");
+    return `${hh}:00–${hh}:59`;
+  }
 
-      const totalCotasNaLinha = tokens.length;
-      const valorPorCota = totalCotasNaLinha > 0 ? ((r._valorVgv || 0) / totalCotasNaLinha) : 0;
+  function buildHeatmapByHour(rows){
+    // hour 0..23 x dow 0..6
+    const grid = Array.from({length:24}, () => Array.from({length:7}, () => 0));
+    let max = 0;
 
-      const cliente = (r._clientName || "").trim() || "(Cliente sem nome no CSV)";
-
+    rows.forEach(r => {
       const dt = r._dt;
-      const when = dt ? `${String(dt.getDate()).padStart(2,"0")}/${String(dt.getMonth()+1).padStart(2,"0")}/${dt.getFullYear()}` : "";
-
-      const renda = r._renda || 0;
-      const anoCarro = (r._carYear || "").trim();
-
-      tokens.forEach(tok => {
-        if (classifyToken(tok) !== "cancelado") return;
-        out.push({
-          cliente,
-          valorPorCota,
-          when,
-          uf: (r[KEY.uf] ?? "").toString().trim(),
-          renda,
-          anoCarro
-        });
-      });
+      if (!dt) return;
+      const h = dt.getHours();
+      const d = dt.getDay();
+      grid[h][d] += 1;
+      if (grid[h][d] > max) max = grid[h][d];
     });
 
-    out.sort((a,b) => (b.valorPorCota - a.valorPorCota) || a.cliente.localeCompare(b.cliente, "pt-BR", {sensitivity:"base"}));
-    return out;
+    return { grid, max };
   }
 
-  function renderCanceladosBox() {
-    const tipo = norm(el("profTipoSingle").value);
-    const nome = el("profNomeSingle").value;
+  function heatColor(v, max){
+    // escala simples: transparente -> accent2 forte
+    if (!max || max <= 0) return "rgba(255,255,255,.03)";
+    const t = Math.max(0, Math.min(1, v / max));
+    // misturar ciano com roxo pra ficar bonito
+    const r = Math.round(34 + (124-34) * t);
+    const g = Math.round(211 + (92-211) * t);
+    const b = Math.round(238 + (255-238) * t);
+    const a = 0.12 + 0.55 * t;
+    return `rgba(${r},${g},${b},${a})`;
+  }
 
-    const meta = el("cancel-meta");
-    const listEl = el("cancel-list");
-    const summaryEl = el("cancel-summary");
-    const btnCopy = el("btnCopyCancelados");
+  function renderHeatmap(rows){
+    const { grid, max } = buildHeatmapByHour(rows);
 
-    let base = state.filtered.slice();
+    // legenda
+    const legend = el("hm-legend");
+    legend.innerHTML = `
+      <span class="swatch" style="background:${heatColor(0, max)}"></span> Baixo
+      <span class="swatch" style="background:${heatColor(Math.round(max*0.5), max)}"></span> Médio
+      <span class="swatch" style="background:${heatColor(max, max)}"></span> Alto
+      <span class="badge">Máx: ${max}</span>
+    `;
 
-    if (!nome) {
-      meta.textContent = "Selecione um profissional para listar.";
-      listEl.innerHTML = `<div class="note bad" style="margin:0">Nenhum profissional selecionado.</div>`;
-      summaryEl.textContent = "";
-      btnCopy.disabled = true;
-      return;
-    }
-
-    base = base.filter(r => norm(r[tipo] ?? "") === norm(nome));
-
-    const cancels = buildCanceladosList(base);
-
-    meta.textContent = `${nome} • ${cancels.length} cotas canceladas listadas`;
-
-    if (!cancels.length) {
-      listEl.innerHTML = `<div class="note" style="margin:0">Não há cotas canceladas para este profissional no período/filtros atuais.</div>`;
-      summaryEl.textContent = "";
-      btnCopy.disabled = true;
-      return;
-    }
-
-    const totalCancel = cancels.reduce((s, x) => s + (x.valorPorCota || 0), 0);
-    summaryEl.textContent = `Total (somatório do valor por cota cancelada): ${fmtMoney(totalCancel)}`;
-
-    listEl.innerHTML = cancels.map((c, idx) => `
-      <div class="cancel-item">
-        <div class="who">
-          <div class="nm" title="${c.cliente}">${idx+1}. ${c.cliente}</div>
-          <div class="sub">
-            ${c.when ? `Data: ${c.when}` : "Data: —"}
-            ${c.uf ? ` • UF: ${c.uf}` : ""}
-            <br>
-            Renda: ${fmtMoney(c.renda)}${c.anoCarro ? ` • Ano carro: ${c.anoCarro}` : " • Ano carro: —"}
-          </div>
-        </div>
-        <div class="val">${fmtMoney(c.valorPorCota)}</div>
-      </div>
-    `).join("");
-
-    btnCopy.disabled = false;
-
-    btnCopy.onclick = async () => {
-      const text = cancels
-        .map(c =>
-          `${c.cliente}\t${fmtMoney(c.valorPorCota)}\tRenda:${fmtMoney(c.renda)}\tAno:${c.anoCarro || "-"}${c.when ? `\t${c.when}` : ""}${c.uf ? `\t${c.uf}` : ""}`
-        ).join("\n");
-      try {
-        await navigator.clipboard.writeText(text);
-        btnCopy.textContent = "Copiado!";
-        setTimeout(() => btnCopy.textContent = "Copiar lista", 1200);
-      } catch (e) {
-        prompt("Copie a lista abaixo:", text);
+    // top 5 (opcional)
+    const top = [];
+    for (let h=0; h<24; h++){
+      for (let d=0; d<7; d++){
+        const v = grid[h][d];
+        if (v > 0) top.push({ h, d, v });
       }
-    };
+    }
+    top.sort((a,b)=> b.v - a.v);
+    const topEl = el("hm-top");
+    if (top.length){
+      topEl.style.display = "block";
+      topEl.innerHTML = `<strong>Top horários (dia da semana)</strong><br>` + top.slice(0,8).map((x, i) =>
+        `${i+1}. <span class="badge">${DOW[x.d]}</span> <span class="badge">${hourBucketLabel(x.h)}</span> — <strong>${x.v}</strong> casais`
+      ).join("<br>");
+    } else {
+      topEl.style.display = "none";
+    }
+
+    // monta grid DOM
+    const hm = el("heatmap");
+    hm.innerHTML = "";
+
+    // header row
+    hm.appendChild(Object.assign(document.createElement("div"), { className:"hm-head", textContent:"Horário" }));
+    DOW.forEach(day => hm.appendChild(Object.assign(document.createElement("div"), { className:"hm-head", textContent:day })));
+
+    // rows
+    for (let h=0; h<24; h++){
+      const rowLabel = document.createElement("div");
+      rowLabel.className = "hm-head hm-rowlabel";
+      rowLabel.textContent = hourBucketLabel(h);
+      hm.appendChild(rowLabel);
+
+      for (let d=0; d<7; d++){
+        const v = grid[h][d];
+        const cell = document.createElement("div");
+        cell.className = "hm-cell";
+        cell.style.background = heatColor(v, max);
+        cell.title = `${DOW[d]} • ${hourBucketLabel(h)} • ${v} casais`;
+        cell.innerHTML = `${v}<span class="mini">${max ? new Intl.NumberFormat("pt-BR",{maximumFractionDigits:1}).format((v/max)*100) : "0"}%</span>`;
+        hm.appendChild(cell);
+      }
+    }
   }
 
-  function updateProfFilters(tipoElId, nomeElId) {
-    const tipo = norm(el(tipoElId).value);
-    const nomeEl = el(nomeElId);
+  function updateAll() {
+    state.filtered = applyFilters(state.rows);
+
+    // resumo + cards da curva
+    updateStatsResumo(state.filtered);
+    updateStatsCurva(state.filtered);
+
+    // rankings
+    renderRankingTable(groupRanking(state.filtered, KEY.promotor), "ranking-promotor", "Promotor");
+    renderRankingTable(groupRanking(state.filtered, KEY.liner), "ranking-liner", "Liner");
+    renderRankingTable(groupRanking(state.filtered, KEY.closer), "ranking-closer", "Closer");
+
+    // perfil renda
+    renderPerfilRenda(state.filtered, "perfil-renda");
+
+    // charts + heatmap
+    renderCurvaCharts(state.filtered);
+    renderHeatmap(state.filtered);
+  }
+
+  function updateProfFilters() {
+    const tipo = norm(el("profTipo").value);
+    const nomeEl = el("profNome");
     const names = new Set();
     state.rows.forEach(r => {
       const n = (r[tipo] ?? "").toString().trim();
       if (n) names.add(n);
     });
     const arr = Array.from(names).sort((a,b)=>a.localeCompare(b, "pt-BR", {sensitivity:"base"}));
-    nomeEl.innerHTML = (nomeElId === "profNome") ? '<option value="todos">Todos</option>' : '<option value="">Selecione...</option>';
+    nomeEl.innerHTML = '<option value="todos">Todos</option>';
     arr.forEach(n => {
       const opt = document.createElement("option");
       opt.value = n;
@@ -1277,57 +1068,13 @@
     });
   }
 
-  function renderSingleProfessionalStats() {
-    const tipo = norm(el("profTipoSingle").value);
-    const nome = el("profNomeSingle").value;
-    const box = el("stats-single");
-
-    if (!nome) { box.innerHTML = ""; return; }
-
-    const mine = state.filtered.filter(r => norm(r[tipo] ?? "") === norm(nome));
-    const s = statsFor(mine);
-
-    box.innerHTML = `
-      <div class="stat-card"><div class="stat-value">${nome}</div><div class="stat-label">Profissional selecionado</div></div>
-      <div class="stat-card"><div class="stat-value">${s.casais}</div><div class="stat-label">Casais</div></div>
-      <div class="stat-card"><div class="stat-value">${s.vendas}</div><div class="stat-label">Cotas</div></div>
-      <div class="stat-card"><div class="stat-value">${s.cotasCanceladas}</div><div class="stat-label">Cotas canceladas</div></div>
-      <div class="stat-card"><div class="stat-value">${fmtMoney(s.vgvTotal)}</div><div class="stat-label">VGV (Σ col G)</div></div>
-      <div class="stat-card"><div class="stat-value">${fmtPctBR(s.eficiencia)}</div><div class="stat-label">Eficiência</div></div>
-      <div class="stat-card"><div class="stat-value">${fmtPctBR(s.pctCancel)}</div><div class="stat-label">% Cancelamento</div></div>
-      <div class="stat-card"><div class="stat-value">${fmtMoney(s.ticketMedio)}</div><div class="stat-label">Ticket médio</div></div>
-    `;
-  }
-
-  function updateAll() {
-    state.filtered = applyFilters(state.rows);
-
-    updateStats(state.filtered);
-
-    // rankings
-    renderRankingTable(groupRanking(state.filtered, KEY.promotor), "ranking-promotor", "Promotor");
-    renderRankingTable(groupRanking(state.filtered, KEY.liner), "ranking-liner", "Liner");
-    renderRankingTable(groupRanking(state.filtered, KEY.closer), "ranking-closer", "Closer");
-
-    renderPerfilRenda(state.filtered, "perfil-renda");
-
-    const tipo = norm(el("profTipo").value);
-    renderRankingTable(groupRanking(state.filtered, tipo), "profissionais-table", "Profissionais");
-
-    renderSingleProfessionalStats();
-    renderCanceladosBox();
-
-    // charts
-    renderCurvaCharts(state.filtered);
-  }
-
   function setup() {
     ["statusSelect","profTipo","profNome","ufSelect","dateStart","dateEnd"].forEach(id => {
       el(id).addEventListener("change", updateAll);
       el(id).addEventListener("keyup", (e) => { if (e.key === "Enter") updateAll(); });
     });
 
-    el("profTipo").addEventListener("change", () => { updateProfFilters("profTipo","profNome"); updateAll(); });
+    el("profTipo").addEventListener("change", () => { updateProfFilters(); updateAll(); });
 
     el("btnLimparPeriodo").addEventListener("click", () => {
       el("dateStart").value = ""; el("dateEnd").value = ""; updateAll();
@@ -1335,13 +1082,8 @@
 
     el("btnHoje").addEventListener("click", () => {
       const now = new Date();
-      const y = now.getFullYear();
-      const m = String(now.getMonth() + 1).padStart(2, "0");
-      const d = String(now.getDate()).padStart(2, "0");
-      const iso = `${y}-${m}-${d}`;
-      el("dateStart").value = iso;
-      el("dateEnd").value = iso;
-      updateAll();
+      const iso = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
+      el("dateStart").value = iso; el("dateEnd").value = iso; updateAll();
     });
 
     el("btn30").addEventListener("click", () => {
@@ -1349,22 +1091,13 @@
       const end = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const start = new Date(end);
       start.setDate(start.getDate() - 29);
-      const toISODate = (dt) => `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}-${String(dt.getDate()).padStart(2,"0")}`;
-      el("dateStart").value = toISODate(start);
-      el("dateEnd").value = toISODate(end);
+      const toISO = (dt) => `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}-${String(dt.getDate()).padStart(2,"0")}`;
+      el("dateStart").value = toISO(start);
+      el("dateEnd").value = toISO(end);
       updateAll();
     });
 
-    el("profTipoSingle").addEventListener("change", () => {
-      updateProfFilters("profTipoSingle","profNomeSingle");
-      renderSingleProfessionalStats();
-      renderCanceladosBox();
-    });
-    el("profNomeSingle").addEventListener("change", () => {
-      renderSingleProfessionalStats();
-      renderCanceladosBox();
-    });
-
+    // Tabs
     document.querySelectorAll(".tab").forEach(t => {
       t.addEventListener("click", () => {
         document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
@@ -1372,11 +1105,8 @@
         t.classList.add("active");
         el(`tab-${t.dataset.tab}`).classList.add("active");
 
-        // se trocar pra aba curva, garante resize do canvas (por causa do display none)
         if (t.dataset.tab === "curva") {
-          setTimeout(() => {
-            try { charts.curva?.resize?.(); charts.semana?.resize?.(); } catch(e) {}
-          }, 60);
+          setTimeout(() => { try { charts.curva?.resize?.(); charts.semana?.resize?.(); } catch(e){} }, 60);
         }
       });
     });
@@ -1388,24 +1118,18 @@
       el("error").style.display = "none";
 
       const resp = await fetch("dados.csv", { cache:"no-store" });
-      if(!resp.ok) throw new Error(`Erro HTTP ${resp.status}`);
+      if (!resp.ok) throw new Error(`Erro HTTP ${resp.status}`);
 
-      const text = await resp.text();
-      const raw = parseDelimited(text, ";");
+      const txt = await resp.text();
+      const raw = parseDelimited(txt, ";");
       state.rows = buildObjects(raw);
 
-      const any = state.rows[0] || {};
-      if (!any._clientNameKey) console.warn("Não detectei coluna do nome do cliente. Ajuste CLIENT_NAME_HEADERS.");
-      if (!any._carYearKey) console.warn("Não detectei coluna do ano do carro. Ajuste CAR_YEAR_HEADERS.");
-
-      updateProfFilters("profTipo","profNome");
-      updateProfFilters("profTipoSingle","profNomeSingle");
+      updateProfFilters();
       updateUfFilters();
 
       updateAll();
-
       el("loading").style.display = "none";
-    }catch(e){
+    } catch(e){
       console.error(e);
       el("loading").style.display = "none";
       el("error").style.display = "block";
