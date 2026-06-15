@@ -221,6 +221,60 @@
     }
     .team-row .mut{ color:var(--muted); font-size:.85rem; font-family:var(--mono); }
 
+    /* Comparativo */
+    .compare-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(340px, 1fr));
+      gap:14px;
+      margin-top:10px;
+    }
+    .compare-card{
+      background:var(--card);
+      border:1px solid var(--stroke);
+      border-radius:var(--radius);
+      padding:14px;
+      backdrop-filter:blur(10px);
+    }
+    .compare-card h3{ margin:0 0 10px; font-size:1.05rem; }
+    .kpi-row{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      padding:12px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.03);
+      margin-bottom:10px;
+    }
+    .kpi-top{display:flex; align-items:baseline; justify-content:space-between; gap:12px;}
+    .kpi-name{font-weight:950;}
+    .kpi-delta{
+      font-family:var(--mono);
+      font-weight:950;
+      padding:3px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      min-width:110px;
+      text-align:center;
+    }
+    .kpi-delta.pos{ background:rgba(92,255,176,.12); color:var(--good); border-color:rgba(92,255,176,.28); }
+    .kpi-delta.neg{ background:rgba(255,45,85,.12); color:var(--bad); border-color:rgba(255,45,85,.28); }
+    .kpi-delta.neu{ background:rgba(255,255,255,.06); color:rgba(234,240,255,.85); border-color:rgba(255,255,255,.14); }
+    .kpi-sub{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap:10px;
+      color:var(--muted);
+      font-size:.9rem;
+    }
+    .kpi-sub > div{white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+    .kpi-sub b{color:rgba(234,240,255,.88)}
+    .hint{
+      font-size:.9rem;
+      color:var(--muted);
+      line-height:1.45;
+    }
+
     @media(max-width: 1100px){
       .tabs{ grid-template-columns:repeat(3, minmax(0, 1fr)); }
     }
@@ -234,6 +288,7 @@
       .chart-wrap{ height: 320px; }
       .tabs{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
       .tab{ justify-content:flex-start; text-align:left; padding:12px 12px; }
+      .kpi-sub{ grid-template-columns: 1fr; }
     }
   </style>
 
@@ -298,6 +353,7 @@
     <div class="tabs-wrap">
       <div class="tabs">
         <div class="tab active" data-tab="resumo">📊 Resumo</div>
+        <div class="tab" data-tab="comparativo">🆚 Comparativo de períodos</div>
         <div class="tab" data-tab="curva">📈 Curva de casais e vendas</div>
         <div class="tab" data-tab="cancelamento">❌ Análise de cancelamento</div>
         <div class="tab" data-tab="equipes">🧲 Equipes de captação</div>
@@ -324,6 +380,61 @@
           • VGV ativo/cancelado: rateio proporcional pela quantidade de tokens ATIVO/CANCELADO na linha (quando houver mistura).<br>
           • <strong>Eficiência = (Vendas (cotas) ÷ Casais) × 100</strong>.<br>
           • <strong>Média de Casais por dia</strong> = total de linhas ÷ quantidade de dias do período (inclusivo, quando as duas datas estão preenchidas).
+        </div>
+      </div>
+
+      <!-- NOVA ABA: Comparativo -->
+      <div id="tab-comparativo" class="tab-content">
+        <div class="note">
+          <strong>Comparativo entre dois períodos</strong><br>
+          • Período X e Período Y são independentes e respeitam os mesmos filtros (Status, Profissional, Nome e UF).<br>
+          • <strong>Variação %</strong> = $$\frac{X - Y}{Y} \times 100$$ (quando $$Y=0$$, mostramos "—").<br>
+          • Eficiência é calculada como <strong>Vendas ÷ Casais</strong> (fração) e a variação é calculada em cima dessa fração.
+        </div>
+
+        <div class="compare-grid">
+          <div class="compare-card">
+            <h3>Período X</h3>
+            <div class="controls" style="margin:0; justify-content:flex-start">
+              <div class="control-group" style="min-width:330px">
+                <label>Datas (X)</label>
+                <div class="range-row">
+                  <input id="cmpXStart" type="date" />
+                  <span class="sep">a</span>
+                  <input id="cmpXEnd" type="date" />
+                  <button class="btn" id="btnCmpXHoje" type="button">Hoje</button>
+                  <button class="btn" id="btnCmpX30" type="button">30 dias</button>
+                </div>
+              </div>
+            </div>
+            <div class="stats" id="cmpStatsX" style="margin-top:10px"></div>
+          </div>
+
+          <div class="compare-card">
+            <h3>Período Y</h3>
+            <div class="controls" style="margin:0; justify-content:flex-start">
+              <div class="control-group" style="min-width:330px">
+                <label>Datas (Y)</label>
+                <div class="range-row">
+                  <input id="cmpYStart" type="date" />
+                  <span class="sep">a</span>
+                  <input id="cmpYEnd" type="date" />
+                  <button class="btn" id="btnCmpYHoje" type="button">Hoje</button>
+                  <button class="btn" id="btnCmpY30" type="button">30 dias</button>
+                </div>
+              </div>
+            </div>
+            <div class="stats" id="cmpStatsY" style="margin-top:10px"></div>
+          </div>
+        </div>
+
+        <div class="compare-card" style="margin-top:14px">
+          <h3>Variação percentual (X vs Y)</h3>
+          <div id="cmpMeta" class="hint" style="margin:6px 0 12px">—</div>
+          <div id="cmpDeltas"></div>
+          <div class="note warn" style="margin-top:12px">
+            Dica: para comparar "últimos 30 dias" vs "30 dias anteriores", você pode usar os botões de 30 dias em X e depois ajustar Y manualmente.
+          </div>
         </div>
       </div>
 
@@ -804,8 +915,6 @@
     return n;
   }
 
-  // ===== EFICIÊNCIA (CORRIGIDA) =====
-  // Queremos: Vendas (cotas) / Casais (clientes líquidos)  => ex: 739/2653=27,85%
   function calcEficiencia(vendasCotas, casaisLiquidos){
     if (!casaisLiquidos) return 0;
     return (vendasCotas || 0) / casaisLiquidos;
@@ -837,8 +946,8 @@
       vgvAtivo: vgv.ativo,
       vgvCancelado: vgv.cancelado,
 
-      eficiencia,     // fração (0-1)
-      pctCancel,      // fração (0-1)
+      eficiencia,
+      pctCancel,
       ticketMedio,
 
       rendaMed: avgRenda(rows),
@@ -862,11 +971,8 @@
     `;
   }
 
-  function updateStats(rows) { renderStatsCards("stats", rows); }
-
   function effPillClass(effFrac) {
     const pct = (effFrac || 0) * 100;
-    // agora valores típicos vão ser 0-100% (ex: 27,9%)
     if (pct < 15) return "p-bad";
     if (pct < 25) return "p-med";
     return "p-good";
@@ -1052,11 +1158,6 @@
     });
   }
 
-  // (Restante do código: gráficos, cancelamento, equipes, filtros, init)
-  // Para manter esta resposta objetiva, não alterei a lógica dessas partes,
-  // pois a correção de eficiência já se propaga via statsFor().
-  // Abaixo segue a implementação completa dessas partes, igual à versão anterior.
-
   function toISODateLocal(dt){
     return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}-${String(dt.getDate()).padStart(2,"0")}`;
   }
@@ -1115,7 +1216,6 @@
     });
 
     const agg = WEEK_INDEX_ORDER_MON_FIRST.map(i => raw[i]);
-    // eficiência por dia da semana: vendas/casais (corrigido)
     const eff = agg.map(x => x.casais ? (x.vendas / x.casais) : 0);
 
     return {
@@ -1472,6 +1572,100 @@
     `;
   }
 
+  /* =========================
+     COMPARATIVO (NOVA LÓGICA)
+     ========================= */
+
+  function filterRowsByDateRange(rows, startIso, endIso){
+    const d1 = parseDateOnlyInput(startIso);
+    const d2 = parseDateOnlyInput(endIso);
+    if (!d1 && !d2) return rows.slice();
+
+    const start = d1 ? d1.getTime() : -Infinity;
+    const end = d2 ? (new Date(d2.getFullYear(), d2.getMonth(), d2.getDate(), 23,59,59,999)).getTime() : Infinity;
+    return rows.filter(r => r._dt && r._dt.getTime() >= start && r._dt.getTime() <= end);
+  }
+
+  function pctVar(x, y){
+    const X = Number(x) || 0;
+    const Y = Number(y) || 0;
+    if (Y === 0) return null; // evita infinito
+    return (X - Y) / Y; // fração (ex: 0.12 = +12%)
+  }
+
+  function fmtVarPct(frac){
+    if (frac === null) return "—";
+    const pct = frac * 100;
+    const sign = pct > 0 ? "+" : "";
+    return sign + new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(pct) + "%";
+  }
+
+  function deltaClass(frac){
+    if (frac === null) return "neu";
+    if (Math.abs(frac) < 0.0000001) return "neu";
+    return frac > 0 ? "pos" : "neg";
+  }
+
+  function renderComparativo(){
+    const base = applyFilters(state.rows); // filtros "globais" (exceto datas)
+    const xStart = el("cmpXStart").value;
+    const xEnd   = el("cmpXEnd").value;
+    const yStart = el("cmpYStart").value;
+    const yEnd   = el("cmpYEnd").value;
+
+    const rowsX = filterRowsByDateRange(base, xStart, xEnd);
+    const rowsY = filterRowsByDateRange(base, yStart, yEnd);
+
+    renderStatsCards("cmpStatsX", rowsX);
+    renderStatsCards("cmpStatsY", rowsY);
+
+    const sX = statsFor(rowsX);
+    const sY = statsFor(rowsY);
+
+    const status = el("statusSelect").value;
+    const profTipo = el("profTipo").value;
+    const profNome = el("profNome").value;
+    const ufSel = el("ufSelect").value;
+
+    el("cmpMeta").textContent = [
+      `Período X: ${xStart ? fmtISOToBR(xStart) : "—"} a ${xEnd ? fmtISOToBR(xEnd) : "—"}`,
+      `Período Y: ${yStart ? fmtISOToBR(yStart) : "—"} a ${yEnd ? fmtISOToBR(yEnd) : "—"}`,
+      `Status: ${status}`,
+      `Prof.: ${profTipo} / ${profNome}`,
+      `UF: ${ufSel}`
+    ].join(" • ");
+
+    const metrics = [
+      { key:"casais", label:"Casais", x:sX.casais, y:sY.casais, fmt:(v)=>String(v|0) },
+      { key:"mediaCasaisPeriodo", label:"Média de Casais/dia", x:sX.mediaCasaisPeriodo, y:sY.mediaCasaisPeriodo, fmt:(v)=>fmtNumberBR(v,1,1) },
+      { key:"vendas", label:"Cotas (vendas)", x:sX.vendas, y:sY.vendas, fmt:(v)=>String(v|0) },
+      { key:"cotasCanceladas", label:"Cotas canceladas", x:sX.cotasCanceladas, y:sY.cotasCanceladas, fmt:(v)=>String(v|0) },
+      { key:"vgvTotal", label:"VGV total", x:sX.vgvTotal, y:sY.vgvTotal, fmt:(v)=>fmtMoney(v) },
+      { key:"eficiencia", label:"Eficiência", x:sX.eficiencia, y:sY.eficiencia, fmt:(v)=>fmtPctBR(v) },
+      { key:"pctCancel", label:"% Cancelamento", x:sX.pctCancel, y:sY.pctCancel, fmt:(v)=>fmtPctBR(v) },
+      { key:"ticketMedio", label:"Ticket médio (por cota)", x:sX.ticketMedio, y:sY.ticketMedio, fmt:(v)=>fmtMoney(v) },
+      { key:"rendaMed", label:"Renda média", x:sX.rendaMed, y:sY.rendaMed, fmt:(v)=>fmtMoney(v) },
+      { key:"noTour", label:"NoTour", x:sX.noTour, y:sY.noTour, fmt:(v)=>String(v|0) },
+    ];
+
+    el("cmpDeltas").innerHTML = metrics.map(m => {
+      const v = pctVar(m.x, m.y);
+      return `
+        <div class="kpi-row">
+          <div class="kpi-top">
+            <div class="kpi-name">${m.label}</div>
+            <div class="kpi-delta ${deltaClass(v)}">${fmtVarPct(v)}</div>
+          </div>
+          <div class="kpi-sub">
+            <div><b>X:</b> ${m.fmt(m.x)}</div>
+            <div><b>Y:</b> ${m.fmt(m.y)}</div>
+            <div><b>Dif.:</b> ${m.fmt((m.x||0)-(m.y||0))}</div>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
   function updateAll() {
     state.filtered = applyFilters(state.rows);
 
@@ -1491,6 +1685,9 @@
     renderCurvaCharts(state.filtered);
     renderCancelamentoAnalysis(state.filtered);
     renderEquipesStats();
+
+    // novo: atualiza comparativo também
+    renderComparativo();
   }
 
   function setup() {
@@ -1520,6 +1717,26 @@
       el("dateEnd").value = toISO(end);
       updateAll();
     });
+
+    // listeners do comparativo
+    ["cmpXStart","cmpXEnd","cmpYStart","cmpYEnd"].forEach(id => {
+      el(id).addEventListener("change", renderComparativo);
+      el(id).addEventListener("keyup", (e) => { if (e.key === "Enter") renderComparativo(); });
+    });
+
+    function setCmpRange(prefix, daysBack){
+      const now = new Date();
+      const end = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const start = new Date(end); start.setDate(start.getDate() - (daysBack - 1));
+      const toISO = (dt) => `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}-${String(dt.getDate()).padStart(2,"0")}`;
+      el(prefix+"Start").value = toISO(start);
+      el(prefix+"End").value = toISO(end);
+      renderComparativo();
+    }
+    el("btnCmpXHoje").addEventListener("click", () => setCmpRange("cmpX", 1));
+    el("btnCmpX30").addEventListener("click", () => setCmpRange("cmpX", 30));
+    el("btnCmpYHoje").addEventListener("click", () => setCmpRange("cmpY", 1));
+    el("btnCmpY30").addEventListener("click", () => setCmpRange("cmpY", 30));
 
     el("profTipoSingle").addEventListener("change", () => { updateProfFilters("profTipoSingle","profNomeSingle"); renderSingleProfessionalStats(); });
     el("profNomeSingle").addEventListener("change", () => { renderSingleProfessionalStats(); });
@@ -1575,6 +1792,19 @@
       updateUfFilters();
 
       renderTeamMappingUI();
+
+      // Pré-preenche comparativo: X = últimos 30 dias, Y = 30 dias anteriores
+      const now = new Date();
+      const endX = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const startX = new Date(endX); startX.setDate(startX.getDate() - 29);
+      const endY = new Date(startX); endY.setDate(endY.getDate() - 1);
+      const startY = new Date(endY); startY.setDate(startY.getDate() - 29);
+      const toISO = (dt) => `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}-${String(dt.getDate()).padStart(2,"0")}`;
+      el("cmpXStart").value = toISO(startX);
+      el("cmpXEnd").value = toISO(endX);
+      el("cmpYStart").value = toISO(startY);
+      el("cmpYEnd").value = toISO(endY);
+
       updateAll();
 
       el("loading").style.display = "none";
