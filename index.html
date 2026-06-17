@@ -195,7 +195,6 @@
       margin:14px 0;
       backdrop-filter:blur(10px);
     }
-    /* cabeçalho das colunas */
     .sup-compare-header{
       display:grid;
       grid-template-columns: 220px 1fr 1fr 1fr;
@@ -230,7 +229,6 @@
       background:rgba(92,255,176,.06);
       color:#b0fff0;
     }
-    /* linhas de dados */
     .sup-compare-row{
       display:grid;
       grid-template-columns: 220px 1fr 1fr 1fr;
@@ -270,7 +268,6 @@
     }
     .sup-compare-row .rc-geral{color:#b0fff0;font-weight:900;}
 
-    /* linha de separação de seção */
     .sup-compare-row.section-sep > div{
       background:rgba(255,255,255,.03);
       padding:8px 18px;
@@ -284,7 +281,6 @@
     }
     .sup-compare-row.section-sep .rc-label{ justify-content:flex-start; }
 
-    /* barra de representatividade */
     .rep-bar-wrap{
       background:rgba(255,255,255,.05);
       border-radius:999px;
@@ -297,7 +293,6 @@
     .rep-bar-fill.parque{background:linear-gradient(90deg,#7C5CFF,#c4b5ff);}
     .rep-bar-fill.externa{background:linear-gradient(90deg,#22D3EE,#7eedff);}
 
-    /* painel de representatividade */
     .rep-panel{
       background:rgba(255,255,255,.03);
       border:1px solid rgba(255,255,255,.08);
@@ -323,7 +318,6 @@
     .rep-kpi-pct.externa{background:rgba(34,211,238,.14);border:1px solid rgba(34,211,238,.35);color:#7eedff;}
     .rep-kpi-pct.geral{background:rgba(92,255,176,.12);border:1px solid rgba(92,255,176,.30);color:#b0fff0;}
 
-    /* chart */
     .chart-card{background:var(--card);border:1px solid var(--stroke);border-radius:var(--radius);backdrop-filter:blur(10px);padding:14px 14px 12px;margin:14px 0;}
     .chart-head{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;justify-content:space-between;margin:2px 2px 10px;}
     .chart-title{font-weight:950;letter-spacing:.2px;}
@@ -351,9 +345,71 @@
     .kpi-sub b{color:rgba(234,240,255,.88)}
     .hint{font-size:.9rem;color:var(--muted);line-height:1.45;}
 
+    /* ════════════════════════════════════════
+       DESAFIOS
+    ════════════════════════════════════════ */
+    .challenge-grid{
+      display:grid;
+      grid-template-columns: 420px 1fr;
+      gap:14px;
+      align-items:start;
+      margin-top:10px;
+    }
+    .challenge-card{
+      background:var(--card);
+      border:1px solid var(--stroke);
+      border-radius:var(--radius);
+      padding:14px;
+      backdrop-filter:blur(10px);
+      overflow:hidden;
+    }
+    .challenge-card h3{margin:0 0 10px;font-size:1.05rem;}
+    .challenge-list{display:flex;flex-direction:column;gap:10px;max-height:65vh;overflow:auto;padding-right:6px;}
+    .challenge-item{
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.03);
+      border-radius:14px;
+      padding:12px 12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .challenge-item .top{
+      display:flex;gap:10px;align-items:baseline;justify-content:space-between;flex-wrap:wrap;
+    }
+    .challenge-item .title{
+      font-weight:950;
+      display:flex;gap:10px;align-items:center;min-width:0;
+    }
+    .challenge-item .title span{
+      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:360px;
+    }
+    .challenge-item .meta{color:var(--muted);font-size:.9rem;}
+    .challenge-item .actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;}
+    .teams-wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:10px;}
+    .team-box{
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.02);
+      border-radius:14px;
+      padding:12px;
+    }
+    .team-box .hdr{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:10px;}
+    .team-box .hdr b{font-size:.98rem;}
+    .team-members{
+      border-top:1px solid rgba(255,255,255,.08);
+      padding-top:10px;
+      margin-top:10px;
+      display:flex;flex-direction:column;gap:8px;
+    }
+    .member-row{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+    .member-row label{font-weight:750;color:rgba(234,240,255,.88);text-transform:none;letter-spacing:0;font-size:.95rem;}
+    .member-row input[type="checkbox"]{transform:scale(1.1);}
+    .tiny{font-size:.85rem;color:var(--muted);}
+
     @media(max-width:1100px){
       .tabs{grid-template-columns:repeat(3,minmax(0,1fr));}
       .sup-compare-header,.sup-compare-row{grid-template-columns:160px 1fr 1fr 1fr;}
+      .challenge-grid{grid-template-columns: 1fr;}
     }
     @media(max-width:820px){
       .wrap{padding:0 16px}
@@ -433,6 +489,7 @@
       <div class="tab" data-tab="cancelamento">❌ Análise de cancelamento</div>
       <div class="tab" data-tab="equipes">🧲 Equipes de captação</div>
       <div class="tab" data-tab="equipes-supervisores">🧑‍✈️ Promotores (2 supervisores)</div>
+      <div class="tab" data-tab="desafios">🏁 Desafios</div>
       <div class="tab" data-tab="ranking-promotor">🎯 Ranking Promotor</div>
       <div class="tab" data-tab="ranking-liner">💬 Ranking Liner</div>
       <div class="tab" data-tab="ranking-closer">🤝 Ranking Closer</div>
@@ -590,32 +647,26 @@
         Comparativo lado a lado: Equipe Parque × Equipe Externa × Geral. Percentual de representação ao final.
       </div>
 
-      <!-- ① TABELA COMPARATIVA LADO A LADO -->
       <div class="section-title">
         Comparativo Parque × Externa <span class="pill-tag">dado por dado</span>
       </div>
       <div class="sup-compare-wrap">
-        <!-- cabeçalho -->
         <div class="sup-compare-header">
           <div class="col-label">Indicador</div>
           <div class="col-parque">🟣 Equipe Parque</div>
           <div class="col-externa">🔵 Equipe Externa</div>
           <div class="col-geral">⚪ Geral</div>
         </div>
-        <!-- linhas — preenchidas pelo JS -->
         <div id="supCompareRows"></div>
       </div>
 
-      <!-- ② REPRESENTATIVIDADE -->
       <div class="section-title" style="margin-top:22px">
         Representatividade no total <span class="pill-tag">% de cada equipe</span>
       </div>
       <div id="supRepGrid"></div>
 
-      <!-- divisor -->
       <div class="divider"></div>
 
-      <!-- ③ CONFIGURAÇÃO -->
       <div class="section-title">
         Configurar promotores <span class="pill-tag">Definir equipe</span>
       </div>
@@ -648,7 +699,113 @@
         <div id="supMappingList" class="promo-list"></div>
       </div>
 
-    </div><!-- /tab-equipes-supervisores -->
+    </div>
+
+    <!-- ══════════════════════════════════════════════════
+         ABA: DESAFIOS
+    ══════════════════════════════════════════════════ -->
+    <div id="tab-desafios" class="tab-content">
+      <div class="note">
+        <strong>Desafios</strong><br>
+        Crie desafios com período, número de equipes, nome das equipes, seleção de profissionais por equipe e escolha do critério de apuração.
+        Tudo fica salvo no seu navegador (localStorage).
+      </div>
+
+      <div class="challenge-grid">
+        <!-- Criar/Editar -->
+        <div class="challenge-card">
+          <h3 id="challengeFormTitle">Criar desafio</h3>
+
+          <div class="controls" style="margin:0;justify-content:flex-start">
+            <div class="control-group" style="min-width:260px">
+              <label>Nome do desafio</label>
+              <input id="chName" placeholder="Ex.: Desafio Junho" />
+            </div>
+
+            <div class="control-group" style="min-width:330px">
+              <label>Período do desafio</label>
+              <div class="range-row">
+                <input id="chStart" type="date" />
+                <span class="sep">a</span>
+                <input id="chEnd" type="date" />
+              </div>
+            </div>
+
+            <div class="control-group" style="min-width:220px">
+              <label>Apuração</label>
+              <select id="chMetric">
+                <option value="casais">Número de casais</option>
+                <option value="vgv">VGV</option>
+                <option value="casais_atendidos">Casais atendidos</option>
+                <option value="eficiencia">Eficiência</option>
+              </select>
+            </div>
+
+            <div class="control-group" style="min-width:220px">
+              <label>Qtd. de equipes</label>
+              <select id="chTeamsCount">
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+              </select>
+            </div>
+
+            <div class="control-group" style="min-width:180px">
+              <label>Tipo de profissional</label>
+              <select id="chProfTipo">
+                <option value="promotor de marketing">Promotor de marketing</option>
+                <option value="liner">Liner</option>
+                <option value="closer">Closer</option>
+              </select>
+              <div class="tiny">A seleção abaixo lista apenas nomes desse tipo.</div>
+            </div>
+          </div>
+
+          <div class="divider" style="margin:16px 0 14px"></div>
+
+          <div class="section-title" style="margin-bottom:10px">
+            Equipes <span class="pill-tag">nomes + membros</span>
+          </div>
+          <div id="chTeamsEditor" class="teams-wrap"></div>
+
+          <div class="divider" style="margin:16px 0 14px"></div>
+
+          <div class="controls" style="margin:0;justify-content:flex-start">
+            <div class="control-group" style="min-width:180px">
+              <label>&nbsp;</label>
+              <button class="btn primary" id="btnChSave">💾 Salvar desafio</button>
+            </div>
+            <div class="control-group" style="min-width:220px">
+              <label>&nbsp;</label>
+              <button class="btn" id="btnChNew">➕ Novo</button>
+            </div>
+            <div class="control-group" style="min-width:220px">
+              <label>&nbsp;</label>
+              <button class="btn danger" id="btnChClearAll">🗑 Apagar todos</button>
+            </div>
+          </div>
+
+          <div id="chFormMsg" class="note" style="display:none;margin-top:12px"></div>
+        </div>
+
+        <!-- Lista + Resultado -->
+        <div class="challenge-card">
+          <h3>Meus desafios</h3>
+          <div id="chList" class="challenge-list"></div>
+
+          <div class="divider"></div>
+
+          <h3>Apuração (no período do desafio)</h3>
+          <div class="note warn" style="margin-top:10px">
+            A apuração do desafio <strong>ignora</strong> o filtro global de período e usa o período definido no desafio.
+            Ela <strong>respeita</strong> os filtros globais de <strong>Status</strong> e <strong>UF</strong>.
+          </div>
+          <div id="chResults"></div>
+        </div>
+      </div>
+    </div>
 
     <!-- ── RANKING PROMOTOR ── -->
     <div id="tab-ranking-promotor" class="tab-content">
@@ -696,8 +853,8 @@
       <div id="profissionais-table"></div>
     </div>
 
-  </div><!-- /content -->
-</div><!-- /wrap -->
+  </div>
+</div>
 
 <script>
 /* ═══════════════════════════════════════════════
@@ -730,12 +887,20 @@ const sortState = {
   "profissionais-table":{ key:"vendas",    dir:"desc" },
   "perfil-renda"       :{ key:"vgvTotal",  dir:"desc" },
   "cancelamento-table" :{ key:"cotasTotal",dir:"desc" },
+
+  /* desafios */
+  "ch-results-table"   :{ key:"valor",     dir:"desc" },
 };
 
 /* ── localStorage ── */
 const TEAM_KEY    = "painel_equipes_promotores_v1";
 const loadTeamMap = () => { try{ const r=localStorage.getItem(TEAM_KEY); const o=r?JSON.parse(r):{}; return(o&&typeof o==="object")?o:{}; }catch(e){return{};} };
 const saveTeamMap = m  => localStorage.setItem(TEAM_KEY, JSON.stringify(m||{}));
+
+/* desafios */
+const CH_KEY = "painel_desafios_v1";
+const loadChallenges = () => { try{ const r=localStorage.getItem(CH_KEY); const o=r?JSON.parse(r):[]; return Array.isArray(o)?o:[]; }catch(e){ return []; } };
+const saveChallenges = arr => localStorage.setItem(CH_KEY, JSON.stringify(Array.isArray(arr)?arr:[]));
 
 /* ═══════════════════════════════════════════════
    PARSE CSV
@@ -907,24 +1072,6 @@ function renderCards(cid,rows){
   const s=statsFor(rows);
   el(cid).innerHTML=`
     <div class="stat-card"><div class="stat-value">${s.casais}</div><div class="stat-label">Casais</div></div>
-    <div class="stat-card"><div class="stat-value">${fmtNumBR(s.mediaCasaisPeriodo,1,1)}</div><div class="stat-label">Média de Casais/dia</div></div>
-    <div class="stat-card"><div class="stat-value">${s.vendas}</div><div class="stat-label">Cotas (vendas totais)</div></div>
-    <div class="stat-card"><div class="stat-value">${s.cotasCanceladas}</div><div class="stat-label">Cotas canceladas</div></div>
-    <div class="stat-card"><div class="stat-value">${fmtMoney(s.vgvTotal)}</div><div class="stat-label">VGV total (Σ col G)</div></div>
-    <div class="stat-card"><div class="stat-value">${fmtPctBR(s.eficiencia)}</div><div class="stat-label">Eficiência</div></div>
-    <div class="stat-card"><div class="stat-value">${fmtMoney(s.rendaMed)}</div><div class="stat-label">Renda média</div></div>
-    <div class="stat-card"><div class="stat-value">${fmtMoney(s.ticketMedio)}</div><div class="stat-label">Ticket médio (cota)</div></div>
-    <div class="stat-card"><div class="stat-value">${s.noTour}</div><div class="stat-label">NoTour</div></div>`;
-}
-
-function renderCardsComCaptador(cid,rows){
-  const s=statsFor(rows);
-  const caps=new Set(); rows.forEach(r=>{const p=(r[KEY.promotor]??"").toString().trim();if(p)caps.add(norm(p));});
-  const nc=caps.size; const med=nc?(s.casais/nc):0;
-  el(cid).innerHTML=`
-    <div class="stat-card"><div class="stat-value">${s.casais}</div><div class="stat-label">Casais</div></div>
-    <div class="stat-card"><div class="stat-value">${fmtNumBR(med,1,1)}</div><div class="stat-label">Média casal/captador</div></div>
-    <div class="stat-card"><div class="stat-value">${nc}</div><div class="stat-label">Captadores</div></div>
     <div class="stat-card"><div class="stat-value">${fmtNumBR(s.mediaCasaisPeriodo,1,1)}</div><div class="stat-label">Média de Casais/dia</div></div>
     <div class="stat-card"><div class="stat-value">${s.vendas}</div><div class="stat-label">Cotas (vendas totais)</div></div>
     <div class="stat-card"><div class="stat-value">${s.cotasCanceladas}</div><div class="stat-label">Cotas canceladas</div></div>
@@ -1184,6 +1331,14 @@ function listAllPromos(){
   state.rows.forEach(r=>{ const n=(r[KEY.promotor]??"").toString().trim(); if(n) s.add(n); });
   return [...s].sort((a,b)=>a.localeCompare(b,"pt-BR",{sensitivity:"base"}));
 }
+function listNamesByTipo(tipoKeyNorm){
+  const s=new Set();
+  state.rows.forEach(r=>{
+    const n=(r[tipoKeyNorm]??"").toString().trim();
+    if(n) s.add(n);
+  });
+  return [...s].sort((a,b)=>a.localeCompare(b,"pt-BR",{sensitivity:"base"}));
+}
 
 function renderTeamMappingUI(){
   const promos=listAllPromos();
@@ -1202,7 +1357,7 @@ function renderTeamMappingUI(){
 }
 
 /* ═══════════════════════════════════════════════
-   SUPERVISORES — comparativo lado a lado + representatividade
+   SUPERVISORES
 ═══════════════════════════════════════════════ */
 function renderSupervisores(){
   const map=loadTeamMap();
@@ -1212,7 +1367,6 @@ function renderSupervisores(){
 
   const sP=statsFor(rowP), sE=statsFor(rowE), sG=statsFor(rowG);
 
-  /* captadores por equipe */
   const capsP=new Set(); rowP.forEach(r=>{const p=(r[KEY.promotor]??"").toString().trim();if(p)capsP.add(norm(p));});
   const capsE=new Set(); rowE.forEach(r=>{const p=(r[KEY.promotor]??"").toString().trim();if(p)capsE.add(norm(p));});
   const capsG=new Set([...capsP,...capsE]);
@@ -1221,7 +1375,6 @@ function renderSupervisores(){
   const medCE = capsE.size ? sE.casais/capsE.size : 0;
   const medCG = capsG.size ? sG.casais/capsG.size : 0;
 
-  /* helper para montar uma linha da tabela comparativa */
   const mkRow=(label,vP,vE,vG,fmt)=>`
     <div class="sup-compare-row">
       <div class="rc-label">${label}</div>
@@ -1229,7 +1382,6 @@ function renderSupervisores(){
       <div class="rc-externa">${fmt(vE)}</div>
       <div class="rc-geral">${fmt(vG)}</div>
     </div>`;
-
   const mkSep=label=>`
     <div class="sup-compare-row section-sep">
       <div class="rc-label">${label}</div><div></div><div></div><div></div>
@@ -1258,12 +1410,6 @@ function renderSupervisores(){
     mkRow("Ticket médio (cota)", sP.ticketMedio,sE.ticketMedio,sG.ticketMedio,fmtM)+
     mkRow("Renda média",         sP.rendaMed,  sE.rendaMed,  sG.rendaMed,  fmtM);
 
-  /* ── REPRESENTATIVIDADE ── */
-  /*
-    Para cada indicador, mostra:
-      Parque: valor e % do geral
-      Externa: valor e % do geral
-  */
   const repMetrics = [
     { label:"Casais",           vP:sP.casais,         vE:sE.casais,         vG:sG.casais,         fmt:fmtN },
     { label:"Cotas vendidas",   vP:sP.vendas,         vE:sE.vendas,         vG:sG.vendas,         fmt:fmtN },
@@ -1277,7 +1423,7 @@ function renderSupervisores(){
       <h4>📊 Quanto cada equipe representa do total geral (Parque + Externa)</h4>
       <div class="rep-grid">
         ${repMetrics.map(m=>{
-          const pctP = sG.casais||m.vG ? (m.vG ? (m.vP/m.vG) : 0) : 0;
+          const pctP = m.vG ? (m.vP/m.vG) : 0;
           const pctE = m.vG ? (m.vE/m.vG) : 0;
           const wP   = Math.round(pctP*100);
           const wE   = Math.round(pctE*100);
@@ -1310,7 +1456,6 @@ function renderSupervisores(){
       </div>
     </div>`;
 
-  /* ── LISTA DE PROMOTORES (embaixo) ── */
   const promos=listAllPromos();
   el("supPromotorSelect").innerHTML=`<option value="">Selecione...</option>`+promos.map(p=>`<option value="${p}">${p}</option>`).join("");
   el("supMappingList").innerHTML=promos.length?promos.map(p=>{
@@ -1337,6 +1482,7 @@ function renderSupervisores(){
       renderSupervisores();
       renderEquipes();
       renderTeamMappingUI();
+      renderDesafios(); // atualiza apuração se estiver em desafio
     });
   });
 }
@@ -1425,6 +1571,466 @@ function updateUFFilter(){
 }
 
 /* ═══════════════════════════════════════════════
+   DESAFIOS (CRUD + APURAÇÃO)
+═══════════════════════════════════════════════ */
+let currentChallengeId = null;
+
+const metricLabel = m => ({
+  casais:"Número de casais",
+  vgv:"VGV",
+  casais_atendidos:"Casais atendidos",
+  eficiencia:"Eficiência",
+}[m]||m);
+
+function uid(){
+  return "ch_"+Math.random().toString(16).slice(2)+"_"+Date.now().toString(16);
+}
+
+function showChMsg(text,type="success"){
+  const box=el("chFormMsg");
+  box.style.display="block";
+  box.className="note "+(type==="bad"?"bad":type==="warn"?"warn":"success");
+  box.textContent=text;
+  setTimeout(()=>{ box.style.display="none"; }, 2200);
+}
+
+function newChallengeTemplate(){
+  return {
+    id: uid(),
+    name: "",
+    start: "",
+    end: "",
+    metric: "casais",
+    profTipo: norm("promotor de marketing"),
+    teams: [
+      { name:"Equipe 1", members:[] },
+      { name:"Equipe 2", members:[] },
+    ],
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  };
+}
+
+function getNamesForChallengeTipo(ch){
+  const tipo = ch?.profTipo || norm("promotor de marketing");
+  return listNamesByTipo(tipo);
+}
+
+function ensureTeamsCount(ch, n){
+  const nn = Math.max(2, Math.min(6, Number(n)||2));
+  ch.teams = Array.isArray(ch.teams)?ch.teams:[];
+  while(ch.teams.length < nn){
+    ch.teams.push({ name:`Equipe ${ch.teams.length+1}`, members:[] });
+  }
+  while(ch.teams.length > nn){
+    ch.teams.pop();
+  }
+  ch.teams.forEach((t,i)=>{
+    if(!t || typeof t!=="object") ch.teams[i] = { name:`Equipe ${i+1}`, members:[] };
+    if(typeof ch.teams[i].name!=="string") ch.teams[i].name = `Equipe ${i+1}`;
+    if(!Array.isArray(ch.teams[i].members)) ch.teams[i].members = [];
+  });
+}
+
+function renderChallengeTeamsEditor(){
+  const challenges = loadChallenges();
+  const ch = challenges.find(x=>x.id===currentChallengeId) || null;
+  const tipo = norm(el("chProfTipo").value);
+  const names = listNamesByTipo(tipo);
+
+  const teamsCount = Number(el("chTeamsCount").value)||2;
+
+  // se estiver criando novo (ainda não salvo), renderiza com base nos inputs (sem storage)
+  // mas para simplificar: quando não existe no storage, usamos um objeto temporário.
+  const tmp = ch ? structuredClone(ch) : newChallengeTemplate();
+  tmp.profTipo = tipo;
+  ensureTeamsCount(tmp, teamsCount);
+
+  const used = new Set();
+  tmp.teams.forEach(t=>t.members.forEach(m=>used.add(norm(m))));
+
+  el("chTeamsEditor").innerHTML = tmp.teams.map((t,idx)=>{
+    const teamId = `t${idx}`;
+    return `
+      <div class="team-box" data-team-index="${idx}">
+        <div class="hdr">
+          <b>Equipe ${idx+1}</b>
+          <span class="badge">${t.members.length} membros</span>
+        </div>
+        <div class="control-group" style="min-width:unset">
+          <label>Nome da equipe</label>
+          <input data-team-name="${idx}" value="${(t.name||"").replace(/"/g,"&quot;")}" placeholder="Ex.: Time Azul" />
+        </div>
+        <div class="team-members">
+          <div class="tiny">Marque os profissionais que farão parte desta equipe:</div>
+          ${names.length ? names.map(n=>{
+            const nn = norm(n);
+            const checked = t.members.some(x=>norm(x)===nn);
+            const disabled = !checked && used.has(nn);
+            return `
+              <div class="member-row">
+                <label title="${n}">
+                  <input type="checkbox" data-team-member="${idx}" data-member="${encodeURIComponent(n)}" ${checked?"checked":""} ${disabled?"disabled":""}/>
+                  ${n}
+                </label>
+                ${disabled?`<span class="badge">em outra equipe</span>`:""}
+              </div>
+            `;
+          }).join("") : `<div class="note" style="margin:0">Nenhum profissional encontrado no CSV para este tipo.</div>`}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  // listeners (inputs/checkboxes) -> atualiza objeto no storage (se existir) ou um draft em memória via dataset
+  // Implementação: gravar direto no storage quando currentChallengeId existe; caso contrário, só atualiza UI e salvar na hora.
+  el("chTeamsEditor").querySelectorAll("input[data-team-name]").forEach(inp=>{
+    inp.addEventListener("input", ()=>{
+      if(!currentChallengeId) return;
+      const idx=Number(inp.dataset.teamName);
+      const arr=loadChallenges();
+      const ch=arr.find(x=>x.id===currentChallengeId);
+      if(!ch) return;
+      ensureTeamsCount(ch, Number(el("chTeamsCount").value)||2);
+      ch.teams[idx].name = inp.value;
+      ch.updatedAt = Date.now();
+      saveChallenges(arr);
+      renderDesafios(false);
+    });
+  });
+
+  el("chTeamsEditor").querySelectorAll("input[type='checkbox'][data-team-member]").forEach(cb=>{
+    cb.addEventListener("change", ()=>{
+      const tIdx = Number(cb.dataset.teamMember);
+      const member = decodeURIComponent(cb.dataset.member);
+
+      // atualiza no storage se editando existente; senão ignora (vai ser lido ao salvar)
+      if(currentChallengeId){
+        const arr=loadChallenges();
+        const ch=arr.find(x=>x.id===currentChallengeId);
+        if(!ch) return;
+        ensureTeamsCount(ch, Number(el("chTeamsCount").value)||2);
+
+        // remove de todas as equipes (garante exclusividade)
+        ch.teams.forEach(t=>t.members = (t.members||[]).filter(x=>norm(x)!==norm(member)));
+
+        // adiciona se checked
+        if(cb.checked){
+          ch.teams[tIdx].members.push(member);
+        }
+        ch.updatedAt = Date.now();
+        saveChallenges(arr);
+      }
+
+      // re-render para aplicar disable/contadores
+      renderDesafios(false);
+    });
+  });
+}
+
+function readChallengeFromForm(){
+  const name = (el("chName").value||"").trim();
+  const start = el("chStart").value;
+  const end = el("chEnd").value;
+  const metric = el("chMetric").value;
+  const profTipo = norm(el("chProfTipo").value);
+  const teamsCount = Number(el("chTeamsCount").value)||2;
+
+  const names = listNamesByTipo(profTipo);
+
+  // montar times lendo editor atual (inputs/checkboxes)
+  const teams = [];
+  for(let i=0;i<teamsCount;i++){
+    teams.push({ name:`Equipe ${i+1}`, members:[] });
+  }
+  // nomes
+  document.querySelectorAll("#chTeamsEditor input[data-team-name]").forEach(inp=>{
+    const idx=Number(inp.dataset.teamName);
+    if(Number.isFinite(idx) && teams[idx]) teams[idx].name = (inp.value||`Equipe ${idx+1}`).trim() || `Equipe ${idx+1}`;
+  });
+  // membros
+  document.querySelectorAll("#chTeamsEditor input[type='checkbox'][data-team-member]").forEach(cb=>{
+    if(!cb.checked) return;
+    const tIdx=Number(cb.dataset.teamMember);
+    const member=decodeURIComponent(cb.dataset.member);
+    if(!teams[tIdx]) return;
+    // valida membro existir na lista do tipo (evita lixo)
+    if(!names.some(n=>norm(n)===norm(member))) return;
+    teams[tIdx].members.push(member);
+  });
+
+  // garantir exclusividade (caso alguma checagem tenha escapado)
+  const seen=new Set();
+  teams.forEach(t=>{
+    t.members = t.members.filter(m=>{
+      const k=norm(m);
+      if(seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+  });
+
+  return { name, start, end, metric, profTipo, teamsCount, teams };
+}
+
+function resetChallengeForm(){
+  currentChallengeId = null;
+  el("challengeFormTitle").textContent = "Criar desafio";
+  el("chName").value="";
+  el("chStart").value="";
+  el("chEnd").value="";
+  el("chMetric").value="casais";
+  el("chTeamsCount").value="2";
+  el("chProfTipo").value="promotor de marketing";
+  renderChallengeTeamsEditor();
+  renderDesafios(false);
+}
+
+function loadChallengeIntoForm(ch){
+  currentChallengeId = ch.id;
+  el("challengeFormTitle").textContent = "Editar desafio";
+  el("chName").value = ch.name||"";
+  el("chStart").value = ch.start||"";
+  el("chEnd").value = ch.end||"";
+  el("chMetric").value = ch.metric||"casais";
+  el("chProfTipo").value = (ch.profTipo||norm("promotor de marketing"));
+  el("chTeamsCount").value = String(Math.max(2, Math.min(6, (ch.teams||[]).length || 2)));
+
+  renderChallengeTeamsEditor();
+  renderDesafios(false);
+}
+
+function deleteChallenge(id){
+  const arr = loadChallenges().filter(x=>x.id!==id);
+  saveChallenges(arr);
+  if(currentChallengeId===id) resetChallengeForm();
+  renderDesafios();
+}
+
+function formatChallengePeriod(ch){
+  const s = ch.start ? fmtBR(ch.start) : "—";
+  const e = ch.end ? fmtBR(ch.end) : "—";
+  return `${s} a ${e}`;
+}
+
+function challengeMetricValue(ch, rowsForTeam){
+  const s = statsFor(rowsForTeam);
+  switch(ch.metric){
+    case "casais": return { val: s.casais, fmt: v=>String(v|0) };
+    case "vgv": return { val: s.vgvTotal, fmt: fmtMoney };
+    case "casais_atendidos":
+      // aqui interpretamos como "linhas totais" (inclui NoTour)
+      return { val: s.totalLinhas, fmt: v=>String(v|0) };
+    case "eficiencia": return { val: s.eficiencia, fmt: fmtPctBR };
+    default: return { val: s.casais, fmt: v=>String(v|0) };
+  }
+}
+
+function applyFiltersForChallengeBase(rows){
+  // desafio: IGNORA período global; respeita status e UF globais
+  const status  =el("statusSelect").value;
+  const ufSel   =el("ufSelect").value;
+  let f=rows.slice();
+  if(status!=="todos")   f=f.filter(r=>r._bucket===status);
+  if(ufSel !=="todos")   f=f.filter(r=>(r[KEY.uf]??"").toString().trim()===ufSel);
+  return f;
+}
+
+function renderChallengeResults(ch){
+  if(!ch){ el("chResults").innerHTML = `<div class="note">Selecione um desafio na lista para ver a apuração.</div>`; return; }
+
+  const base = applyFiltersForChallengeBase(state.rows);
+  const inPeriod = filterByRange(base, ch.start, ch.end);
+
+  // agrupar por time, filtrando por profissional do tipo escolhido
+  const tipoKey = norm(ch.profTipo||norm("promotor de marketing"));
+  const teams = Array.isArray(ch.teams)?ch.teams:[];
+  const results = teams.map(t=>{
+    const members = (t.members||[]).map(x=>x.toString());
+    const memberSet = new Set(members.map(norm));
+
+    const rowsTeam = inPeriod.filter(r=>{
+      const who = (r[tipoKey]??"").toString().trim();
+      if(!who) return false;
+      return memberSet.has(norm(who));
+    });
+
+    const met = challengeMetricValue(ch, rowsTeam);
+
+    return {
+      teamName: (t.name||"Equipe").trim() || "Equipe",
+      membersCount: members.length,
+      valor: met.val,
+      fmt: met.fmt,
+      stats: statsFor(rowsTeam),
+    };
+  });
+
+  // ordenar por valor (desc), desempate por nome
+  const sorted = results.slice().sort((a,b)=>{
+    const av = (typeof a.valor==="number")?a.valor:0;
+    const bv = (typeof b.valor==="number")?b.valor:0;
+    if(bv!==av) return bv-av;
+    return a.teamName.localeCompare(b.teamName,"pt-BR",{sensitivity:"base"});
+  });
+
+  const best = sorted[0]?.valor ?? 0;
+
+  el("chResults").innerHTML = `
+    <div class="note">
+      <strong>${(ch.name||"Desafio").trim() || "Desafio"}</strong><br>
+      Período: <strong>${formatChallengePeriod(ch)}</strong> • Apuração: <strong>${metricLabel(ch.metric)}</strong> • Tipo: <strong>${ch.profTipo}</strong><br>
+      Filtros aplicados: Status=<strong>${el("statusSelect").value}</strong> • UF=<strong>${el("ufSelect").value}</strong>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:84px">#</th>
+            <th class="sortable" data-sort="teamName">Equipe ${sortInd("ch-results-table","teamName")}</th>
+            <th class="num sortable" data-sort="membersCount">Membros ${sortInd("ch-results-table","membersCount")}</th>
+            <th class="num sortable" data-sort="valor">${metricLabel(ch.metric)} ${sortInd("ch-results-table","valor")}</th>
+            <th class="num">Casais</th>
+            <th class="num">Cotas</th>
+            <th class="num">VGV</th>
+            <th class="num">Eficiência</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${sorted.map((r,i)=>{
+            const pos=i+1;
+            const medal = pos===1?"🥇":pos===2?"🥈":pos===3?"🥉":"";
+            const delta = (typeof r.valor==="number" && typeof best==="number") ? (r.valor-best) : 0;
+
+            const main = (ch.metric==="vgv") ? r.fmt(r.valor)
+                       : (ch.metric==="eficiencia") ? r.fmt(r.valor)
+                       : String(r.valor|0);
+
+            return `
+              <tr>
+                <td class="rank-col">${medal} ${pos}°</td>
+                <td class="name" title="${r.teamName}">${r.teamName}</td>
+                <td class="num">${r.membersCount}</td>
+                <td class="num">
+                  <b>${main}</b>
+                  ${pos>1 ? `<span class="badge">dif.: ${ch.metric==="vgv"?fmtMoney(delta):ch.metric==="eficiencia"?fmtNumBR(delta*100,1,1)+"%":String(delta|0)}</span>`:""}
+                </td>
+                <td class="num">${r.stats.casais}</td>
+                <td class="num">${r.stats.vendas}</td>
+                <td class="num">${fmtMoney(r.stats.vgvTotal)}</td>
+                <td class="num"><span class="pill ${effPill(r.stats.eficiencia)}">${fmtPctBR(r.stats.eficiencia)}</span></td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  // sort (simples) para tabela de desafios
+  el("chResults").querySelectorAll("thead th.sortable").forEach(th=>{
+    th.addEventListener("click", ()=>{
+      setSort("ch-results-table", th.dataset.sort);
+      // aplicar sortState manualmente
+      const st = sortState["ch-results-table"] || {key:"valor",dir:"desc"};
+      const again = results.slice().sort((a,b)=>{
+        const key = st.key;
+        const dir = st.dir;
+        const va = a[key], vb = b[key];
+        const num = (x)=> (typeof x==="number")?x:0;
+        const cmp = (x,y)=> {
+          if(typeof x==="number" && typeof y==="number") return x-y;
+          return String(x??"").localeCompare(String(y??""),"pt-BR",{sensitivity:"base"});
+        };
+        const baseCmp = (key==="valor"||key==="membersCount") ? (num(va)-num(vb)) : cmp(va,vb);
+        return dir==="asc" ? baseCmp : -baseCmp;
+      });
+
+      // re-render só o tbody rapidamente
+      const tbody = el("chResults").querySelector("tbody");
+      tbody.innerHTML = again.map((r,i)=>{
+        const pos=i+1;
+        const medal = pos===1?"🥇":pos===2?"🥈":pos===3?"🥉":"";
+        const main = (ch.metric==="vgv") ? r.fmt(r.valor)
+                   : (ch.metric==="eficiencia") ? r.fmt(r.valor)
+                   : String(r.valor|0);
+        return `
+          <tr>
+            <td class="rank-col">${medal} ${pos}°</td>
+            <td class="name" title="${r.teamName}">${r.teamName}</td>
+            <td class="num">${r.membersCount}</td>
+            <td class="num"><b>${main}</b></td>
+            <td class="num">${r.stats.casais}</td>
+            <td class="num">${r.stats.vendas}</td>
+            <td class="num">${fmtMoney(r.stats.vgvTotal)}</td>
+            <td class="num"><span class="pill ${effPill(r.stats.eficiencia)}">${fmtPctBR(r.stats.eficiencia)}</span></td>
+          </tr>
+        `;
+      }).join("");
+    });
+  });
+}
+
+function renderDesafios(recalcTeamsEditor=true){
+  // lista
+  const arr = loadChallenges().sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+  el("chList").innerHTML = arr.length ? arr.map(ch=>{
+    const active = (ch.id===currentChallengeId);
+    return `
+      <div class="challenge-item" style="${active?'border-color: rgba(124,92,255,.45); box-shadow: 0 18px 50px rgba(0,0,0,.35);':''}">
+        <div class="top">
+          <div class="title">
+            <span>${(ch.name||"Sem nome").trim() || "Sem nome"}</span>
+            <span class="badge">${metricLabel(ch.metric)}</span>
+            <span class="badge">${ch.profTipo||"—"}</span>
+          </div>
+          <div class="meta">📅 ${formatChallengePeriod(ch)} • 🧩 ${Array.isArray(ch.teams)?ch.teams.length:0} equipes</div>
+        </div>
+        <div class="actions">
+          <button class="btn" data-ch-open="${encodeURIComponent(ch.id)}">Editar</button>
+          <button class="btn" data-ch-view="${encodeURIComponent(ch.id)}">Apurar</button>
+          <button class="btn danger" data-ch-del="${encodeURIComponent(ch.id)}">Excluir</button>
+        </div>
+      </div>
+    `;
+  }).join("") : `<div class="note" style="margin:0">Nenhum desafio criado ainda.</div>`;
+
+  el("chList").querySelectorAll("button[data-ch-open]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const id=decodeURIComponent(b.dataset.chOpen);
+      const ch=loadChallenges().find(x=>x.id===id);
+      if(ch) loadChallengeIntoForm(ch);
+    });
+  });
+  el("chList").querySelectorAll("button[data-ch-view]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const id=decodeURIComponent(b.dataset.chView);
+      const ch=loadChallenges().find(x=>x.id===id);
+      if(!ch) return;
+      currentChallengeId = id;
+      // mantém form como está (se não estava editando), mas mostra apuração
+      renderChallengeResults(ch);
+      renderDesafios(false);
+    });
+  });
+  el("chList").querySelectorAll("button[data-ch-del]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const id=decodeURIComponent(b.dataset.chDel);
+      if(!confirm("Excluir este desafio?")) return;
+      deleteChallenge(id);
+    });
+  });
+
+  // editor de equipes
+  if(recalcTeamsEditor) renderChallengeTeamsEditor();
+
+  // apuração do selecionado
+  const current = currentChallengeId ? loadChallenges().find(x=>x.id===currentChallengeId) : null;
+  renderChallengeResults(current);
+}
+
+/* ═══════════════════════════════════════════════
    UPDATE ALL
 ═══════════════════════════════════════════════ */
 function updateAll(){
@@ -1442,6 +2048,7 @@ function updateAll(){
   renderEquipes();
   renderSupervisores();
   renderComparativo();
+  renderDesafios(false); // desafios respeitam status/UF globais na apuração
 }
 
 /* ═══════════════════════════════════════════════
@@ -1485,6 +2092,111 @@ function setup(){
     saveTeamMap({}); renderSupervisores(); renderEquipes(); renderTeamMappingUI();
   });
 
+  /* desafios */
+  el("chTeamsCount").addEventListener("change", ()=>{
+    if(currentChallengeId){
+      const arr=loadChallenges();
+      const ch=arr.find(x=>x.id===currentChallengeId);
+      if(ch){
+        ensureTeamsCount(ch, Number(el("chTeamsCount").value)||2);
+        ch.updatedAt = Date.now();
+        saveChallenges(arr);
+      }
+    }
+    renderDesafios(true);
+  });
+  el("chProfTipo").addEventListener("change", ()=>{
+    if(currentChallengeId){
+      const arr=loadChallenges();
+      const ch=arr.find(x=>x.id===currentChallengeId);
+      if(ch){
+        ch.profTipo = norm(el("chProfTipo").value);
+        // ao trocar tipo, limpa membros (para evitar membros inexistentes)
+        ch.teams.forEach(t=>t.members=[]);
+        ch.updatedAt = Date.now();
+        saveChallenges(arr);
+      }
+    }
+    renderDesafios(true);
+  });
+  ["chName","chStart","chEnd","chMetric"].forEach(id=>{
+    el(id).addEventListener("change", ()=>{
+      if(!currentChallengeId) return;
+      const arr=loadChallenges();
+      const ch=arr.find(x=>x.id===currentChallengeId);
+      if(!ch) return;
+      ch.name = (el("chName").value||"").trim();
+      ch.start = el("chStart").value;
+      ch.end = el("chEnd").value;
+      ch.metric = el("chMetric").value;
+      ch.updatedAt = Date.now();
+      saveChallenges(arr);
+      renderDesafios(false);
+    });
+  });
+
+  el("btnChNew").addEventListener("click", ()=>{
+    resetChallengeForm();
+    showChMsg("Pronto: preencha e salve um novo desafio.", "success");
+  });
+
+  el("btnChSave").addEventListener("click", ()=>{
+    const form = readChallengeFromForm();
+
+    if(!form.name){ showChMsg("Informe um nome para o desafio.", "warn"); return; }
+    if(form.start && form.end){
+      const d1=parseDateOnlyInput(form.start), d2=parseDateOnlyInput(form.end);
+      if(d1 && d2 && d2.getTime() < d1.getTime()){ showChMsg("Período inválido: a data final é menor que a inicial.", "warn"); return; }
+    } else {
+      showChMsg("Informe o período (início e fim) do desafio.", "warn"); return;
+    }
+
+    // valida: não permitir equipe vazia? (vou permitir, mas avisar)
+    const emptyTeams = form.teams.filter(t=>(t.members||[]).length===0).length;
+    if(emptyTeams>0){
+      if(!confirm("Existem equipes sem membros. Deseja salvar assim mesmo?")) return;
+    }
+
+    const arr=loadChallenges();
+    let ch=null;
+
+    if(currentChallengeId){
+      ch = arr.find(x=>x.id===currentChallengeId);
+      if(!ch){ currentChallengeId=null; }
+    }
+
+    if(!ch){
+      ch = newChallengeTemplate();
+      ch.id = uid();
+      arr.push(ch);
+      currentChallengeId = ch.id;
+    }
+
+    ch.name = form.name;
+    ch.start = form.start;
+    ch.end = form.end;
+    ch.metric = form.metric;
+    ch.profTipo = form.profTipo;
+    ensureTeamsCount(ch, form.teamsCount);
+    // aplica nomes e membros
+    ch.teams.forEach((t,i)=>{
+      t.name = (form.teams[i]?.name || `Equipe ${i+1}`).trim() || `Equipe ${i+1}`;
+      t.members = (form.teams[i]?.members || []).slice();
+    });
+    ch.updatedAt = Date.now();
+
+    saveChallenges(arr);
+    showChMsg("Desafio salvo.", "success");
+    renderDesafios(true);
+  });
+
+  el("btnChClearAll").addEventListener("click", ()=>{
+    if(!confirm("Apagar TODOS os desafios salvos neste navegador?")) return;
+    saveChallenges([]);
+    resetChallengeForm();
+    renderDesafios();
+  });
+
   /* tabs */
   document.querySelectorAll(".tab").forEach(t=>{
     t.addEventListener("click",()=>{
@@ -1494,6 +2206,10 @@ function setup(){
       el(`tab-${t.dataset.tab}`).classList.add("active");
       if(["curva","cancelamento"].includes(t.dataset.tab)){
         setTimeout(()=>{ try{charts.curva?.resize?.();charts.semana?.resize?.();charts.cancelamento?.resize?.();}catch(e){} },80);
+      }
+      if(t.dataset.tab==="desafios"){
+        // garante render atual no abrir
+        renderDesafios(true);
       }
     });
   });
@@ -1522,6 +2238,10 @@ async function init(){
     const sY=new Date(eY); sY.setDate(sY.getDate()-29);
     el("cmpXStart").value=toISO(sX); el("cmpXEnd").value=toISO(e);
     el("cmpYStart").value=toISO(sY); el("cmpYEnd").value=toISO(eY);
+
+    // init desafios
+    resetChallengeForm(); // prepara editor
+    renderDesafios(true);
 
     updateAll();
     el("loading").style.display="none";
