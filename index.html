@@ -1062,6 +1062,7 @@ function statsFor(rows){
     eficiencia:eff,pctCancel:q.total?(q.cancelado/q.total):0,
     ticketMedio:q.total?(vgv.total/q.total):0,
     rendaMed:avgRenda(rows),mediaCasaisPeriodo:avgCasais(rows),
+    pctCancelamentosVendas: q.total ? (q.cancelado / q.total) : 0, /* inclusão solicitada */
   };
 }
 
@@ -1075,6 +1076,7 @@ function renderCards(cid,rows){
     <div class="stat-card"><div class="stat-value">${fmtNumBR(s.mediaCasaisPeriodo,1,1)}</div><div class="stat-label">Média de Casais/dia</div></div>
     <div class="stat-card"><div class="stat-value">${s.vendas}</div><div class="stat-label">Cotas (vendas totais)</div></div>
     <div class="stat-card"><div class="stat-value">${s.cotasCanceladas}</div><div class="stat-label">Cotas canceladas</div></div>
+    <div class="stat-card"><div class="stat-value">${fmtPctBR(s.pctCancelamentosVendas)}</div><div class="stat-label">% Cancelamentos (Canceladas ÷ Vendas)</div></div>
     <div class="stat-card"><div class="stat-value">${fmtMoney(s.vgvTotal)}</div><div class="stat-label">VGV total (Σ col G)</div></div>
     <div class="stat-card"><div class="stat-value">${fmtPctBR(s.eficiencia)}</div><div class="stat-label">Eficiência</div></div>
     <div class="stat-card"><div class="stat-value">${fmtMoney(s.rendaMed)}</div><div class="stat-label">Renda média</div></div>
@@ -1160,7 +1162,7 @@ function rendaBucket(v){
   return "Acima de R$ 50,1 mil";
 }
 function renderPerfilRenda(rows,cid){
-  const order=["Abaixo de R$ 9 mil","R$ 9 mil a R$ 9,9 mil","R$ 10 mil a R$ 11,9 mil","R$ 12 mil a R$ 14,9 mil","R$ 15 mil a R$ 19,9 mil","R$ 20 mil a R$ 50 mil","Acima de R$ 50,1 mil"];
+  const order=["Abaixo de R$ 9 mil","R$ 9 mil a R$ 9,9 mil","R$ 10 mil a R$ 11,9 mil","R$ 12 mil a R$ 14,9 mil","R$ 15 mil a R$ 19,9 mil","R$ 20 mil a R$ 50 mil","Acima de R$  50,1 mil"];
   const map=new Map(order.map(k=>[k,[]]));
   rows.forEach(r=>{ const b=rendaBucket(r._renda); if(map.has(b)) map.get(b).push(r); });
   const list=order.map(k=>{ const s=statsFor(map.get(k)||[]); return{faixa:k,casais:s.casais,vendas:s.vendas,cotasCanceladas:s.cotasCanceladas,vgvTotal:s.vgvTotal,eficiencia:s.eficiencia,pctCancel:s.pctCancel,ticketMedio:s.ticketMedio,rendaMed:s.rendaMed}; });
