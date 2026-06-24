@@ -1436,4 +1436,1168 @@ function renderCancelamento(rows){
   el(cid).innerHTML=`
     <div class="table-wrap"><table>
       <thead><tr>
-        <th class="num sortable"
+        <th class="num sortable" data-sort="cotasVendidas">Cotas vendidas ${sortInd(cid,"cotasVendidas")}</th>
+        <th class="num sortable" data-sort="casais">Casais ${sortInd(cid,"casais")}</th>
+        <th class="num sortable" data-sort="cotasTotal">Cotas totais ${sortInd(cid,"cotasTotal")}</th>
+        <th class="num sortable" data-sort="cotasCanceladas">Canceladas ${sortInd(cid,"cotasCanceladas")}</th>
+        <th class="num sortable" data-sort="rendaMed">Renda média ${sortInd(cid,"rendaMed")}</th>
+        <th class="num sortable" data-sort="pctCancelamento">% Cancelamento ${sortInd(cid,"pctCancelamento")}</th>
+      </tr></thead>
+      <tbody>${ord.map(it=>`<tr>
+        <td class="num">${it.cotasVendidas}</td><td class="num">${it.casais}</td>
+        <td class="num">${it.cotasTotal}</td><td class="num">${it.cotasCanceladas}</td>
+        <td class="num">${fmtMoney(it.rendaMed)}</td>
+        <td class="num"><span class="pill ${canPill(it.pctCancelamento)}">${fmtPctBR(it.pctCancelamento)}</span></td>
+      </tr>`).join("")}
+      </tbody>
+    </table></div>`;
+  el(cid).querySelector("table").querySelectorAll("thead th.sortable").forEach(th=>{
+    th.addEventListener("click",()=>{ setSort(cid,th.dataset.sort); renderCancelamento(rows); });
+  });
+}
+
+/* ═══════════════════════════════════════════════
+   EQUIPES DE CAPTAÇÃO
+═══════════════════════════════════════════════ */
+function renderEquipes(){
+  const map=loadTeamMap();
+  renderCards("stats-equipe-parque",  state.filtered.filter(r=>{ const p=(r[KEY.promotor]??"").toString().trim(); return p&&map[p]==="Equipe Parque"; }));
+  renderCards("stats-equipe-externa", state.filtered.filter(r=>{ const p=(r[KEY.promotor]??"").toString().trim(); return p&&map[p]==="Equipe Externa"; }));
+  renderCards("stats-equipe-sem",     state.filtered.filter(r=>{ const p=(r[KEY.promotor]??"").toString().trim(); return !map[p]; }));
+}
+
+function listAllPromos(){
+  const s=new Set();
+  state.rows.forEach(r=>{ const n=(r[KEY.promotor]??"").toString().trim(); if(n) s.add(n); });
+  return [...s].sort((a,b)=>a.localeCompare(b,"pt-BR",{sensitivity:"base"}));
+}
+function listNamesByTipo(tipoKeyNorm){
+  const s=new Set();
+  state.rows.forEach(r=>{
+    const n=(r[tipoKeyNorm]??"").toString().trim();
+    if(n) s.add(n);
+  });
+  return [...s].sort((a,b)=>a.localeCompare(b,"pt-BR",{sensitivity:"base"}));
+}
+
+function renderTeamMappingUI(){
+  const promos=listAllPromos();
+  const sel=el("teamPromotorSelect");
+  sel.innerHTML=`<option value="">Selecione...</option>`+promos.map(p=>`<option value="${p}">${p}</option>`).join("");
+  const map=loadTeamMap();
+  const entries=Object.entries(map).filter(([k,v])=>k&&v).sort((a,b)=>a[0].localeCompare(b[0],"pt-BR",{sensitivity:"base"}));
+  el("teamMappingList").innerHTML=entries.length?entries.map(([p,t])=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.03);margin-bottom:8px">
+      <div><div style="font-weight:850">${p}</div><div style="color:var(--muted);font-size:.82rem">${t}</div></div>
+      <button class="btn" type="button" data-rm="${encodeURIComponent(p)}">Remover</button>
+    </div>`).join(""):`<div class="note" style="margin:0">Nenhuma marcação salva.</div>`;
+  el("teamMappingList").querySelectorAll("button[data-rm]").forEach(btn=>{
+    btn.addEventListener("click",()=>{ const m=loadTeamMap(); delete m[decodeURIComponent(btn.dataset.rm)]; saveTeamMap(m); renderTeamMappingUI(); renderEquipes(); renderSupervisores(); });
+  });
+}
+
+/* ═══════════════════════════════════════════════
+   SUPERVISORES
+═══════════════════════════════════════════════ */
+function renderSupervisores(){
+  const map=loadTeamMap();
+  const rowP = state.filtered.filter(r=>{ const p=(r[KEY.promotor]??"").toString().trim(); return p&&map[p]==="Equipe Parque"; });
+  const rowE = state.filtered.filter(r=>{ const p=(r[KEY.promotor]??"").toString().trim(); return p&&map[p]==="Equipe Externa"; });
+  const rowG = rowP.concat(rowE);
+
+  const sP=statsFor(rowP), sE=statsFor(rowE), sG=statsFor(rowG);
+
+  const capsP=new Set(); rowP.forEach(r=>{const p=(r[KEY.promotor]??"").toString().trim();if(p)capsP.add(norm(p));});
+  const capsE=new Set(); rowE.forEach(r=>{const p=(r[KEY.promotor]??"").toString().trim();if(p)capsE.add(norm(p));});
+  const capsG=new Set([...capsP,...capsE]);
+
+  const medCP = capsP.size ? sP.casais/capsP.size : 0;
+  const medCE = capsE.size ? sE.casais/capsE.size : 0;
+  const medCG = capsG.size ? sG.casais/capsG.size : 0;
+
+  const mkRow=(label,vP,vE,vG,fmt)=>`
+    <div class="sup-compare-row">
+      <div class="rc-label">${label}</div>
+      <div class="rc-parque">${fmt(vP)}</div>
+      <div class="rc-externa">${fmt(vE)}</div>
+      <div class="rc-geral">${fmt(vG)}</div>
+    </div>`;
+  const mkSep=label=>`
+    <div class="sup-compare-row section-sep">
+      <div class="rc-label">${label}</div><div></div><div></div><div></div>
+    </div>`;
+
+  const fmtN  = v => String(Math.round(v));
+  const fmtF1 = v => fmtNumBR(v,1,1);
+  const fmtEff= v => fmtPctBR(v);
+  const fmtM  = v => fmtMoney(v);
+  const fmtPc = v => fmtPctBR(v);
+
+  el("supCompareRows").innerHTML=
+    mkSep("Captadores e volume")+
+    mkRow("Captadores",          capsP.size,   capsE.size,   capsG.size,   fmtN)+
+    mkRow("Casais",              sP.casais,    sE.casais,    sG.casais,    fmtN)+
+    mkRow("Média casal/captador",medCP,        medCE,        medCG,        fmtF1)+
+    mkRow("Média de Casais/dia", sP.mediaCasaisPeriodo, sE.mediaCasaisPeriodo, sG.mediaCasaisPeriodo, fmtF1)+
+    mkRow("NoTour",              sP.noTour,    sE.noTour,    sG.noTour,    fmtN)+
+    mkSep("Vendas")+
+    mkRow("Cotas vendidas",      sP.vendas,    sE.vendas,    sG.vendas,    fmtN)+
+    mkRow("Cotas canceladas",    sP.cotasCanceladas, sE.cotasCanceladas, sG.cotasCanceladas, fmtN)+
+    mkRow("% Cancelamento",      sP.pctCancel, sE.pctCancel, sG.pctCancel, fmtPc)+
+    mkRow("Eficiência",          sP.eficiencia,sE.eficiencia,sG.eficiencia,fmtEff)+
+    mkSep("Financeiro")+
+    mkRow("VGV total",           sP.vgvTotal,  sE.vgvTotal,  sG.vgvTotal,  fmtM)+
+    mkRow("Ticket médio (cota)", sP.ticketMedio,sE.ticketMedio,sG.ticketMedio,fmtM)+
+    mkRow("Renda média",         sP.rendaMed,  sE.rendaMed,  sG.rendaMed,  fmtM);
+
+  const repMetrics = [
+    { label:"Casais",           vP:sP.casais,         vE:sE.casais,         vG:sG.casais,         fmt:fmtN },
+    { label:"Cotas vendidas",   vP:sP.vendas,         vE:sE.vendas,         vG:sG.vendas,         fmt:fmtN },
+    { label:"Cotas canceladas", vP:sP.cotasCanceladas,vE:sE.cotasCanceladas,vG:sG.cotasCanceladas,fmt:fmtN },
+    { label:"VGV total",        vP:sP.vgvTotal,       vE:sE.vgvTotal,       vG:sG.vgvTotal,       fmt:fmtM },
+    { label:"Captadores",       vP:capsP.size,        vE:capsE.size,        vG:capsG.size,        fmt:fmtN },
+  ];
+
+  el("supRepGrid").innerHTML=`
+    <div class="rep-panel">
+      <h4>📊 Quanto cada equipe representa do total geral (Parque + Externa)</h4>
+      <div class="rep-grid">
+        ${repMetrics.map(m=>{
+          const pctP = m.vG ? (m.vP/m.vG) : 0;
+          const pctE = m.vG ? (m.vE/m.vG) : 0;
+          const wP   = Math.round(pctP*100);
+          const wE   = Math.round(pctE*100);
+          return`
+          <div class="rep-card parque">
+            <div class="rep-kpi-label">${m.label} — Parque</div>
+            <div class="rep-kpi-row">
+              <div class="rep-kpi-val" style="color:#c4b5ff">${m.fmt(m.vP)}</div>
+              <div class="rep-kpi-pct parque">${fmtPct2(m.vP,m.vG)} do total</div>
+            </div>
+            <div class="rep-bar-wrap"><div class="rep-bar-fill parque" style="width:${wP}%"></div></div>
+          </div>
+          <div class="rep-card externa">
+            <div class="rep-kpi-label">${m.label} — Externa</div>
+            <div class="rep-kpi-row">
+              <div class="rep-kpi-val" style="color:#7eedff">${m.fmt(m.vE)}</div>
+              <div class="rep-kpi-pct externa">${fmtPct2(m.vE,m.vG)} do total</div>
+            </div>
+            <div class="rep-bar-wrap"><div class="rep-bar-fill externa" style="width:${wE}%"></div></div>
+          </div>
+          <div class="rep-card geral">
+            <div class="rep-kpi-label">${m.label} — Geral</div>
+            <div class="rep-kpi-row">
+              <div class="rep-kpi-val" style="color:#b0fff0">${m.fmt(m.vG)}</div>
+              <div class="rep-kpi-pct geral">100% do total</div>
+            </div>
+            <div class="rep-bar-wrap"><div class="rep-bar-fill" style="width:100%;background:linear-gradient(90deg,var(--accent),var(--accent2))"></div></div>
+          </div>`;
+        }).join("")}
+      </div>
+    </div>`;
+
+  const promos=listAllPromos();
+  el("supPromotorSelect").innerHTML=`<option value="">Selecione...</option>`+promos.map(p=>`<option value="${p}">${p}</option>`).join("");
+  el("supMappingList").innerHTML=promos.length?promos.map(p=>{
+    const cur=map[p]||"";
+    const tagCls=cur==="Equipe Parque"?"parque":cur==="Equipe Externa"?"externa":"none";
+    const tagLbl=cur||"Sem equipe";
+    return`<div class="promo-row">
+      <span class="pr-name" title="${p}">${p}</span>
+      <span class="pr-tag ${tagCls}">${tagLbl}</span>
+      <select class="mini-sel" data-promo="${encodeURIComponent(p)}">
+        <option value="">— sem equipe —</option>
+        <option value="Equipe Parque"  ${cur==="Equipe Parque" ?"selected":""}>Equipe Parque</option>
+        <option value="Equipe Externa" ${cur==="Equipe Externa"?"selected":""}>Equipe Externa</option>
+      </select>
+    </div>`;
+  }).join(""):`<div class="note" style="margin:0">Nenhum promotor encontrado no CSV.</div>`;
+
+  el("supMappingList").querySelectorAll("select.mini-sel").forEach(sel=>{
+    sel.addEventListener("change",()=>{
+      const p=decodeURIComponent(sel.dataset.promo);
+      const m=loadTeamMap();
+      if(sel.value) m[p]=sel.value; else delete m[p];
+      saveTeamMap(m);
+      renderSupervisores();
+      renderEquipes();
+      renderTeamMappingUI();
+      renderDesafios(); // atualiza apuração se estiver em desafio
+    });
+  });
+}
+
+/* ═══════════════════════════════════════════════
+   PROFISSIONAL INDIVIDUAL
+═══════════════════════════════════════════════ */
+function renderSingle(){
+  const tipo=norm(el("profTipoSingle").value);
+  const nome=el("profNomeSingle").value;
+  if(!nome){el("stats-single").innerHTML="";return;}
+  const mine=state.filtered.filter(r=>norm(r[tipo]??"")=== norm(nome));
+  const s=statsFor(mine);
+  el("stats-single").innerHTML=`
+    <div class="stat-card"><div class="stat-value">${nome}</div><div class="stat-label">Profissional</div></div>
+    <div class="stat-card"><div class="stat-value">${s.casais}</div><div class="stat-label">Casais</div></div>
+    <div class="stat-card"><div class="stat-value">${fmtNumBR(s.mediaCasaisPeriodo,1,1)}</div><div class="stat-label">Média Casais/dia</div></div>
+    <div class="stat-card"><div class="stat-value">${s.vendas}</div><div class="stat-label">Cotas</div></div>
+    <div class="stat-card"><div class="stat-value">${s.cotasCanceladas}</div><div class="stat-label">Cotas canceladas</div></div>
+    <div class="stat-card"><div class="stat-value">${fmtMoney(s.vgvTotal)}</div><div class="stat-label">VGV</div></div>
+    <div class="stat-card"><div class="stat-value">${fmtPctBR(s.eficiencia)}</div><div class="stat-label">Eficiência</div></div>
+    <div class="stat-card"><div class="stat-value">${fmtPctBR(s.pctCancel)}</div><div class="stat-label">% Cancelamento</div></div>
+    <div class="stat-card"><div class="stat-value">${fmtMoney(s.ticketMedio)}</div><div class="stat-label">Ticket médio</div></div>
+    <div class="stat-card"><div class="stat-value">${s.noTour}</div><div class="stat-label">NoTour</div></div>`;
+}
+
+/* ═══════════════════════════════════════════════
+   COMPARATIVO
+═══════════════════════════════════════════════ */
+function filterByRange(rows,s,e){
+  const d1=parseDateOnlyInput(s),d2=parseDateOnlyInput(e);
+  if(!d1&&!d2) return rows.slice();
+  const st=d1?d1.getTime():-Infinity;
+  const en=d2?new Date(d2.getFullYear(),d2.getMonth(),d2.getDate(),23,59,59,999).getTime():Infinity;
+  return rows.filter(r=>r._dt&&r._dt.getTime()>=st&&r._dt.getTime()<=en);
+}
+function pctVar(x,y){ const X=Number(x)||0,Y=Number(y)||0; if(Y===0) return null; return(X-Y)/Y; }
+function fmtVar(f){ if(f===null) return "—"; const p=f*100,sg=p>0?"+":""; return sg+fmtNumBR(p,1,1)+"%"; }
+function deltaClass(f){ if(f===null||Math.abs(f)<1e-9) return "neu"; return f>0?"pos":"neg"; }
+
+function renderComparativo(){
+  const base=applyFilters(state.rows);
+  const rX=filterByRange(base,el("cmpXStart").value,el("cmpXEnd").value);
+  const rY=filterByRange(base,el("cmpYStart").value,el("cmpYEnd").value);
+  renderCards("cmpStatsX",rX); renderCards("cmpStatsY",rY);
+  const sX=statsFor(rX),sY=statsFor(rY);
+  el("cmpMeta").textContent=[
+    `X: ${fmtBR(el("cmpXStart").value)||"—"} a ${fmtBR(el("cmpXEnd").value)||"—"}`,
+    `Y: ${fmtBR(el("cmpYStart").value)||"—"} a ${fmtBR(el("cmpYEnd").value)||"—"}`,
+    `Status: ${el("statusSelect").value}`,`Prof.: ${el("profTipo").value} / ${el("profNome").value}`,`UF: ${el("ufSelect").value}`
+  ].join(" • ");
+  const metrics=[
+    {label:"Casais",           x:sX.casais,             y:sY.casais,             fmt:v=>String(v|0)},
+    {label:"Média Casais/dia", x:sX.mediaCasaisPeriodo, y:sY.mediaCasaisPeriodo, fmt:v=>fmtNumBR(v,1,1)},
+    {label:"Cotas (vendas)",   x:sX.vendas,             y:sY.vendas,             fmt:v=>String(v|0)},
+    {label:"Cotas canceladas", x:sX.cotasCanceladas,    y:sY.cotasCanceladas,    fmt:v=>String(v|0)},
+    {label:"VGV total",        x:sX.vgvTotal,           y:sY.vgvTotal,           fmt:fmtMoney},
+    {label:"Eficiência",       x:sX.eficiencia,         y:sY.eficiencia,         fmt:fmtPctBR},
+    {label:"% Cancelamento",   x:sX.pctCancel,          y:sY.pctCancel,          fmt:fmtPctBR},
+    {label:"Ticket médio",     x:sX.ticketMedio,        y:sY.ticketMedio,        fmt:fmtMoney},
+    {label:"Renda média",      x:sX.rendaMed,           y:sY.rendaMed,           fmt:fmtMoney},
+    {label:"NoTour",           x:sX.noTour,             y:sY.noTour,             fmt:v=>String(v|0)},
+  ];
+  el("cmpDeltas").innerHTML=metrics.map(m=>{ const v=pctVar(m.x,m.y); return`
+    <div class="kpi-row">
+      <div class="kpi-top"><div class="kpi-name">${m.label}</div><div class="kpi-delta ${deltaClass(v)}">${fmtVar(v)}</div></div>
+      <div class="kpi-sub"><div><b>X:</b> ${m.fmt(m.x)}</div><div><b>Y:</b> ${m.fmt(m.y)}</div><div><b>Dif.:</b> ${m.fmt((m.x||0)-(m.y||0))}</div></div>
+    </div>`; }).join("");
+}
+
+/* ═══════════════════════════════════════════════
+   SELECTS
+═══════════════════════════════════════════════ */
+function updateProfFilters(tipoId,nomeId){
+  const tipo=norm(el(tipoId).value);
+  const names=new Set();
+  state.rows.forEach(r=>{ const n=(r[tipo]??"").toString().trim(); if(n) names.add(n); });
+  const arr=[...names].sort((a,b)=>a.localeCompare(b,"pt-BR",{sensitivity:"base"}));
+  const isGlobal=(nomeId==="profNome");
+  el(nomeId).innerHTML=(isGlobal?'<option value="todos">Todos</option>':'<option value="">Selecione...</option>')+arr.map(n=>`<option value="${n}">${n}</option>`).join("");
+}
+function updateUFFilter(){
+  const ufs=new Set();
+  state.rows.forEach(r=>{ const u=(r[KEY.uf]??"").toString().trim(); if(u) ufs.add(u); });
+  el("ufSelect").innerHTML='<option value="todos">Todas</option>'+[...ufs].sort().map(u=>`<option value="${u}">${u}</option>`).join("");
+}
+
+/* ═══════════════════════════════════════════════
+   NOVA ABA: INDIVIDUAL MÊS/MÊS (LÓGICA)
+═══════════════════════════════════════════════ */
+const MM = {
+  selectedMonths: new Set(), // keys "YYYY-MM"
+};
+
+function monthKey(dt){
+  return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}`;
+}
+function monthLabel(ym){
+  const [y,m]=String(ym).split("-").map(Number);
+  const d=new Date(y,(m||1)-1,1);
+  return new Intl.DateTimeFormat("pt-BR",{month:"long",year:"numeric"}).format(d);
+}
+function monthShort(ym){
+  const [y,m]=String(ym).split("-").map(Number);
+  const d=new Date(y,(m||1)-1,1);
+  const mon=new Intl.DateTimeFormat("pt-BR",{month:"short"}).format(d).replace(".","");
+  return `${mon}/${String(y).slice(2)}`;
+}
+function rowsBaseForMM(){
+  // respeita Status + UF globais; e período global para limitar meses (se houver)
+  const status  = el("statusSelect").value;
+  const ufSel   = el("ufSelect").value;
+  const d1 = parseDateOnlyInput(el("dateStart").value);
+  const d2 = parseDateOnlyInput(el("dateEnd").value);
+
+  let f = state.rows.slice();
+  if(status!=="todos") f = f.filter(r=>r._bucket===status);
+  if(ufSel!=="todos")  f = f.filter(r=>(r[KEY.uf]??"").toString().trim()===ufSel);
+
+  if(d1||d2){
+    const s=d1?d1.getTime():-Infinity;
+    const e=d2?new Date(d2.getFullYear(),d2.getMonth(),d2.getDate(),23,59,59,999).getTime():Infinity;
+    f=f.filter(r=>r._dt && r._dt.getTime()>=s && r._dt.getTime()<=e);
+  }
+  return f;
+}
+function availableMonthsForMM(){
+  const base = rowsBaseForMM();
+  const set = new Set();
+  base.forEach(r=>{ if(r._dt) set.add(monthKey(r._dt)); });
+  return [...set].sort(); // asc
+}
+function updateMMNameSelect(){
+  const tipo = norm(el("mmProfTipo").value);
+  const names = new Set();
+  state.rows.forEach(r=>{
+    const n=(r[tipo]??"").toString().trim();
+    if(n) names.add(n);
+  });
+  const arr=[...names].sort((a,b)=>a.localeCompare(b,"pt-BR",{sensitivity:"base"}));
+  el("mmProfNome").innerHTML = `<option value="">Selecione...</option>` + arr.map(n=>`<option value="${n}">${n}</option>`).join("");
+}
+function renderMMMonths(){
+  const months = availableMonthsForMM();
+  const wrap = el("mmMonths");
+  if(!wrap) return;
+
+  if(!months.length){
+    wrap.innerHTML = `<div class="note" style="margin:0">Sem meses disponíveis para os filtros atuais.</div>`;
+    return;
+  }
+
+  // se seleção está vazia, default: últimos 3
+  if(MM.selectedMonths.size===0){
+    months.slice(-3).forEach(m=>MM.selectedMonths.add(m));
+  }
+
+  wrap.innerHTML = months.map(ym=>{
+    const active = MM.selectedMonths.has(ym);
+    return `<span class="chip ${active?"active":""}" data-mm-month="${ym}" title="${monthLabel(ym)}">${monthShort(ym)}</span>`;
+  }).join("");
+
+  wrap.querySelectorAll("[data-mm-month]").forEach(ch=>{
+    ch.addEventListener("click", ()=>{
+      const ym = ch.dataset.mmMonth;
+      if(MM.selectedMonths.has(ym)) MM.selectedMonths.delete(ym);
+      else MM.selectedMonths.add(ym);
+      renderMMMonths();
+      renderMMGrid();
+    });
+  });
+}
+function renderMMGrid(){
+  const grid = el("mmGrid");
+  const meta = el("mmMeta");
+  if(!grid || !meta) return;
+
+  const tipo = norm(el("mmProfTipo").value);
+  const nome = el("mmProfNome").value;
+
+  const base = rowsBaseForMM();
+  const months = [...MM.selectedMonths].sort();
+
+  meta.textContent = [
+    `Status=${el("statusSelect").value}`,
+    `UF=${el("ufSelect").value}`,
+    (el("dateStart").value||el("dateEnd").value) ? `Período=${fmtBR(el("dateStart").value)||"—"} a ${fmtBR(el("dateEnd").value)||"—"}` : `Período=(sem filtro)`,
+    `Meses selecionados=${months.length}`
+  ].join(" • ");
+
+  if(!nome){
+    grid.innerHTML = `<div class="mm-col"><div class="mm-empty"><div class="note">Selecione um profissional para ver o comparativo mês/mês.</div></div></div>`;
+    return;
+  }
+  if(!months.length){
+    grid.innerHTML = `<div class="mm-col"><div class="mm-empty"><div class="note warn">Selecione pelo menos 1 mês (clique nos chips acima).</div></div></div>`;
+    return;
+  }
+
+  const mine = base.filter(r => norm(r[tipo]??"") === norm(nome));
+
+  // agrupar por mês
+  const byMonth = new Map();
+  mine.forEach(r=>{
+    if(!r._dt) return;
+    const k = monthKey(r._dt);
+    if(!byMonth.has(k)) byMonth.set(k, []);
+    byMonth.get(k).push(r);
+  });
+
+  const kpiBlock = (label, valueHtml) => `
+    <div class="mm-kpi">
+      <div class="lab">${label}</div>
+      <div class="val">${valueHtml}</div>
+    </div>
+  `;
+
+  grid.innerHTML = months.map(ym=>{
+    const rows = byMonth.get(ym) || [];
+    const s = statsFor(rows);
+
+    return `
+      <div class="mm-col">
+        <div class="mm-col-hdr">
+          <div class="title">
+            <b>${monthLabel(ym)}</b>
+            <span>${nome}</span>
+          </div>
+          <span class="badge">${rows.length} linhas</span>
+        </div>
+        <div class="mm-kpis">
+          ${kpiBlock("Casais", String(s.casais))}
+          ${kpiBlock("Média de Casais/dia", fmtNumBR(s.mediaCasaisPeriodo,1,1))}
+          ${kpiBlock("Cotas (vendas)", String(s.vendas))}
+          ${kpiBlock("Cotas canceladas", String(s.cotasCanceladas))}
+          ${kpiBlock("% Cancelamento", `<span class="pill ${canPill(s.pctCancel)}">${fmtPctBR(s.pctCancel)}</span>`)}
+          ${kpiBlock("VGV total", fmtMoney(s.vgvTotal))}
+          ${kpiBlock("Eficiência", `<span class="pill ${effPill(s.eficiencia)}">${fmtPctBR(s.eficiencia)}</span>`)}
+          ${kpiBlock("Renda média", fmtMoney(s.rendaMed))}
+          ${kpiBlock("Ticket médio (cota)", fmtMoney(s.ticketMedio))}
+          ${kpiBlock("NoTour", String(s.noTour))}
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+function renderIndividualMesMes(){
+  // re-render completo da aba (meses + grid)
+  renderMMMonths();
+  renderMMGrid();
+}
+
+/* ═══════════════════════════════════════════════
+   DESAFIOS (CRUD + APURAÇÃO)
+═══════════════════════════════════════════════ */
+let currentChallengeId = null;
+
+const metricLabel = m => ({
+  casais:"Número de casais",
+  vgv:"VGV",
+  casais_atendidos:"Casais atendidos",
+  eficiencia:"Eficiência",
+}[m]||m);
+
+function uid(){
+  return "ch_"+Math.random().toString(16).slice(2)+"_"+Date.now().toString(16);
+}
+
+function showChMsg(text,type="success"){
+  const box=el("chFormMsg");
+  box.style.display="block";
+  box.className="note "+(type==="bad"?"bad":type==="warn"?"warn":"success");
+  box.textContent=text;
+  setTimeout(()=>{ box.style.display="none"; }, 2200);
+}
+
+function newChallengeTemplate(){
+  return {
+    id: uid(),
+    name: "",
+    start: "",
+    end: "",
+    metric: "casais",
+    profTipo: norm("promotor de marketing"),
+    teams: [
+      { name:"Equipe 1", members:[] },
+      { name:"Equipe 2", members:[] },
+    ],
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  };
+}
+
+function getNamesForChallengeTipo(ch){
+  const tipo = ch?.profTipo || norm("promotor de marketing");
+  return listNamesByTipo(tipo);
+}
+
+function ensureTeamsCount(ch, n){
+  const nn = Math.max(2, Math.min(6, Number(n)||2));
+  ch.teams = Array.isArray(ch.teams)?ch.teams:[];
+  while(ch.teams.length < nn){
+    ch.teams.push({ name:`Equipe ${ch.teams.length+1}`, members:[] });
+  }
+  while(ch.teams.length > nn){
+    ch.teams.pop();
+  }
+  ch.teams.forEach((t,i)=>{
+    if(!t || typeof t!=="object") ch.teams[i] = { name:`Equipe ${i+1}`, members:[] };
+    if(typeof ch.teams[i].name!=="string") ch.teams[i].name = `Equipe ${i+1}`;
+    if(!Array.isArray(ch.teams[i].members)) ch.teams[i].members = [];
+  });
+}
+
+function renderChallengeTeamsEditor(){
+  const challenges = loadChallenges();
+  const ch = challenges.find(x=>x.id===currentChallengeId) || null;
+  const tipo = norm(el("chProfTipo").value);
+  const names = listNamesByTipo(tipo);
+
+  const teamsCount = Number(el("chTeamsCount").value)||2;
+
+  // se estiver criando novo (ainda não salvo), renderiza com base nos inputs (sem storage)
+  // mas para simplificar: quando não existe no storage, usamos um objeto temporário.
+  const tmp = ch ? structuredClone(ch) : newChallengeTemplate();
+  tmp.profTipo = tipo;
+  ensureTeamsCount(tmp, teamsCount);
+
+  const used = new Set();
+  tmp.teams.forEach(t=>t.members.forEach(m=>used.add(norm(m))));
+
+  el("chTeamsEditor").innerHTML = tmp.teams.map((t,idx)=>{
+    const teamId = `t${idx}`;
+    return `
+      <div class="team-box" data-team-index="${idx}">
+        <div class="hdr">
+          <b>Equipe ${idx+1}</b>
+          <span class="badge">${t.members.length} membros</span>
+        </div>
+        <div class="control-group" style="min-width:unset">
+          <label>Nome da equipe</label>
+          <input data-team-name="${idx}" value="${(t.name||"").replace(/"/g,"&quot;")}" placeholder="Ex.: Time Azul" />
+        </div>
+        <div class="team-members">
+          <div class="tiny">Marque os profissionais que farão parte desta equipe:</div>
+          ${names.length ? names.map(n=>{
+            const nn = norm(n);
+            const checked = t.members.some(x=>norm(x)===nn);
+            const disabled = !checked && used.has(nn);
+            return `
+              <div class="member-row">
+                <label title="${n}">
+                  <input type="checkbox" data-team-member="${idx}" data-member="${encodeURIComponent(n)}" ${checked?"checked":""} ${disabled?"disabled":""}/>
+                  ${n}
+                </label>
+                ${disabled?`<span class="badge">em outra equipe</span>`:""}
+              </div>
+            `;
+          }).join("") : `<div class="note" style="margin:0">Nenhum profissional encontrado no CSV para este tipo.</div>`}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  // listeners (inputs/checkboxes) -> atualiza objeto no storage (se existir) ou um draft em memória via dataset
+  // Implementação: gravar direto no storage quando currentChallengeId existe; caso contrário, só atualiza UI e salvar na hora.
+  el("chTeamsEditor").querySelectorAll("input[data-team-name]").forEach(inp=>{
+    inp.addEventListener("input", ()=>{
+      if(!currentChallengeId) return;
+      const idx=Number(inp.dataset.teamName);
+      const arr=loadChallenges();
+      const ch=arr.find(x=>x.id===currentChallengeId);
+      if(!ch) return;
+      ensureTeamsCount(ch, Number(el("chTeamsCount").value)||2);
+      ch.teams[idx].name = inp.value;
+      ch.updatedAt = Date.now();
+      saveChallenges(arr);
+      renderDesafios(false);
+    });
+  });
+
+  el("chTeamsEditor").querySelectorAll("input[type='checkbox'][data-team-member]").forEach(cb=>{
+    cb.addEventListener("change", ()=>{
+      const tIdx = Number(cb.dataset.teamMember);
+      const member = decodeURIComponent(cb.dataset.member);
+
+      // atualiza no storage se editando existente; senão ignora (vai ser lido ao salvar)
+      if(currentChallengeId){
+        const arr=loadChallenges();
+        const ch=arr.find(x=>x.id===currentChallengeId);
+        if(!ch) return;
+        ensureTeamsCount(ch, Number(el("chTeamsCount").value)||2);
+
+        // remove de todas as equipes (garante exclusividade)
+        ch.teams.forEach(t=>t.members = (t.members||[]).filter(x=>norm(x)!==norm(member)));
+
+        // adiciona se checked
+        if(cb.checked){
+          ch.teams[tIdx].members.push(member);
+        }
+        ch.updatedAt = Date.now();
+        saveChallenges(arr);
+      }
+
+      // re-render para aplicar disable/contadores
+      renderDesafios(false);
+    });
+  });
+}
+
+function readChallengeFromForm(){
+  const name = (el("chName").value||"").trim();
+  const start = el("chStart").value;
+  const end = el("chEnd").value;
+  const metric = el("chMetric").value;
+  const profTipo = norm(el("chProfTipo").value);
+  const teamsCount = Number(el("chTeamsCount").value)||2;
+
+  const names = listNamesByTipo(profTipo);
+
+  // montar times lendo editor atual (inputs/checkboxes)
+  const teams = [];
+  for(let i=0;i<teamsCount;i++){
+    teams.push({ name:`Equipe ${i+1}`, members:[] });
+  }
+  // nomes
+  document.querySelectorAll("#chTeamsEditor input[data-team-name]").forEach(inp=>{
+    const idx=Number(inp.dataset.teamName);
+    if(Number.isFinite(idx) && teams[idx]) teams[idx].name = (inp.value||`Equipe ${idx+1}`).trim() || `Equipe ${idx+1}`;
+  });
+  // membros
+  document.querySelectorAll("#chTeamsEditor input[type='checkbox'][data-team-member]").forEach(cb=>{
+    if(!cb.checked) return;
+    const tIdx=Number(cb.dataset.teamMember);
+    const member=decodeURIComponent(cb.dataset.member);
+    if(!teams[tIdx]) return;
+    // valida membro existir na lista do tipo (evita lixo)
+    if(!names.some(n=>norm(n)===norm(member))) return;
+    teams[tIdx].members.push(member);
+  });
+
+  // garantir exclusividade (caso alguma checagem tenha escapado)
+  const seen=new Set();
+  teams.forEach(t=>{
+    t.members = t.members.filter(m=>{
+      const k=norm(m);
+      if(seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+  });
+
+  return { name, start, end, metric, profTipo, teamsCount, teams };
+}
+
+function resetChallengeForm(){
+  currentChallengeId = null;
+  el("challengeFormTitle").textContent = "Criar desafio";
+  el("chName").value="";
+  el("chStart").value="";
+  el("chEnd").value="";
+  el("chMetric").value="casais";
+  el("chTeamsCount").value="2";
+  el("chProfTipo").value="promotor de marketing";
+  renderChallengeTeamsEditor();
+  renderDesafios(false);
+}
+
+function loadChallengeIntoForm(ch){
+  currentChallengeId = ch.id;
+  el("challengeFormTitle").textContent = "Editar desafio";
+  el("chName").value = ch.name||"";
+  el("chStart").value = ch.start||"";
+  el("chEnd").value = ch.end||"";
+  el("chMetric").value = ch.metric||"casais";
+  el("chProfTipo").value = (ch.profTipo||norm("promotor de marketing"));
+  el("chTeamsCount").value = String(Math.max(2, Math.min(6, (ch.teams||[]).length || 2)));
+
+  renderChallengeTeamsEditor();
+  renderDesafios(false);
+}
+
+function deleteChallenge(id){
+  const arr = loadChallenges().filter(x=>x.id!==id);
+  saveChallenges(arr);
+  if(currentChallengeId===id) resetChallengeForm();
+  renderDesafios();
+}
+
+function formatChallengePeriod(ch){
+  const s = ch.start ? fmtBR(ch.start) : "—";
+  const e = ch.end ? fmtBR(ch.end) : "—";
+  return `${s} a ${e}`;
+}
+
+function challengeMetricValue(ch, rowsForTeam){
+  const s = statsFor(rowsForTeam);
+  switch(ch.metric){
+    case "casais": return { val: s.casais, fmt: v=>String(v|0) };
+    case "vgv": return { val: s.vgvTotal, fmt: fmtMoney };
+    case "casais_atendidos":
+      // aqui interpretamos como "linhas totais" (inclui NoTour)
+      return { val: s.totalLinhas, fmt: v=>String(v|0) };
+    case "eficiencia": return { val: s.eficiencia, fmt: fmtPctBR };
+    default: return { val: s.casais, fmt: v=>String(v|0) };
+  }
+}
+
+function applyFiltersForChallengeBase(rows){
+  // desafio: IGNORA período global; respeita status e UF globais
+  const status  =el("statusSelect").value;
+  const ufSel   =el("ufSelect").value;
+  let f=rows.slice();
+  if(status!=="todos")   f=f.filter(r=>r._bucket===status);
+  if(ufSel !=="todos")   f=f.filter(r=>(r[KEY.uf]??"").toString().trim()===ufSel);
+  return f;
+}
+
+function renderChallengeResults(ch){
+  if(!ch){ el("chResults").innerHTML = `<div class="note">Selecione um desafio na lista para ver a apuração.</div>`; return; }
+
+  const base = applyFiltersForChallengeBase(state.rows);
+  const inPeriod = filterByRange(base, ch.start, ch.end);
+
+  // agrupar por time, filtrando por profissional do tipo escolhido
+  const tipoKey = norm(ch.profTipo||norm("promotor de marketing"));
+  const teams = Array.isArray(ch.teams)?ch.teams:[];
+  const results = teams.map(t=>{
+    const members = (t.members||[]).map(x=>x.toString());
+    const memberSet = new Set(members.map(norm));
+
+    const rowsTeam = inPeriod.filter(r=>{
+      const who = (r[tipoKey]??"").toString().trim();
+      if(!who) return false;
+      return memberSet.has(norm(who));
+    });
+
+    const met = challengeMetricValue(ch, rowsTeam);
+
+    return {
+      teamName: (t.name||"Equipe").trim() || "Equipe",
+      membersCount: members.length,
+      valor: met.val,
+      fmt: met.fmt,
+      stats: statsFor(rowsTeam),
+    };
+  });
+
+  // ordenar por valor (desc), desempate por nome
+  const sorted = results.slice().sort((a,b)=>{
+    const av = (typeof a.valor==="number")?a.valor:0;
+    const bv = (typeof b.valor==="number")?b.valor:0;
+    if(bv!==av) return bv-av;
+    return a.teamName.localeCompare(b.teamName,"pt-BR",{sensitivity:"base"});
+  });
+
+  const best = sorted[0]?.valor ?? 0;
+
+  el("chResults").innerHTML = `
+    <div class="note">
+      <strong>${(ch.name||"Desafio").trim() || "Desafio"}</strong><br>
+      Período: <strong>${formatChallengePeriod(ch)}</strong> • Apuração: <strong>${metricLabel(ch.metric)}</strong> • Tipo: <strong>${ch.profTipo}</strong><br>
+      Filtros aplicados: Status=<strong>${el("statusSelect").value}</strong> • UF=<strong>${el("ufSelect").value}</strong>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:84px">#</th>
+            <th class="sortable" data-sort="teamName">Equipe ${sortInd("ch-results-table","teamName")}</th>
+            <th class="num sortable" data-sort="membersCount">Membros ${sortInd("ch-results-table","membersCount")}</th>
+            <th class="num sortable" data-sort="valor">${metricLabel(ch.metric)} ${sortInd("ch-results-table","valor")}</th>
+            <th class="num">Casais</th>
+            <th class="num">Cotas</th>
+            <th class="num">VGV</th>
+            <th class="num">Eficiência</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${sorted.map((r,i)=>{
+            const pos=i+1;
+            const medal = pos===1?"🥇":pos===2?"🥈":pos===3?"🥉":"";
+            const delta = (typeof r.valor==="number" && typeof best==="number") ? (r.valor-best) : 0;
+
+            const main = (ch.metric==="vgv") ? r.fmt(r.valor)
+                       : (ch.metric==="eficiencia") ? r.fmt(r.valor)
+                       : String(r.valor|0);
+
+            return `
+              <tr>
+                <td class="rank-col">${medal} ${pos}°</td>
+                <td class="name" title="${r.teamName}">${r.teamName}</td>
+                <td class="num">${r.membersCount}</td>
+                <td class="num">
+                  <b>${main}</b>
+                  ${pos>1 ? `<span class="badge">dif.: ${ch.metric==="vgv"?fmtMoney(delta):ch.metric==="eficiencia"?fmtNumBR(delta*100,1,1)+"%":String(delta|0)}</span>`:""}
+                </td>
+                <td class="num">${r.stats.casais}</td>
+                <td class="num">${r.stats.vendas}</td>
+                <td class="num">${fmtMoney(r.stats.vgvTotal)}</td>
+                <td class="num"><span class="pill ${effPill(r.stats.eficiencia)}">${fmtPctBR(r.stats.eficiencia)}</span></td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  // sort (simples) para tabela de desafios
+  el("chResults").querySelectorAll("thead th.sortable").forEach(th=>{
+    th.addEventListener("click", ()=>{
+      setSort("ch-results-table", th.dataset.sort);
+      // aplicar sortState manualmente
+      const st = sortState["ch-results-table"] || {key:"valor",dir:"desc"};
+      const again = results.slice().sort((a,b)=>{
+        const key = st.key;
+        const dir = st.dir;
+        const va = a[key], vb = b[key];
+        const num = (x)=> (typeof x==="number")?x:0;
+        const cmp = (x,y)=> {
+          if(typeof x==="number" && typeof y==="number") return x-y;
+          return String(x??"").localeCompare(String(y??""),"pt-BR",{sensitivity:"base"});
+        };
+        const baseCmp = (key==="valor"||key==="membersCount") ? (num(va)-num(vb)) : cmp(va,vb);
+        return dir==="asc" ? baseCmp : -baseCmp;
+      });
+
+      // re-render só o tbody rapidamente
+      const tbody = el("chResults").querySelector("tbody");
+      tbody.innerHTML = again.map((r,i)=>{
+        const pos=i+1;
+        const medal = pos===1?"🥇":pos===2?"🥈":pos===3?"🥉":"";
+        const main = (ch.metric==="vgv") ? r.fmt(r.valor)
+                   : (ch.metric==="eficiencia") ? r.fmt(r.valor)
+                   : String(r.valor|0);
+        return `
+          <tr>
+            <td class="rank-col">${medal} ${pos}°</td>
+            <td class="name" title="${r.teamName}">${r.teamName}</td>
+            <td class="num">${r.membersCount}</td>
+            <td class="num"><b>${main}</b></td>
+            <td class="num">${r.stats.casais}</td>
+            <td class="num">${r.stats.vendas}</td>
+            <td class="num">${fmtMoney(r.stats.vgvTotal)}</td>
+            <td class="num"><span class="pill ${effPill(r.stats.eficiencia)}">${fmtPctBR(r.stats.eficiencia)}</span></td>
+          </tr>
+        `;
+      }).join("");
+    });
+  });
+}
+
+function renderDesafios(recalcTeamsEditor=true){
+  // lista
+  const arr = loadChallenges().sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+  el("chList").innerHTML = arr.length ? arr.map(ch=>{
+    const active = (ch.id===currentChallengeId);
+    return `
+      <div class="challenge-item" style="${active?'border-color: rgba(124,92,255,.45); box-shadow: 0 18px 50px rgba(0,0,0,.35);':''}">
+        <div class="top">
+          <div class="title">
+            <span>${(ch.name||"Sem nome").trim() || "Sem nome"}</span>
+            <span class="badge">${metricLabel(ch.metric)}</span>
+            <span class="badge">${ch.profTipo||"—"}</span>
+          </div>
+          <div class="meta">📅 ${formatChallengePeriod(ch)} • 🧩 ${Array.isArray(ch.teams)?ch.teams.length:0} equipes</div>
+        </div>
+        <div class="actions">
+          <button class="btn" data-ch-open="${encodeURIComponent(ch.id)}">Editar</button>
+          <button class="btn" data-ch-view="${encodeURIComponent(ch.id)}">Apurar</button>
+          <button class="btn danger" data-ch-del="${encodeURIComponent(ch.id)}">Excluir</button>
+        </div>
+      </div>
+    `;
+  }).join("") : `<div class="note" style="margin:0">Nenhum desafio criado ainda.</div>`;
+
+  el("chList").querySelectorAll("button[data-ch-open]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const id=decodeURIComponent(b.dataset.chOpen);
+      const ch=loadChallenges().find(x=>x.id===id);
+      if(ch) loadChallengeIntoForm(ch);
+    });
+  });
+  el("chList").querySelectorAll("button[data-ch-view]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const id=decodeURIComponent(b.dataset.chView);
+      const ch=loadChallenges().find(x=>x.id===id);
+      if(!ch) return;
+      currentChallengeId = id;
+      // mantém form como está (se não estava editando), mas mostra apuração
+      renderChallengeResults(ch);
+      renderDesafios(false);
+    });
+  });
+  el("chList").querySelectorAll("button[data-ch-del]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const id=decodeURIComponent(b.dataset.chDel);
+      if(!confirm("Excluir este desafio?")) return;
+      deleteChallenge(id);
+    });
+  });
+
+  // editor de equipes
+  if(recalcTeamsEditor) renderChallengeTeamsEditor();
+
+  // apuração do selecionado
+  const current = currentChallengeId ? loadChallenges().find(x=>x.id===currentChallengeId) : null;
+  renderChallengeResults(current);
+}
+
+/* ═══════════════════════════════════════════════
+   UPDATE ALL
+═══════════════════════════════════════════════ */
+function updateAll(){
+  state.filtered=applyFilters(state.rows);
+  renderCards("stats",       state.filtered);
+  renderCards("stats-curva", state.filtered);
+  renderRanking(groupRanking(state.filtered,KEY.promotor),"ranking-promotor","Promotor");
+  renderRanking(groupRanking(state.filtered,KEY.liner),   "ranking-liner",   "Liner");
+  renderRanking(groupRanking(state.filtered,KEY.closer),  "ranking-closer",  "Closer");
+  renderRanking(groupRanking(state.filtered,norm(el("profTipo").value)),"profissionais-table","");
+  renderPerfilRenda(state.filtered,"perfil-renda");
+  renderSingle();
+  renderCurva(state.filtered);
+  renderCancelamento(state.filtered);
+  renderEquipes();
+  renderSupervisores();
+  renderComparativo();
+  renderDesafios(false); // desafios respeitam status/UF globais na apuração
+
+  // NOVA ABA: mês/mês depende dos filtros globais
+  renderIndividualMesMes();
+}
+
+/* ═══════════════════════════════════════════════
+   EVENTOS
+═══════════════════════════════════════════════ */
+function setup(){
+  ["statusSelect","profNome","ufSelect","dateStart","dateEnd"].forEach(id=>el(id).addEventListener("change",updateAll));
+  el("profTipo").addEventListener("change",()=>{ updateProfFilters("profTipo","profNome"); updateAll(); });
+
+  el("btnLimparPeriodo").addEventListener("click",()=>{ el("dateStart").value=""; el("dateEnd").value=""; updateAll(); });
+  el("btnHoje").addEventListener("click",()=>{ const n=new Date(),iso=toISO(n); el("dateStart").value=iso; el("dateEnd").value=iso; updateAll(); });
+  el("btn30").addEventListener("click",()=>{ const e=new Date(),s=new Date(e); s.setDate(s.getDate()-29); el("dateStart").value=toISO(s); el("dateEnd").value=toISO(e); updateAll(); });
+
+  ["cmpXStart","cmpXEnd","cmpYStart","cmpYEnd"].forEach(id=>el(id).addEventListener("change",renderComparativo));
+  const setCmp=(pfx,back)=>{ const e=new Date(),s=new Date(e); s.setDate(s.getDate()-(back-1)); el(pfx+"Start").value=toISO(s); el(pfx+"End").value=toISO(e); renderComparativo(); };
+  el("btnCmpXHoje").addEventListener("click",()=>setCmp("cmpX",1));
+  el("btnCmpX30").addEventListener("click",()=>setCmp("cmpX",30));
+  el("btnCmpYHoje").addEventListener("click",()=>setCmp("cmpY",1));
+  el("btnCmpY30").addEventListener("click",()=>setCmp("cmpY",30));
+
+  el("profTipoSingle").addEventListener("change",()=>{ updateProfFilters("profTipoSingle","profNomeSingle"); renderSingle(); });
+  el("profNomeSingle").addEventListener("change",renderSingle);
+
+  /* NOVA ABA: mês/mês */
+  el("mmProfTipo").addEventListener("change", ()=>{
+    updateMMNameSelect();
+    el("mmProfNome").value = "";
+    // mantém meses selecionados, mas re-render
+    renderIndividualMesMes();
+  });
+  el("mmProfNome").addEventListener("change", renderIndividualMesMes);
+
+  el("mmBtnLimpar").addEventListener("click", ()=>{
+    MM.selectedMonths.clear();
+    renderIndividualMesMes();
+  });
+  el("mmBtnTodos").addEventListener("click", ()=>{
+    MM.selectedMonths = new Set(availableMonthsForMM());
+    renderIndividualMesMes();
+  });
+  el("mmBtnUlt3").addEventListener("click", ()=>{
+    const months=availableMonthsForMM();
+    MM.selectedMonths = new Set(months.slice(-3));
+    renderIndividualMesMes();
+  });
+  el("mmBtnUlt6").addEventListener("click", ()=>{
+    const months=availableMonthsForMM();
+    MM.selectedMonths = new Set(months.slice(-6));
+    renderIndividualMesMes();
+  });
+
+  /* equipes */
+  el("btnSalvarEquipe").addEventListener("click",()=>{
+    const p=el("teamPromotorSelect").value,t=el("teamEquipeSelect").value;
+    if(!p) return; const m=loadTeamMap(); m[p]=t; saveTeamMap(m); renderTeamMappingUI(); renderEquipes(); renderSupervisores();
+  });
+  el("btnLimparEquipes").addEventListener("click",()=>{
+    if(!confirm("Limpar todas as marcações?")) return;
+    saveTeamMap({}); renderTeamMappingUI(); renderEquipes(); renderSupervisores();
+  });
+
+  /* supervisores */
+  el("btnSalvarEquipeSup").addEventListener("click",()=>{
+    const p=el("supPromotorSelect").value,t=el("supEquipeSelect").value;
+    if(!p) return; const m=loadTeamMap(); m[p]=t; saveTeamMap(m); renderSupervisores(); renderEquipes(); renderTeamMappingUI();
+  });
+  el("btnLimparEquipesSup").addEventListener("click",()=>{
+    if(!confirm("Limpar todas as marcações de equipe?")) return;
+    saveTeamMap({}); renderSupervisores(); renderEquipes(); renderTeamMappingUI();
+  });
+
+  /* desafios */
+  el("chTeamsCount").addEventListener("change", ()=>{
+    if(currentChallengeId){
+      const arr=loadChallenges();
+      const ch=arr.find(x=>x.id===currentChallengeId);
+      if(ch){
+        ensureTeamsCount(ch, Number(el("chTeamsCount").value)||2);
+        ch.updatedAt = Date.now();
+        saveChallenges(arr);
+      }
+    }
+    renderDesafios(true);
+  });
+  el("chProfTipo").addEventListener("change", ()=>{
+    if(currentChallengeId){
+      const arr=loadChallenges();
+      const ch=arr.find(x=>x.id===currentChallengeId);
+      if(ch){
+        ch.profTipo = norm(el("chProfTipo").value);
+        // ao trocar tipo, limpa membros (para evitar membros inexistentes)
+        ch.teams.forEach(t=>t.members=[]);
+        ch.updatedAt = Date.now();
+        saveChallenges(arr);
+      }
+    }
+    renderDesafios(true);
+  });
+  ["chName","chStart","chEnd","chMetric"].forEach(id=>{
+    el(id).addEventListener("change", ()=>{
+      if(!currentChallengeId) return;
+      const arr=loadChallenges();
+      const ch=arr.find(x=>x.id===currentChallengeId);
+      if(!ch) return;
+      ch.name = (el("chName").value||"").trim();
+      ch.start = el("chStart").value;
+      ch.end = el("chEnd").value;
+      ch.metric = el("chMetric").value;
+      ch.updatedAt = Date.now();
+      saveChallenges(arr);
+      renderDesafios(false);
+    });
+  });
+
+  el("btnChNew").addEventListener("click", ()=>{
+    resetChallengeForm();
+    showChMsg("Pronto: preencha e salve um novo desafio.", "success");
+  });
+
+  el("btnChSave").addEventListener("click", ()=>{
+    const form = readChallengeFromForm();
+
+    if(!form.name){ showChMsg("Informe um nome para o desafio.", "warn"); return; }
+    if(form.start && form.end){
+      const d1=parseDateOnlyInput(form.start), d2=parseDateOnlyInput(form.end);
+      if(d1 && d2 && d2.getTime() < d1.getTime()){ showChMsg("Período inválido: a data final é menor que a inicial.", "warn"); return; }
+    } else {
+      showChMsg("Informe o período (início e fim) do desafio.", "warn"); return;
+    }
+
+    // valida: não permitir equipe vazia? (vou permitir, mas avisar)
+    const emptyTeams = form.teams.filter(t=>(t.members||[]).length===0).length;
+    if(emptyTeams>0){
+      if(!confirm("Existem equipes sem membros. Deseja salvar assim mesmo?")) return;
+    }
+
+    const arr=loadChallenges();
+    let ch=null;
+
+    if(currentChallengeId){
+      ch = arr.find(x=>x.id===currentChallengeId);
+      if(!ch){ currentChallengeId=null; }
+    }
+
+    if(!ch){
+      ch = newChallengeTemplate();
+      ch.id = uid();
+      arr.push(ch);
+      currentChallengeId = ch.id;
+    }
+
+    ch.name = form.name;
+    ch.start = form.start;
+    ch.end = form.end;
+    ch.metric = form.metric;
+    ch.profTipo = form.profTipo;
+    ensureTeamsCount(ch, form.teamsCount);
+    // aplica nomes e membros
+    ch.teams.forEach((t,i)=>{
+      t.name = (form.teams[i]?.name || `Equipe ${i+1}`).trim() || `Equipe ${i+1}`;
+      t.members = (form.teams[i]?.members || []).slice();
+    });
+    ch.updatedAt = Date.now();
+
+    saveChallenges(arr);
+    showChMsg("Desafio salvo.", "success");
+    renderDesafios(true);
+  });
+
+  el("btnChClearAll").addEventListener("click", ()=>{
+    if(!confirm("Apagar TODOS os desafios salvos neste navegador?")) return;
+    saveChallenges([]);
+    resetChallengeForm();
+    renderDesafios();
+  });
+
+  /* tabs */
+  document.querySelectorAll(".tab").forEach(t=>{
+    t.addEventListener("click",()=>{
+      document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+      document.querySelectorAll(".tab-content").forEach(x=>x.classList.remove("active"));
+      t.classList.add("active");
+      el(`tab-${t.dataset.tab}`).classList.add("active");
+      if(["curva","cancelamento"].includes(t.dataset.tab)){
+        setTimeout(()=>{ try{charts.curva?.resize?.();charts.semana?.resize?.();charts.cancelamento?.resize?.();}catch(e){} },80);
+      }
+      if(t.dataset.tab==="desafios"){
+        // garante render atual no abrir
+        renderDesafios(true);
+      }
+      if(t.dataset.tab==="individual-mes-mes"){
+        renderIndividualMesMes();
+      }
+    });
+  });
+}
+
+/* ═══════════════════════════════════════════════
+   INIT — fetch dados.csv
+═══════════════════════════════════════════════ */
+async function init(){
+  try{
+    el("loading").style.display="block";
+    el("error").style.display="none";
+
+    const resp=await fetch("dados.csv",{cache:"no-store"});
+    if(!resp.ok) throw new Error(`HTTP ${resp.status} — verifique se dados.csv está na mesma pasta do index.html`);
+    const text=await resp.text();
+    state.rows=buildObjects(parseDelimited(text,";"));
+
+    updateProfFilters("profTipo","profNome");
+    updateProfFilters("profTipoSingle","profNomeSingle");
+    updateUFFilter();
+    renderTeamMappingUI();
+
+    const e=new Date(),sX=new Date(e); sX.setDate(sX.getDate()-29);
+    const eY=new Date(sX); eY.setDate(eY.getDate()-1);
+    const sY=new Date(eY); sY.setDate(sY.getDate()-29);
+    el("cmpXStart").value=toISO(sX); el("cmpXEnd").value=toISO(e);
+    el("cmpYStart").value=toISO(sY); el("cmpYEnd").value=toISO(eY);
+
+    // init desafios
+    resetChallengeForm(); // prepara editor
+    renderDesafios(true);
+
+    // init nova aba mês/mês
+    updateMMNameSelect();
+    MM.selectedMonths.clear();
+
+    updateAll();
+    el("loading").style.display="none";
+  }catch(e){
+    console.error(e);
+    el("loading").style.display="none";
+    el("error").style.display="block";
+    el("error").textContent=`Erro ao carregar dados: ${e.message}`;
+  }
+}
+
+setup();
+init();
+</script>
+</body>
+</html>
